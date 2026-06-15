@@ -1,0 +1,17 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+app/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+node_modules/
+.kotlin
+# временно
+app/src/main/assets/index-*.js
+app/src/main/assets/index-*.css
+app/src/main/assets/index.html
