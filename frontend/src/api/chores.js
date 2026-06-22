@@ -57,11 +57,11 @@ export async function updateChore(choreId, choreData) {
 /**
  * Create a chore completion for a specific chore
  * @param {string|number} choreId
- * @param {object} completionData - { message }
+ * @param {object} completionData - { message, assigned_to_id, due_date }
  * @returns {Promise<any>}
  */
-export async function createChoreCompletion(choreId, completionData) {
-    return apiFetch(`/api/chores-completions/${choreId}`, {
+export async function createPlannedChore(choreId, completionData) {
+    return apiFetch(`/api/chores/${choreId}/planned`, {
         method: 'POST',
         body: completionData
     });
@@ -69,48 +69,22 @@ export async function createChoreCompletion(choreId, completionData) {
 
 /**
  * Get a list of completed family chores sorted by date
- * @param {object} [filters] - Query parameters { status, chore_id, user_id, offset, limit }
+ * @param {object} [filters] - Query parameters { due_date }
  * @returns {Promise<any>}
  */
-export async function getChoreCompletions(filters = {}) {
-    return apiFetch('/api/chores-completions', {
+export async function getPlannedChore(filters = {}) {
+    return apiFetch('/api/chores/planned', {
         params: filters
     });
 }
 
 /**
- * Retrieve detailed information about a specific chore completion
- * @param {string|number} choreCompletionId
+ * Create a chore completion for a specific chore
+ * @param {string} plannedChoreID
  * @returns {Promise<any>}
  */
-export async function getChoreCompletionDetail(choreCompletionId) {
-    return apiFetch(`/api/chores-completions/${choreCompletionId}`);
-}
-
-// ==========================================
-// 3. CHORE CONFIRMATIONS (ПОДТВЕРЖДЕНИЕ ВЫПОЛНЕНИЯ)
-// ==========================================
-
-/**
- * Get all confirmation objects for chores completed by others and pending user's approval
- * @param {object} [options] - Query parameters { status, offset, limit }
- * @returns {Promise<any>}
- */
-export async function getMyChoreConfirmations(options = {}) {
-    return apiFetch('/api/chores-confirmations', {
-        params: options
-    });
-}
-
-/**
- * Update the status of a chore confirmation (approve or reject)
- * @param {string|number} choreConfirmationId
- * @param {string} status - New status (e.g. from StatusConfirmENUM)
- * @returns {Promise<any>}
- */
-export async function setChoreConfirmationStatus(choreConfirmationId, status) {
-    return apiFetch(`/api/chores-confirmations/${choreConfirmationId}`, {
+export async function completePlannedChore(plannedChoreID) {
+    return apiFetch(`/api/chores/planned/${plannedChoreID}/complete`, {
         method: 'PATCH',
-        body: { status }
     });
 }

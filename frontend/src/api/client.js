@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 
 // Support VITE_API_URL or get/set it dynamically
-let savedUrl = 'http://92.100.39.109:8000';
+let savedUrl = 'http://192.168.0.233:8000';
 try {
     if (typeof localStorage !== 'undefined') {
         savedUrl = localStorage.getItem('api_base_url') || '';
@@ -10,7 +10,7 @@ try {
     console.warn('localStorage not available:', e);
 }
 
-let apiBaseUrl = 'http://92.100.39.109:8000';
+let apiBaseUrl = 'http://192.168.0.233:8000';
 // let apiBaseUrl = savedUrl || (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) || '';
 export function getBaseUrl() {
     return apiBaseUrl;

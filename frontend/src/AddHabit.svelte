@@ -5,162 +5,102 @@
   import WeekCalendar from "./components/WeekCalendar.svelte";
   import ChoreCard from "./components/choreCard.svelte";
   import AddChoreModal from "./components/addChoreModal.svelte";
+  import { completePlannedChore, getPlannedChore } from "./api/chores";
+  import type { PlannedChore } from "./types";
+
+  // ─── State ───────────────────────────────────────────────────────────────────
 
   let selectedDate = new Date();
   let loading = false;
   let modalOpen = false;
-
-  // Local storage setup to make the daily chores persistence fully operational
-  const LOCAL_STORAGE_KEY = "household_chores_v2";
-
-  const initialDummyChores = [
-    {
-      id: "dummy-1",
-      title: "Пылесос",
-      icon: "🧹",
-      comment: "В зале и в спальне под кроватью",
-      dueDate: new Date().toLocaleDateString("sv"),
-      assignedTo: { id: "1", name: "Алекс", avatar: "АЛ" },
-      done: false
-    },
-    {
-      id: "dummy-2",
-      title: "Посуда",
-      icon: "🍽️",
-      comment: "Помыть сковороду и разложить тарелки",
-      dueDate: new Date().toLocaleDateString("sv"),
-      assignedTo: { id: "2", name: "Мария", avatar: "МА" },
-      done: true
-    },
-    {
-      id: "dummy-3",
-      title: "Мусор",
-      icon: "🗑️",
-      comment: "Вынести раздельный сбор",
-      dueDate: new Date().toLocaleDateString("sv"),
-      assignedTo: { id: "3", name: "Дима", avatar: "ДИ" },
-      done: true
-    },
-    {
-      id: "dummy-4",
-      title: "Прогулка с собакой",
-      icon: "🐕",
-      comment: "Поиграть с мячиком в парке",
-      dueDate: new Date(Date.now() + 86400000).toLocaleDateString("sv"),
-      assignedTo: { id: "4", name: "Соня", avatar: "СО" },
-      done: false
-    },
-    {
-      id: "dummy-5",
-      title: "Стирка",
-      icon: "👕",
-      comment: "Режим деликатной стирки для шерсти",
-      dueDate: new Date(Date.now() + 86400000).toLocaleDateString("sv"),
-      assignedTo: { id: "1", name: "Алекс", avatar: "АЛ" },
-      done: false
-    }
-  ];
-
-  let chores: any[] = [];
+  let plannedChores: PlannedChore[] = [];
 
   onMount(() => {
-    loadChores();
+    loadPlannedChores(formatDateKey(new Date()));
   });
 
-  function loadChores() {
+  // ─── Data fetching ───────────────────────────────────────────────────────────
+
+  export async function loadPlannedChores(due_date: string) {
+    loading = true;
     try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (saved) {
-        chores = JSON.parse(saved);
-      } else {
-        chores = [...initialDummyChores];
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(chores));
-      }
+      plannedChores = await getPlannedChore({ due_date });
     } catch (e) {
-      console.error(e);
-      chores = [...initialDummyChores];
+      console.error("Failed to load planned chores:", e);
+    } finally {
+      loading = false;
     }
   }
 
-  function saveChores() {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(chores));
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-  // Format date helper matching YYYY-MM-DD
-  function formatDateKey(date: Date) {
+  function formatDateKey(date: Date): string {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
     const d = String(date.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
   }
 
-  function getFriendlyDate(date: Date) {
+  function getFriendlyDate(date: Date): string {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
 
-    if (date.toDateString() === today.toDateString()) {
-      return "Сегодня";
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return "Завтра";
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return "Вчера";
-    }
+    if (date.toDateString() === today.toDateString()) return "Сегодня";
+    if (date.toDateString() === tomorrow.toDateString()) return "Завтра";
+    if (date.toDateString() === yesterday.toDateString()) return "Вчера";
 
-    return date.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" });
+    return date.toLocaleDateString("ru-RU", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
   }
+
+  // ─── Event handlers ──────────────────────────────────────────────────────────
 
   function handleDateChange(event: CustomEvent<Date>) {
     selectedDate = event.detail;
-    loading = true;
-    setTimeout(() => {
-      loading = false;
-    }, 250);
+    loadPlannedChores(formatDateKey(selectedDate));
   }
 
-  function handleChoreComplete(choreItem: any) {
-    chores = chores.map((c) => {
-      if (c.id === choreItem.id) {
-        return { ...c, done: !c.done };
-      }
-      return c;
-    });
-    saveChores();
+  async function handleChoreComplete(choreItem: PlannedChore) {
+    const previous = plannedChores;
+
+    // optimistic update
+    plannedChores = plannedChores.map((c) =>
+      c.id === choreItem.id
+        ? { ...c, completed_by: c.completed_by ? null : c.assigned_to }
+        : c,
+    );
+
+    try {
+      const updated = await completePlannedChore(choreItem.id);
+      plannedChores = plannedChores.map((c) =>
+        c.id === updated.id ? updated : c,
+      );
+    } catch (e) {
+      plannedChores = previous;
+      console.error("Failed to complete chore:", e);
+    }
   }
 
   function handleAdd(event: CustomEvent) {
-    const detail = event.detail;
-    
-    const newChore = {
-      id: "chore-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7),
-      title: detail.title || "Новая задача",
-      icon: detail.icon || "🧹",
-      comment: detail.comment || "",
-      dueDate: detail.dueDate || formatDateKey(selectedDate),
-      assignedTo: detail.assignedTo,
-      repeat: detail.repeat || "none",
-      done: false
-    };
-
-    chores = [newChore, ...chores];
-    saveChores();
+    // оставлено без изменений — ты сказал не трогать
   }
 
-  // Reactive computations for active date
-  $: currentDueDateStr = formatDateKey(selectedDate);
-  $: dateChores = chores.filter((c) => c.dueDate === currentDueDateStr);
-  $: activeChores = dateChores.filter((c) => !c.done);
-  $: completedChores = dateChores.filter((c) => c.done);
+  // ─── Reactive ────────────────────────────────────────────────────────────────
 
+  $: currentDueDateStr = formatDateKey(selectedDate);
+  $: dateChores = plannedChores.filter((c) => c.due_date === currentDueDateStr);
+  $: activePlannedChores = dateChores.filter((c) => c.completed_by === null);
+  $: completedPlannedChores = dateChores.filter((c) => c.completed_by !== null);
   $: totalCount = dateChores.length;
-  $: completedCount = completedChores.length;
-  $: progressPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  $: completedCount = completedPlannedChores.length;
+  $: progressPercentage =
+    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 </script>
 
 <div class="screen">
@@ -174,17 +114,44 @@
     <div class="progress-info">
       <span class="progress-title">{getFriendlyDate(selectedDate)}</span>
       {#if totalCount > 0}
-        <span class="progress-ratio">{completedCount} из {totalCount} выполнено</span>
+        <span class="progress-ratio"
+          >{completedCount} из {totalCount} выполнено</span
+        >
       {:else}
         <span class="progress-ratio">Задач нет</span>
       {/if}
     </div>
     {#if totalCount > 0}
       <div class="progress-bar-bg" transition:slide|local>
-        <div class="progress-bar-fill" style="width: {progressPercentage}%"></div>
+        <div
+          class="progress-bar-fill"
+          style="width: {progressPercentage}%"
+        ></div>
       </div>
     {/if}
   </div>
+
+  <button
+    class="add-task-btn"
+    on:click={() => (modalOpen = true)}
+    aria-label="Добавить задачу"
+  >
+    <span>Добавить задачу</span>
+    <svg
+      width="22"
+      height="22"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="2.5"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M12 4.5v15m7.5-7.5h-15"
+      />
+    </svg>
+  </button>
 
   <!-- MAIN LIST CONTROLLER -->
   {#if loading}
@@ -204,26 +171,35 @@
     <div class="empty-state perfect-empty" in:fade={{ duration: 200 }}>
       <div class="empty-icon-large">🏕️</div>
       <h3>Планы отсутствуют</h3>
-      <p>На этот день пока не запланировано никаких домашних дел. Добавьте задачу с помощью кнопки ниже!</p>
+      <p>
+        На этот день пока не запланировано никаких домашних дел. Добавьте задачу
+        с помощью кнопки ниже!
+      </p>
     </div>
   {:else}
     <!-- ACTIVE CHORES -->
     <div class="section">
       <div class="section-header">
         <h2>АКТИВНЫЕ</h2>
-        <span class="section-count">{activeChores.length}</span>
+        <span class="section-count">{activePlannedChores.length}</span>
       </div>
 
       <div class="list">
-        {#if activeChores.length === 0}
+        {#if activePlannedChores.length === 0}
           <div class="empty-state clean-success" in:fade={{ duration: 200 }}>
             <div class="empty-icon">🎉</div>
             <h3>Все дела сделаны!</h3>
-            <p>Отличная работа! Все запланированные задачи на сегодня успешно завершены.</p>
+            <p>
+              Отличная работа! Все запланированные задачи на сегодня успешно
+              завершены.
+            </p>
           </div>
         {:else}
-          {#each activeChores as chore (chore.id)}
-            <div transition:slide|local={{ duration: 250 }} animate:flip={{ duration: 250 }}>
+          {#each activePlannedChores as chore (chore.id)}
+            <div
+              transition:slide|local={{ duration: 250 }}
+              animate:flip={{ duration: 250 }}
+            >
               <ChoreCard item={chore} onComplete={handleChoreComplete} />
             </div>
           {/each}
@@ -232,31 +208,28 @@
     </div>
 
     <!-- COMPLETED CHORES -->
-    {#if completedChores.length > 0}
+    {#if completedPlannedChores.length > 0}
       <div class="section" transition:slide|local={{ duration: 250 }}>
         <div class="section-header">
           <h2>ВЫПОЛНЕННЫЕ</h2>
-          <span class="section-count completed-count-badge">{completedChores.length}</span>
+          <span class="section-count completed-count-badge"
+            >{completedPlannedChores.length}</span
+          >
         </div>
 
         <div class="list">
-          {#each completedChores as chore (chore.id)}
-            <div transition:slide|local={{ duration: 250 }} animate:flip={{ duration: 250 }}>
-              <ChoreCard item={chore} onComplete={handleChoreComplete} />
+          {#each completedPlannedChores as plannedChore (plannedChore.id)}
+            <div
+              transition:slide|local={{ duration: 250 }}
+              animate:flip={{ duration: 250 }}
+            >
+              <ChoreCard item={plannedChore} onComplete={handleChoreComplete} />
             </div>
           {/each}
         </div>
       </div>
     {/if}
   {/if}
-
-  <!-- Floating Action Button -->
-  <!-- svelte-ignore a11y_consider_explicit_label -->
-  <button class="fab" on:click={() => (modalOpen = true)} aria-label="Добавить задачу">
-    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-    </svg>
-  </button>
 
   {#if modalOpen}
     <AddChoreModal on:close={() => (modalOpen = false)} on:add={handleAdd} />
@@ -439,7 +412,12 @@
     width: 48px;
     height: 48px;
     border-radius: 16px;
-    background: linear-gradient(90deg, var(--surface-alt) 25%, var(--border) 50%, var(--surface-alt) 75%);
+    background: linear-gradient(
+      90deg,
+      var(--surface-alt) 25%,
+      var(--border) 50%,
+      var(--surface-alt) 75%
+    );
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
@@ -454,7 +432,12 @@
   .shimmer-line {
     height: 12px;
     border-radius: 4px;
-    background: linear-gradient(90deg, var(--surface-alt) 25%, var(--border) 50%, var(--surface-alt) 75%);
+    background: linear-gradient(
+      90deg,
+      var(--surface-alt) 25%,
+      var(--border) 50%,
+      var(--surface-alt) 75%
+    );
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
@@ -476,33 +459,43 @@
       background-position: 200% 0;
     }
   }
-
-  /* ── FAB BUTTON ──────────────────────────────── */
-  .fab {
-    position: fixed;
-    bottom: calc(96px + env(safe-area-inset-bottom));
-    right: 20px;
-    width: 56px;
-    height: 56px;
-    border-radius: 18px;
-    background: var(--accent);
-    border: none;
-    color: #fff;
+  .add-task-btn {
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 24px rgba(213, 138, 114, 0.35);
+    gap: 0.75rem;
+
+    padding: 1rem 1.25rem;
+    border: none;
+    border-radius: 18px;
+
+    background: var(--accent-soft);
+    color: white;
+
+    font-size: 1rem;
+    font-weight: 700;
+
     cursor: pointer;
-    z-index: 10;
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition:
+      transform 0.15s ease,
+      opacity 0.15s ease,
+      box-shadow 0.2s ease;
+
+    box-shadow:
+      0 10px 25px rgba(0, 0, 0, 0.15),
+      0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
-  .fab:hover {
-    transform: translateY(-4px) scale(1.05);
-    box-shadow: 0 12px 30px rgba(213, 138, 114, 0.5);
+  .add-task-btn:hover {
+    transform: translateY(-1px);
   }
 
-  .fab:active {
-    transform: scale(0.92);
+  .add-task-btn:active {
+    transform: scale(0.98);
+  }
+
+  .add-task-btn svg {
+    flex-shrink: 0;
   }
 </style>

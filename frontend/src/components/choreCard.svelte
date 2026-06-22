@@ -1,29 +1,22 @@
 <script lang="ts">
-  export let item: any = {
-    message: "Buy groceries before evening",
-    chore: {
-      name: "Buy groceries",
-      icon: "🛒",
-    },
-    assigned_by: {
-      name: "Alex",
-      surname: "Johnson",
-    },
-  };
+  import type { PlannedChore } from "../types";
 
-  export let onComplete: (item: any) => void;
+  export let item: PlannedChore;
+  export let onComplete: (item: PlannedChore) => void;
+  console.log(item);
 
-  // Robust parsing to handle various object formats gracefully
-  $: id = item.id;
-  $: title = item.title || item.chore?.name || "Без названия";
-  $: icon = item.icon || item.chore?.icon || "🧹";
-  $: comment = item.comment || item.message || "";
-  $: done = item.done || false;
-  
-  $: assignee = item.assignedTo || (item.assigned_by ? { 
-    name: item.assigned_by.name, 
-    avatar: (item.assigned_by.name?.[0] || "") + (item.assigned_by.surname?.[0] || "") 
-  } : null);
+  $: done = item.completed_by !== null;
+  $: title = item.chore.name;
+  $: icon = item.chore.icon || "🧹";
+  $: comment = item.message;
+  $: assignee = item.assigned_to;
+  $: assigneeLetters = assignee
+    ? (assignee.name?.[0] ?? "") + (assignee.surname?.[0] ?? "")
+    : "?";
+  $: completer = item.completed_by;
+  $: completerLetters = completer
+    ? (completer.name?.[0] ?? "") + (completer.surname?.[0] ?? "")
+    : "?";
 
   function handleComplete() {
     onComplete?.(item);
@@ -31,14 +24,10 @@
 </script>
 
 <div class="card" class:card-done={done}>
-  <!-- Left Side: Chore Icon with premium ambient background -->
   <div class="icon-wrapper">
-    <div class="icon-inner">
-      {icon}
-    </div>
+    <div class="icon-inner">{icon}</div>
   </div>
 
-  <!-- Middle Section: Main Content with beautiful typography -->
   <div class="content">
     <div class="title" class:completed-text={done}>{title}</div>
     {#if comment}
@@ -47,27 +36,45 @@
 
     {#if assignee}
       <div class="assignee-badge">
-        <div class="avatar">{assignee.avatar || assignee.name?.[0] || "👤"}</div>
-        <span class="name">{assignee.name}</span>
+        <div class="avatar">{assigneeLetters}</div>
+        <span class="name">
+          Назначено: {assignee.name}
+        </span>
+      </div>
+    {/if}
+    {#if completer}
+      <div class="completed-badge">
+        <div class="avatar completed-avatar">
+          {completerLetters}
+        </div>
+
+        <span class="name">
+          Выполнил: {completer.name}
+        </span>
       </div>
     {/if}
   </div>
 
-  <!-- Right Side: Circular checkbox with haptic pop-in checkmark -->
   <div class="right">
-    <button 
-      class="check" 
-      class:checked={done} 
-      on:click|stopPropagation={handleComplete} 
+    <button
+      class="check"
+      class:checked={done}
+      on:click|stopPropagation={handleComplete}
       aria-label="Завершить задачу"
     >
       {#if done}
-        <svg class="check-icon" width="12" height="10" viewBox="0 0 12 10" fill="none">
-          <path 
-            d="M1.5 5L4.5 8L10.5 2" 
-            stroke="currentColor" 
-            stroke-width="2.5" 
-            stroke-linecap="round" 
+        <svg
+          class="check-icon"
+          width="12"
+          height="10"
+          viewBox="0 0 12 10"
+          fill="none"
+        >
+          <path
+            d="M1.5 5L4.5 8L10.5 2"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
             stroke-linejoin="round"
           />
         </svg>
@@ -210,6 +217,23 @@
     font-size: 11px;
     font-weight: 600;
     color: var(--text-secondary);
+  }
+
+  .completed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    align-self: flex-start;
+    margin-top: 4px;
+
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+
+  .completed-avatar {
+    background: var(--success);
   }
 
   /* ── CHECK BUTTON ───────────────────────────── */

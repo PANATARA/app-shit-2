@@ -13,7 +13,7 @@
   import { getProfile } from "./api/me.js";
 
   let isAuthed = false;
-  let isInFamily = true;
+  let isInFamily = false;
   let checkingAuth = true;
 
   let activeTab = "habits";

@@ -1,0 +1,44 @@
+export interface UserShort {
+    id: string;
+    username: string;
+    name: string;
+    surname: string;
+    avatar_version: number;
+}
+
+export interface ChoreShort {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    valuation: number;
+}
+
+export interface PlannedChore {
+    id: string;
+    chore: ChoreShort;
+    completed_by: UserShort | null;
+    assigned_to: UserShort | null;
+    due_date: string;
+    status: string;
+    message: string;
+}
+
+export interface ChoreCompletionStat {
+    chore_id: string;
+    chores_completions_counts: number;
+}
+
+export interface StatFilters {
+    start_date?: string; // "YYYY-MM-DD"
+    end_date?: string;
+}
+
+export interface ChoreItem {
+    id: string;
+    name: string;
+    icon: string;
+    description: string;
+    valuation: number;
+    usageCount: number;
+}

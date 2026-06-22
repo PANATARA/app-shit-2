@@ -1,38 +1,40 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { createEventDispatcher } from "svelte";
   import { fade, slide, scale } from "svelte/transition";
-  import Block from "./components/block.svelte";
   import BackButton from "./components/backbtn.svelte";
+  import { createFamily } from "./api/family";
 
   const dispatch = createEventDispatcher();
 
-  // Экраны: 'welcome' → 'choose' → 'create' | 'join'
-  type Screen = "welcome" | "choose" | "create" | "join";
-  let screen: Screen = "welcome";
+  // ─── Types ───────────────────────────────────────────────────────────────────
 
-  let createStep: 1 | 2 = 1;
-  let familyName = "";
-  let avatarType: "preset" | "upload" = "preset";
-  let selectedPresetIndex = 0;
-  let customAvatarFile: File | null = null;
-  let customAvatarUrl: string | null = null;
+  type JoinMethod = "code";
+  type CreateOrJoin = "create" | "join";
 
-  let joinMethod: "code" | "qr" = "code";
-  let codeInputRaw = "";
-  let qrScanning = false;
-
-  let isLoading = false;
-  let loadingText = "";
-  let isSuccess = false;
-  let successData: {
+  type SuccessData = {
     name: string;
     type: "created" | "joined";
     avatar?: string;
     avatarBg?: string;
-  } | null = null;
-  let errorMessage = "";
+  };
 
-  const presets = [
+  type Preset = {
+    bg: string;
+    icon: string;
+    name: string;
+  };
+
+  // ─── Constants ───────────────────────────────────────────────────────────────
+
+  const SLIDES = {
+    welcome: 0,
+    choose: 1,
+    createOrJoin: 2,
+    createStep2: 3,
+  } as const;
+
+  const PRESETS: Preset[] = [
     {
       bg: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)",
       icon: "🏠",
@@ -65,10 +67,91 @@
     },
   ];
 
-  function goTo(s: Screen) {
+  const DEFAULT_AVATAR_BG = "linear-gradient(135deg, #413a34 0%, #2b2622 100%)";
+
+  // ─── State ───────────────────────────────────────────────────────────────────
+
+  let slideIndex = 0;
+  let createOrJoin: CreateOrJoin = "create";
+  let joinMethod: JoinMethod = "code";
+
+  let familyName = "";
+  let avatarType: "preset" | "upload" = "preset";
+  let selectedPresetIndex = 0;
+  let customAvatarFile: File | null = null;
+  let customAvatarUrl: string | null = null;
+  let fileInputEl: HTMLInputElement;
+
+  let codeInputRaw = "";
+
+  let isLoading = false;
+  let loadingText = "";
+  let isSuccess = false;
+  let successData: SuccessData | null = null;
+  let errorMessage = "";
+
+  // ─── Navigation ──────────────────────────────────────────────────────────────
+
+  function goTo(slide: number) {
     errorMessage = "";
-    screen = s;
+    slideIndex = slide;
   }
+
+  function handleChoose(type: CreateOrJoin) {
+    createOrJoin = type;
+    goTo(SLIDES.createOrJoin);
+  }
+
+  function handleProceedToApp() {
+    dispatch("success", { family: successData });
+  }
+
+  // ─── Avatar ──────────────────────────────────────────────────────────────────
+
+  // function triggerFileUpload() {
+  //   fileInputEl.click();
+  // }
+
+  function triggerFileUpload() {
+    (window as any).AndroidBridge?.openImagePicker();
+  }
+
+  onMount(() => {
+    (window as any).onImagePicked = (dataUrl: string) => {
+      customAvatarUrl = dataUrl;
+      customAvatarFile = new File([], "photo.jpg", { type: "image/jpeg" });
+      avatarType = "upload";
+    };
+  });
+
+  function handleFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    customAvatarFile = file;
+    avatarType = "upload";
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      customAvatarUrl = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function getAvatarValue(): string {
+    return avatarType === "preset"
+      ? PRESETS[selectedPresetIndex].icon
+      : (customAvatarUrl ?? "🏠");
+  }
+
+  function getAvatarBg(): string {
+    return avatarType === "preset"
+      ? PRESETS[selectedPresetIndex].bg
+      : DEFAULT_AVATAR_BG;
+  }
+
+  // ─── Create family ───────────────────────────────────────────────────────────
 
   function handleNextStep() {
     if (!familyName.trim()) {
@@ -76,53 +159,24 @@
       return;
     }
     errorMessage = "";
-    createStep = 2;
-  }
-
-  function handlePrevStep() {
-    errorMessage = "";
-    createStep = 1;
-  }
-
-  let fileInputEl: HTMLInputElement;
-
-  function triggerFileUpload() {
-    fileInputEl.click();
-  }
-
-  function handleFileChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files?.[0]) {
-      const file = input.files[0];
-      customAvatarFile = file;
-      avatarType = "upload";
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        customAvatarUrl = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
-    }
+    goTo(SLIDES.createStep2);
   }
 
   async function handleFinishCreate() {
     isLoading = true;
     loadingText = "Регистрация семейного пространства...";
     errorMessage = "";
+
     try {
-      await new Promise((r) => setTimeout(r, 1800));
-      const avatarValue =
-        avatarType === "preset"
-          ? presets[selectedPresetIndex].icon
-          : customAvatarUrl || "🏠";
-      const avatarBg =
-        avatarType === "preset"
-          ? presets[selectedPresetIndex].bg
-          : "linear-gradient(135deg, #413a34 0%, #2b2622 100%)";
+      successData = await createFamily({
+        name: familyName,
+        icon: "icon",
+      });
       successData = {
         name: familyName,
         type: "created",
-        avatar: avatarValue,
-        avatarBg,
+        avatar: getAvatarValue(),
+        avatarBg: getAvatarBg(),
       };
       isSuccess = true;
     } catch {
@@ -132,12 +186,14 @@
     }
   }
 
-  function formatCodeInput(value: string) {
-    let clean = value
+  // ─── Join family ─────────────────────────────────────────────────────────────
+
+  function formatCodeInput(value: string): string {
+    const clean = value
       .replace(/[^a-zA-Z0-9]/g, "")
       .toUpperCase()
       .slice(0, 6);
-    return clean.length > 3 ? clean.slice(0, 3) + "-" + clean.slice(3) : clean;
+    return clean.length > 3 ? `${clean.slice(0, 3)}-${clean.slice(3)}` : clean;
   }
 
   function handleCodeInput(event: Event) {
@@ -152,9 +208,11 @@
       errorMessage = "Введите полный 6-значный код (например, ABC-123)";
       return;
     }
+
     isLoading = true;
     loadingText = "Поиск семейного круга по коду...";
     errorMessage = "";
+
     try {
       await new Promise((r) => setTimeout(r, 2000));
       successData = {
@@ -169,27 +227,6 @@
     } finally {
       isLoading = false;
     }
-  }
-
-  async function simulateQRScan() {
-    isLoading = true;
-    loadingText = "Считывание QR-кода...";
-    await new Promise((r) => setTimeout(r, 1500));
-    qrScanning = false;
-    loadingText = "Подключение к найденной семье...";
-    await new Promise((r) => setTimeout(r, 1500));
-    successData = {
-      name: "Лига Активных Ворчунов",
-      type: "joined",
-      avatar: "🦊",
-      avatarBg: "linear-gradient(135deg, #f68084 0%, #a14b5f 100%)",
-    };
-    isSuccess = true;
-    isLoading = false;
-  }
-
-  function handleProceedToApp() {
-    dispatch("success", { family: successData });
   }
 </script>
 
@@ -234,33 +271,6 @@
       </div>
     </div>
 
-    <!-- QR SCANNER -->
-  {:else if qrScanning}
-    <div class="qr-scanner-overlay" in:fade={{ duration: 300 }}>
-      <div class="qr-header">
-        <h3>Сканирование QR</h3>
-        <p>Наведите камеру на QR-код на экране устройства члена семьи</p>
-      </div>
-      <div class="viewfinder-container">
-        <div class="viewfinder">
-          <div class="scanner-laser"></div>
-          <div class="corner-marker tl"></div>
-          <div class="corner-marker tr"></div>
-          <div class="corner-marker bl"></div>
-          <div class="corner-marker br"></div>
-        </div>
-        <p class="scan-status">Поиск QR-кода...</p>
-      </div>
-      <div class="qr-footer-actions">
-        <button class="btn-tab ghost" on:click={() => (qrScanning = false)}
-          >Отмена</button
-        >
-        <button class="btn-action primary-glow" on:click={simulateQRScan}
-          >✨ Имитировать скан</button
-        >
-      </div>
-    </div>
-
     <!-- LOADER -->
   {:else if isLoading}
     <div class="loader-container" in:fade={{ duration: 250 }}>
@@ -280,10 +290,13 @@
 
     <!-- ОСНОВНОЙ КОНТЕНТ -->
   {:else}
-    <div class="content-wrapper">
-      <!-- ЭКРАН 1: WELCOME — только кнопка "Продолжить" -->
-      {#if screen === "welcome"}
-        <Block>
+    <div class="wizard-carousel">
+      <div
+        class="wizard-panes"
+        style="transform: translateX(-{slideIndex * 25}%)"
+      >
+        <!-- 0: WELCOME -->
+        <div class="wizard-pane">
           <div class="first-info">
             <div class="icon-wrap">🏠</div>
             <h2 class="title">Семейный круг</h2>
@@ -298,229 +311,186 @@
             </div>
             <button
               class="btn-action primary-glow"
-              on:click={() => goTo("choose")}
+              on:click={() => goTo(SLIDES.choose)}
             >
               Продолжить →
             </button>
           </div>
-        </Block>
+        </div>
 
-        <!-- ЭКРАН 2: CHOOSE — создать или присоединиться -->
-      {:else if screen === "choose"}
-        <Block>
+        <!-- 1: CHOOSE -->
+        <div class="wizard-pane">
           <div class="choose-options">
-            <button class="choose-card" on:click={() => goTo("create")}>
+            <button class="choose-card" on:click={() => handleChoose("create")}>
               <span class="choose-icon">🆕</span>
               <strong>Создать семью</strong>
               <p>Я создаю новое семейное пространство и приглашу близких</p>
             </button>
-            <button class="choose-card" on:click={() => goTo("join")}>
+            <button class="choose-card" on:click={() => handleChoose("join")}>
               <span class="choose-icon">🤝</span>
               <strong>Присоединиться</strong>
-              <p>У меня есть код приглашения или QR-код от члена семьи</p>
+              <p>У меня есть код приглашения от члена семьи</p>
             </button>
-          </div>
-        </Block>
-
-        <!-- ЭКРАН 3A: CREATE -->
-      {:else if screen === "create"}
-        <div class="form-card" in:fade={{ duration: 200 }}>
-          {#if errorMessage}
-            <div class="error-toast" transition:slide={{ duration: 200 }}>
-              <span>⚠️</span>
-              {errorMessage}
-            </div>
-          {/if}
-
-          <div class="wizard-carousel">
-            <div class="wizard-panes" class:step-two-active={createStep === 2}>
-              <!-- ШАГ 1 -->
-              <div class="wizard-pane">
-                <div class="form-section">
-                  <h3>Как назовём вашу семью?</h3>
-                  <p class="step-desc">
-                    Это название будут видеть все участники круга.
-                  </p>
-                  <div class="input-container">
-                    <span class="input-icon-left">🏡</span>
-                    <input
-                      type="text"
-                      placeholder="Например: Супер Семейка"
-                      bind:value={familyName}
-                      class="custom-input"
-                      maxlength="36"
-                    />
-                    {#if familyName}
-                      <button
-                        class="clear-btn"
-                        on:click={() => (familyName = "")}>×</button
-                      >
-                    {/if}
-                  </div>
-                  <div class="form-tips">
-                    <span class="tip-dot">•</span>
-                    <p>Позже название можно изменить в настройках.</p>
-                  </div>
-                  <button
-                    class="btn-action primary-glow"
-                    on:click={handleNextStep}>Продолжить →</button
-                  >
-                  <BackButton on:click={() => goTo("choose")} />
-                </div>
-              </div>
-
-              <!-- ШАГ 2 -->
-              <div class="wizard-pane">
-                <div class="form-section">
-                  <h3>Установите семейный аватар</h3>
-                  <div class="avatar-preview-area">
-                    <div
-                      class="avatar-circle-large"
-                      style="background: {avatarType === 'preset'
-                        ? presets[selectedPresetIndex].bg
-                        : 'transparent'}"
-                      class:custom-uploaded={avatarType === "upload"}
-                    >
-                      {#if avatarType === "upload" && customAvatarUrl}
-                        <img
-                          src={customAvatarUrl}
-                          alt="Custom family avatar"
-                          class="custom-avatar-img"
-                          in:fade
-                        />
-                      {:else}
-                        <span class="avatar-emoji-large">👥</span>
-                      {/if}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        bind:this={fileInputEl}
-                        on:change={handleFileChange}
-                        class="hidden-file-input"
-                      />
-                    </div>
-                  </div>
-
-                  <div class="uploaded-info" in:fade={{ duration: 200 }}>
-                    {#if customAvatarFile}
-                      <p class="file-name-label">
-                        📁 {customAvatarFile.name}
-                      </p>
-                      <button
-                        class="btn-text-danger"
-                        on:click={() => {
-                          customAvatarFile = null;
-                          customAvatarUrl = null;
-                          avatarType = "preset";
-                        }}>Удалить фото</button
-                      >
-                    {:else}
-                      <button
-                        class="btn-upload-placeholder"
-                        on:click={triggerFileUpload}
-                      >
-                        <span class="placeholder-plus">+</span> Выбрать изображение
-                        с устройства
-                      </button>
-                    {/if}
-                  </div>
-
-                  <div class="wizard-actions-row">
-                    <BackButton on:click={handlePrevStep} />
-                    <button
-                      class="btn-action primary-glow"
-                      on:click={handleFinishCreate}>Создать семью ✨</button
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
+            <BackButton on:click={() => goTo(SLIDES.welcome)} />
           </div>
         </div>
 
-        <!-- ЭКРАН 3B: JOIN -->
-      {:else if screen === "join"}
-        <div class="form-card" in:fade={{ duration: 200 }}>
-          <div class="join-tabs">
-            <button
-              class="join-tab"
-              class:active={joinMethod === "code"}
-              on:click={() => (joinMethod = "code")}>🔢 Секретный код</button
-            >
-            <button
-              class="join-tab"
-              class:active={joinMethod === "qr"}
-              on:click={() => (joinMethod = "qr")}>📷 QR-код</button
-            >
-          </div>
-
-          {#if errorMessage}
-            <div class="error-toast" transition:slide={{ duration: 200 }}>
-              <span>⚠️</span>
-              {errorMessage}
-            </div>
-          {/if}
-
-          {#if joinMethod === "code"}
-            <div class="join-form-pane" in:fade={{ duration: 200 }}>
-              <p class="join-hint-text">
-                Введите 6-значный пригласительный код вашей семьи.
-              </p>
-              <div class="code-entry-box">
-                <label for="invite-code-input" class="code-input-label"
-                  >Пригласительный код</label
+        <!-- 2: CREATE (шаг 1) или JOIN -->
+        <div class="wizard-pane">
+          {#if createOrJoin === "create"}
+            <div class="form-card">
+              {#if errorMessage}
+                <div class="error-toast" transition:slide={{ duration: 200 }}>
+                  <span>⚠️</span>{errorMessage}
+                </div>
+              {/if}
+              <div class="form-section">
+                <h3>Как назовём вашу семью?</h3>
+                <p class="step-desc">
+                  Это название будут видеть все участники круга.
+                </p>
+                <div class="input-container">
+                  <span class="input-icon-left">🏡</span>
+                  <input
+                    type="text"
+                    placeholder="Например: Супер Семейка"
+                    bind:value={familyName}
+                    class="custom-input"
+                    maxlength="36"
+                  />
+                  {#if familyName}
+                    <button class="clear-btn" on:click={() => (familyName = "")}
+                      >×</button
+                    >
+                  {/if}
+                </div>
+                <div class="form-tips">
+                  <span class="tip-dot">•</span>
+                  <p>Позже название можно изменить в настройках.</p>
+                </div>
+                <button
+                  class="btn-action primary-glow"
+                  on:click={handleNextStep}
                 >
-                <input
-                  id="invite-code-input"
-                  type="text"
-                  placeholder="AAA-000"
-                  value={codeInputRaw}
-                  on:input={handleCodeInput}
-                  class="monospaced-code-input"
-                  autocomplete="off"
-                  autocapitalize="characters"
-                  spellcheck="false"
-                />
-                <span class="code-subtext"
-                  >Формат: три символа, дефис, три символа</span
-                >
+                  Продолжить →
+                </button>
+                <BackButton on:click={() => goTo(SLIDES.choose)} />
               </div>
-              <button
-                class="btn-action primary-glow"
-                on:click={handleJoinByCode}>Присоединиться →</button
-              >
             </div>
           {:else}
-            <div class="join-form-pane" in:fade={{ duration: 200 }}>
-              <p class="join-hint-text">
-                Попросите администратора семьи открыть экран «Пригласить
-                участника» и отсканируйте QR-код.
-              </p>
-              <div class="qr-preview-box">
-                <div class="dummy-qr-border">
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="80"
-                    height="80"
-                    fill="var(--text-secondary)"
-                  >
-                    <path
-                      d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-2zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm13-2h3v2h-3v-2zm-3 3h2v2h-2v-2zm3 3h2v2h-2v-2zm-3-3h2v2h-2v-2zm3 3h2v2h-2v-2zm-3-6h2v2h-2V7zm3 3h2v2h-2v-2zm-3 3h2v2h-2v-2zm3 3h2v2h-2v-2z"
-                    />
-                  </svg>
+            <div class="form-card">
+              {#if errorMessage}
+                <div class="error-toast" transition:slide={{ duration: 200 }}>
+                  <span>⚠️</span>{errorMessage}
                 </div>
+              {/if}
+
+              <div class="join-form-pane" in:fade={{ duration: 200 }}>
+                <p class="join-hint-text">
+                  Введите 6-значный пригласительный код вашей семьи.
+                </p>
+                <div class="code-entry-box">
+                  <label for="invite-code-input" class="code-input-label">
+                    Пригласительный код
+                  </label>
+                  <input
+                    id="invite-code-input"
+                    type="text"
+                    placeholder="AAA-000"
+                    value={codeInputRaw}
+                    on:input={handleCodeInput}
+                    class="monospaced-code-input"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    spellcheck="false"
+                  />
+                  <span class="code-subtext"
+                    >Формат: три символа, дефис, три символа</span
+                  >
+                </div>
+                <button
+                  class="btn-action primary-glow"
+                  on:click={handleJoinByCode}
+                >
+                  Присоединиться →
+                </button>
               </div>
-              <button
-                class="btn-action primary-glow"
-                on:click={() => (qrScanning = true)}
-                >📷 Открыть сканер камеры</button
-              >
+              <BackButton
+                label="К выбору"
+                on:click={() => goTo(SLIDES.choose)}
+              />
             </div>
           {/if}
-
-          <BackButton label="К выбору" on:click={() => goTo("choose")} />
         </div>
-      {/if}
+
+        <!-- 3: CREATE шаг 2 (аватар) -->
+        <div class="wizard-pane">
+          <div class="form-card">
+            <div class="form-section">
+              <h3>Установите семейный аватар</h3>
+              <div class="avatar-preview-area">
+                <div
+                  class="avatar-circle-large"
+                  style="background: {avatarType === 'preset'
+                    ? PRESETS[selectedPresetIndex].bg
+                    : 'transparent'}"
+                  class:custom-uploaded={avatarType === "upload"}
+                >
+                  {#if avatarType === "upload" && customAvatarUrl}
+                    <img
+                      src={customAvatarUrl}
+                      alt="Custom family avatar"
+                      class="custom-avatar-img"
+                      in:fade
+                    />
+                  {:else}
+                    <span class="avatar-emoji-large">👥</span>
+                  {/if}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    bind:this={fileInputEl}
+                    on:change={handleFileChange}
+                    class="hidden-file-input"
+                  />
+                </div>
+              </div>
+
+              <div class="uploaded-info" in:fade={{ duration: 200 }}>
+                {#if customAvatarFile}
+                  <p class="file-name-label">📁 {customAvatarFile.name}</p>
+                  <button
+                    class="btn-text-danger"
+                    on:click={() => {
+                      customAvatarFile = null;
+                      customAvatarUrl = null;
+                      avatarType = "preset";
+                    }}>Удалить фото</button
+                  >
+                {:else}
+                  <button
+                    class="btn-upload-placeholder"
+                    on:click={triggerFileUpload}
+                  >
+                    <span class="placeholder-plus">+</span> Выбрать изображение с
+                    устройства
+                  </button>
+                {/if}
+              </div>
+
+              <div class="wizard-actions-row">
+                <BackButton on:click={() => goTo(SLIDES.createOrJoin)} />
+                <button
+                  class="btn-action primary-glow"
+                  on:click={handleFinishCreate}
+                >
+                  Создать семью ✨
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   {/if}
 </div>
@@ -545,9 +515,6 @@
     padding: 16px;
     text-align: left;
     cursor: pointer;
-    transition:
-      border-color 0.2s,
-      background 0.2s;
   }
 
   .choose-card:hover {
@@ -654,11 +621,7 @@
 
   /* ── ОСНОВНАЯ КАРТОЧКА ФОРМЫ ── */
   .form-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 24px;
     padding: 24px;
-    box-shadow: var(--shadow);
     position: relative;
   }
 
@@ -670,17 +633,16 @@
 
   .wizard-panes {
     display: flex;
-    width: 200%;
+    width: 400%;
     transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .wizard-panes.step-two-active {
-    transform: translateX(-50%);
-  }
-
   .wizard-pane {
-    width: 50%;
+    width: 25%; /* 100% / 4 */
     box-sizing: border-box;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
   }
 
   .form-section {
@@ -932,40 +894,6 @@
     flex: 1.2;
   }
 
-  .join-tabs {
-    display: flex;
-    border-bottom: 1.5px solid var(--divider);
-    padding-bottom: 2px;
-  }
-
-  .join-tab {
-    flex: 1;
-    background: transparent;
-    border: none;
-    padding: 12px 6px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-secondary);
-    cursor: pointer;
-    position: relative;
-    transition: all 0.2s ease;
-  }
-
-  .join-tab.active {
-    color: var(--accent);
-  }
-
-  .join-tab.active::after {
-    content: "";
-    position: absolute;
-    bottom: -3px;
-    left: 15%;
-    width: 70%;
-    height: 3px;
-    background: var(--accent);
-    border-radius: 4px;
-  }
-
   .join-form-pane {
     display: flex;
     flex-direction: column;
@@ -1024,24 +952,6 @@
     font-size: 11px;
     color: var(--text-muted);
     text-align: center;
-  }
-
-  .qr-preview-box {
-    display: flex;
-    justify-content: center;
-    padding: 16px 0;
-  }
-
-  .dummy-qr-border {
-    position: relative;
-    padding: 24px;
-    background: var(--surface-alt);
-    border: 2.5px dashed var(--border);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
   }
 
   /* ── ТОСТ ОШИБКИ ── */
@@ -1184,69 +1094,6 @@
     }
   }
 
-  /* ── QR СКАНЕР Камера ── */
-  .qr-scanner-overlay {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 8px;
-  }
-
-  .qr-header {
-    text-align: center;
-  }
-
-  .qr-header h3 {
-    margin: 0 0 6px 0;
-    font-size: 20px;
-    font-weight: 800;
-  }
-
-  .qr-header p {
-    font-size: 13px;
-    color: var(--text-secondary);
-    margin: 0;
-    line-height: 1.4;
-    max-width: 320px;
-  }
-
-  .viewfinder-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    margin: auto 0;
-  }
-
-  .viewfinder {
-    position: relative;
-    width: 220px;
-    height: 220px;
-    border-radius: 24px;
-    background: rgba(0, 0, 0, 0.4);
-    box-shadow: 0 0 0 100vw rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-  }
-
-  .scanner-laser {
-    position: absolute;
-    left: 4%;
-    width: 92%;
-    height: 3px;
-    background: #4ade80;
-    box-shadow:
-      0 0 12px #4ade80,
-      0 0 3px #4ade80;
-    animation: laserScan 2.5s infinite ease-in-out;
-    z-index: 15;
-    border-radius: 2px;
-  }
-
   @keyframes laserScan {
     0% {
       top: 8%;
@@ -1262,55 +1109,6 @@
     }
   }
 
-  /* УГЛЫ ВИДОИСКАТЕЛЯ */
-  .corner-marker {
-    position: absolute;
-    width: 24px;
-    height: 24px;
-    border: 3.5px solid #4ade80;
-    pointer-events: none;
-    z-index: 16;
-  }
-
-  .corner-marker.tl {
-    top: -2px;
-    left: -2px;
-    border-right: none;
-    border-bottom: none;
-    border-top-left-radius: 16px;
-  }
-  .corner-marker.tr {
-    top: -2px;
-    right: -2px;
-    border-left: none;
-    border-bottom: none;
-    border-top-right-radius: 16px;
-  }
-  .corner-marker.bl {
-    bottom: -2px;
-    left: -2px;
-    border-right: none;
-    border-top: none;
-    border-bottom-left-radius: 16px;
-  }
-  .corner-marker.br {
-    bottom: -2px;
-    right: -2px;
-    border-left: none;
-    border-top: none;
-    border-bottom-right-radius: 16px;
-  }
-
-  .scan-status {
-    font-size: 13px;
-    font-weight: 700;
-    color: #4ade80;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 0;
-    animation: flash 1.5s infinite alternate;
-  }
-
   @keyframes flash {
     0% {
       opacity: 0.4;
@@ -1318,15 +1116,6 @@
     100% {
       opacity: 1;
     }
-  }
-
-  .qr-footer-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-    max-width: 320px;
-    z-index: 20;
   }
 
   @keyframes radialGlowPulse {
@@ -1495,35 +1284,5 @@
     font-weight: 800;
     display: inline-block;
     margin-top: 4px;
-  }
-  /* ── КНОПКИ ТАБОВ И ОБЩЕЕ ── */
-  .btn-tab {
-    background: transparent;
-    border: 1.5px solid var(--border);
-    color: var(--text-primary);
-    padding: 12px 16px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-  }
-
-  .btn-tab:hover {
-    background: var(--surface-alt);
-  }
-
-  .btn-tab.ghost {
-    border-color: var(--border);
-    color: var(--text-secondary);
-  }
-
-  .btn-tab.ghost:hover {
-    background: var(--surface-alt);
-    color: var(--text-primary);
   }
 </style>
