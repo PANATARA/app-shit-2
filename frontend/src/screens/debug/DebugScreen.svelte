@@ -1,5 +1,6 @@
 <script lang="ts">
   import BottomSheet from "$ui/BottomSheet.svelte";
+  import ToggleSwitch from "$ui/ToggleSwitch.svelte";
   import { showDays, theme, language } from "$lib/settings.js";
   import { t } from "$lib/i18n.js";
   import Icon from "@iconify/svelte";
@@ -34,6 +35,15 @@
   function selectTheme(t) {
     theme.set(t === "Светлое" ? "light" : "dark");
     closeSheet();
+  }
+
+  async function handleClick(e) {
+    const value = e.detail;
+
+    notificationsEnabled = value;
+
+    // console.log(e);
+    console.log(value);
   }
 </script>
 
@@ -90,10 +100,7 @@
         />
       </div>
       <span class="item-label">{$t.settings.fields.notifications}</span>
-      <label class="tog">
-        <input type="checkbox" bind:checked={notificationsEnabled} />
-        <span class="tog-track"><span class="tog-thumb"></span></span>
-      </label>
+      <ToggleSwitch checked={notificationsEnabled} on:change={handleClick} />
     </div>
 
     <div class="sep"></div>

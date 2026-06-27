@@ -3,6 +3,7 @@
   import BoardScreen from "$screens/app/BoardScreen.svelte";
   import StatsScreen from "$screens/app/StatsScreen.svelte";
   import ProfileSettingsScreen from "$screens/app/ProfileSettingsScreen.svelte";
+  import DebugScreen from "$screens/debug/DebugScreen.svelte";
 
   import AuthScreen from "$screens/onBoarding/AuthScreen.svelte";
   import FamilyEntryScreen from "$screens/onBoarding/FamilyEntryScreen.svelte";
@@ -70,7 +71,7 @@
   {:else}
     {#if !selectedHabit}
       <header class="top-bar">
-        <h1>{$t.app[activeTab] ?? ""}</h1>
+        <h1>{activeTab}</h1>
       </header>
     {/if}
 
@@ -81,6 +82,8 @@
         <BoardScreen />
       {:else if activeTab === "settingsScreen"}
         <ProfileSettingsScreen />
+      {:else if activeTab === "debugScreen"}
+        <DebugScreen />
       {/if}
     </div>
 
@@ -91,7 +94,11 @@
           on:click={() => (activeTab = "statsScreen")}
           class:active={activeTab === "statsScreen"}
         >
-          <Icon icon="material-symbols:bar-chart-rounded" width="24" height="24" />
+          <Icon
+            icon="material-symbols:bar-chart-rounded"
+            width="24"
+            height="24"
+          />
         </button>
 
         <button
@@ -117,6 +124,20 @@
           <span class="icon">
             <Icon
               icon="material-symbols:settings-rounded"
+              width="24"
+              height="24"
+            />
+          </span>
+        </button>
+        <button
+          class="nav-item"
+          on:click={() => (activeTab = "debugScreen")}
+          class:active={activeTab === "debugScreen"}
+          aria-label="Debug"
+        >
+          <span class="icon">
+            <Icon
+              icon="material-symbols:bug-report"
               width="24"
               height="24"
             />

@@ -1,13 +1,10 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
   import Icon from "@iconify/svelte";
-
-  const dispatch = createEventDispatcher();
+  import { createEventDispatcher } from "svelte";
 
   export let initialIcon = "material-symbols:person-rounded";
   export let initialIconColor = "#ffffff";
   export let initialBg = "linear-gradient(135deg, #e8856a 0%, #c17a45 100%)";
-  export let showActions = true;
 
   let selectedIcon = initialIcon;
   let selectedIconColor = initialIconColor;
@@ -68,40 +65,6 @@
       ],
     },
     {
-      label: "Еда",
-      icons: [
-        "material-symbols:restaurant-rounded",
-        "material-symbols:local-pizza-rounded",
-        "material-symbols:lunch-dining-rounded",
-        "material-symbols:cake-rounded",
-        "material-symbols:icecream-rounded",
-        "material-symbols:coffee-rounded",
-        "material-symbols:local-cafe-rounded",
-        "material-symbols:bakery-dining",
-        "material-symbols:ramen-dining-rounded",
-        "material-symbols:set-meal-rounded",
-        "material-symbols:local-bar-rounded",
-        "material-symbols:emoji-food-beverage-rounded",
-      ],
-    },
-    {
-      label: "Активность",
-      icons: [
-        "material-symbols:sports-soccer-rounded",
-        "material-symbols:sports-basketball-rounded",
-        "material-symbols:sports-tennis-rounded",
-        "material-symbols:sports-esports-rounded",
-        "material-symbols:fitness-center-rounded",
-        "material-symbols:directions-bike-rounded",
-        "material-symbols:directions-run-rounded",
-        "material-symbols:pool-rounded",
-        "material-symbols:sports-martial-arts-rounded",
-        "material-symbols:skateboarding-rounded",
-        "material-symbols:music-note-rounded",
-        "material-symbols:palette-rounded",
-      ],
-    },
-    {
       label: "Разное",
       icons: [
         "material-symbols:home-rounded",
@@ -123,75 +86,66 @@
   // ─── Icon colors ─────────────────────────────────────────────────────────
 
   const iconColors = [
-    "#ffffff",
-    "#f5e6d3",
-    "#ffd700",
-    "#ff6b6b",
-    "#ff9f43",
-    "#48dbfb",
-    "#1dd1a1",
-    "#ff9ff3",
-    "#a29bfe",
-    "#fd79a8",
-    "#00b894",
-    "#2d3436",
-    "#e17055",
-    "#74b9ff",
-    "#55efc4",
-    "#fdcb6e",
+    "#FFFFFF",
+    "#F5E9DA",
+    "#FFD166",
+    "#FF6B6B",
+    "#FF8A5B",
+    "#4CC9F0",
+    "#2DD4BF",
+    "#C77DFF",
+    "#A29BFE",
+    "#F472B6",
+    "#22C55E",
+    "#2F2F2F",
+    "#E76F51",
+    "#60A5FA",
+    "#34D399",
+    "#FBBF24",
   ];
 
   // ─── Backgrounds ─────────────────────────────────────────────────────────
 
   const bgOptions = [
-    // градиенты тёплые
-    "linear-gradient(135deg, #e8856a 0%, #c17a45 100%)",
-    "linear-gradient(135deg, #f6d365 0%, #fda085 100%)",
-    "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-    "linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)",
-    "linear-gradient(135deg, #f7971e 0%, #ffd200 100%)",
-    // градиенты холодные
-    "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-    "linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)",
-    "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)",
-    "linear-gradient(135deg, #5ee7df 0%, #b490ca 100%)",
-    "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
-    // градиенты тёмные
-    "linear-gradient(135deg, #2d3436 0%, #636e72 100%)",
-    "linear-gradient(135deg, #485563 0%, #29323c 100%)",
-    "linear-gradient(135deg, #373b44 0%, #4286f4 100%)",
-    "linear-gradient(135deg, #200122 0%, #6f0000 100%)",
-    "linear-gradient(135deg, #0f0c29 0%, #302b63 100%)",
-    // однотонные
-    "#e8a87c",
-    "#6ab8a0",
-    "#e87c5a",
-    "#a29bfe",
-    "#fd79a8",
-    "#00b894",
-    "#0984e3",
-    "#e17055",
-    "#2d3436",
+    "linear-gradient(135deg, #F97316 0%, #FB7185 100%)",
+    "linear-gradient(135deg, #F59E0B 0%, #F97316 100%)",
+    "linear-gradient(135deg, #FB7185 0%, #F43F5E 100%)",
+    "linear-gradient(135deg, #FBBF24 0%, #FB923C 100%)",
+    "linear-gradient(135deg, #FCA5A5 0%, #F59E0B 100%)",
+
+    "linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%)",
+    "linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)",
+    "linear-gradient(135deg, #A5B4FC 0%, #6366F1 100%)",
+    "linear-gradient(135deg, #67E8F9 0%, #22D3EE 100%)",
+    "linear-gradient(135deg, #34D399 0%, #60A5FA 100%)",
+
+    "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)",
+    "linear-gradient(135deg, #111827 0%, #374151 100%)",
+    "linear-gradient(135deg, #1C1917 0%, #292524 100%)",
+    "linear-gradient(135deg, #0B1220 0%, #111827 100%)",
+    "linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)",
+
+    "#F59E0B",
+    "#FB7185",
+    "#60A5FA",
+    "#34D399",
+    "#A78BFA",
+    "#F472B6",
+    "#38BDF8",
+    "#F97316",
+    "#F5E9DA",
   ];
 
   // ─── Tabs ─────────────────────────────────────────────────────────────────
 
   let activeTab: "icon" | "iconColor" | "bg" = "icon";
   let activeCategoryIndex = 0;
-
-  // ─── Computed ─────────────────────────────────────────────────────────────
-
-  function handleSave() {
-    dispatch("save", {
-      icon: selectedIcon,
-      icon_color: selectedIconColor,
-      icon_bg: selectedBg,
-    });
-  }
-
-  function handleCancel() {
-    dispatch("cancel");
-  }
+  const dispatch = createEventDispatcher();
+  $: dispatch("change", {
+    icon: selectedIcon,
+    icon_color: selectedIconColor,
+    icon_bg: selectedBg,
+  });
 </script>
 
 <div class="constructor">
@@ -285,11 +239,6 @@
       {/each}
     </div>
 
-    <div class="custom-color-wrap">
-      <span class="custom-label">Свой цвет</span>
-      <input type="color" class="color-picker" bind:value={selectedIconColor} />
-    </div>
-
     <!-- Background picker -->
   {:else}
     <div class="bg-grid">
@@ -311,24 +260,6 @@
         </button>
       {/each}
     </div>
-
-    <div class="custom-color-wrap">
-      <span class="custom-label">Свой цвет</span>
-      <input
-        type="color"
-        class="color-picker"
-        value={selectedBg.startsWith("#") ? selectedBg : "#e8a87c"}
-        on:input={(e) => (selectedBg = e.currentTarget.value)}
-      />
-    </div>
-  {/if}
-
-  <!-- Actions -->
-  {#if showActions}
-    <div class="actions">
-      <button class="btn-cancel" on:click={handleCancel}>Отмена</button>
-      <button class="btn-save" on:click={handleSave}>Сохранить</button>
-    </div>
   {/if}
 </div>
 
@@ -343,13 +274,13 @@
   .preview-wrap {
     display: flex;
     justify-content: center;
-    padding: 8px 0 4px;
+    padding: 0px 0 4px;
   }
 
   .preview-avatar {
     width: 100px;
     height: 100px;
-    border-radius: 28px;
+    border-radius: 99px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -363,6 +294,7 @@
     background: var(--bg, #2a2318);
     border-radius: 14px;
     padding: 4px;
+    margin-bottom: 10px;
   }
 
   .tab {
@@ -390,7 +322,8 @@
     gap: 6px;
     overflow-x: auto;
     scrollbar-width: none;
-    padding-bottom: 2px;
+    padding-bottom: 10px;
+    justify-content: center;
   }
 
   .category-scroll::-webkit-scrollbar {
@@ -479,7 +412,7 @@
   /* ── Background grid ───────────────────────── */
   .bg-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 8px;
     width: 100%;
   }
@@ -503,75 +436,5 @@
   .bg-cell-active {
     border-color: #fff;
     transform: scale(1.05);
-  }
-
-  /* ── Custom color ───────────────────────── */
-  .custom-color-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--bg, #2a2318);
-    border-radius: 12px;
-    padding: 10px 14px;
-    margin-top: 4px;
-  }
-
-  .custom-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.6);
-  }
-
-  .color-picker {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    padding: 2px;
-    background: none;
-  }
-
-  /* ── Actions ───────────────────────── */
-  .actions {
-    display: flex;
-    gap: 10px;
-    padding-top: 4px;
-  }
-
-  .btn-cancel {
-    flex: 1;
-    padding: 13px;
-    background: var(--bg, #2a2318);
-    border: none;
-    border-radius: 14px;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 15px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-
-  .btn-cancel:active {
-    opacity: 0.7;
-  }
-
-  .btn-save {
-    flex: 2;
-    padding: 13px;
-    background: var(--accent, #e8a87c);
-    border: none;
-    border-radius: 14px;
-    color: #2a1800;
-    font-size: 15px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-
-  .btn-save:active {
-    opacity: 0.8;
   }
 </style>

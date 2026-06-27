@@ -1,14 +1,24 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { getFamily, getFamilyMembers } from "$api/family";
-  import { getProfile } from "$api/me";
+  import { getProfile, updateProfile } from "$api/me";
   import type { FamilyMembers, UserProfile, FamilyProfile } from "$types/index";
   import UserAvatar from "$ui/UserAvatar.svelte";
   import Block from "$ui/block.svelte";
   import Icon from "@iconify/svelte";
   import AvatarConstructor from "$features/settings/AvatarConstructor.svelte";
+  import ToggleSwitch from "$ui/ToggleSwitch.svelte";
 
   // ─── STATE MACHINE ─────────────────────────────
+  let notificationsEnabled = true;
+  async function handleClick(e) {
+    const value = e.detail;
+
+    notificationsEnabled = value;
+
+    // console.log(e);
+    console.log(value);
+  }
 
   let loading = true;
   let error = false;
@@ -22,14 +32,11 @@
   let isEditing = false;
 
   let editName = "";
-  let editRole = "";
-
-  // ─── NOTIFICATIONS ─────────────────────────────
-
-  let notifications = {
-    reminders: true,
-    membersActivity: true,
-    rewards: false,
+  let editSurname = "";
+  let editAvatar = {
+    icon: "",
+    icon_color: "",
+    icon_bg: "",
   };
 
   const appVersion = "1.0.0";
@@ -52,10 +59,6 @@
       meUser = profile;
       familyMembers = members;
       familyProfile = family;
-
-      // init edit state only once data exists
-      editName = profile.name;
-      editRole = "Папа";
     } catch (e) {
       console.error(e);
       error = true;
@@ -70,6 +73,12 @@
     if (!meUser) return;
 
     editName = meUser.name;
+    editSurname = meUser.surname;
+    editAvatar = {
+      icon: meUser.icon,
+      icon_color: meUser.icon_color,
+      icon_bg: meUser.icon_bg,
+    };
     isEditing = true;
   }
 
@@ -83,12 +92,17 @@
   async function saveEdit() {
     if (!meUser) return;
 
-    // TODO API call
+    console.log(editAvatar.icon);
+    console.log(editAvatar.icon_color);
+    console.log(editAvatar.icon_bg);
 
-    meUser = {
-      ...meUser,
+    meUser = await updateProfile({
       name: editName,
-    };
+      surname: editSurname,
+      icon: editAvatar.icon,
+      icon_color: editAvatar.icon_color,
+      icon_bg: editAvatar.icon_bg,
+    });
 
     isEditing = false;
   }
@@ -114,13 +128,17 @@
         <div class="edit-avatar-wrap">
           <!-- <UserAvatar user={meUser} size={100} /> -->
           <AvatarConstructor
-            initialIcon="material-symbols:person-rounded"
-            initialIconColor="#ffffff"
-            initialBg="linear-gradient(135deg, #e8856a 0%, #c17a45 100%)"
-            showActions={false}
-            on:save={(e) => {
+            initialIcon={editAvatar.icon}
+            initialIconColor={editAvatar.icon_color}
+            initialBg={editAvatar.icon_bg}
+            on:change={(e) => {
               const { icon, icon_color, icon_bg } = e.detail;
-              // отправить на бэкенд
+
+              editAvatar = {
+                icon,
+                icon_color,
+                icon_bg,
+              };
             }}
             on:cancel={() => (isEditing = false)}
           />
@@ -134,7 +152,7 @@
 
           <div class="field">
             <label class="field-label">Фамилия</label>
-            <input class="field-input" bind:value={editRole} />
+            <input class="field-input" bind:value={editSurname} />
           </div>
         </div>
 
@@ -238,8 +256,6 @@
         <span class="arrow">›</span>
       </div>
 
-      <div class="divider" />
-
       <div class="row clickable">
         <div class="row-icon muted">
           <svg
@@ -261,7 +277,18 @@
         <span class="arrow">›</span>
       </div>
 
-      <div class="divider" />
+      <div class="row">
+        <div class="row-icon">
+          <Icon
+            icon="material-symbols:calendar-month-rounded"
+            width="24"
+            height="24"
+          />
+        </div>
+
+        <div class="row-text"><div class="row-title">Версия</div></div>
+        <ToggleSwitch checked={notificationsEnabled} on:change={handleClick} />
+      </div>
 
       <div class="row">
         <div class="row-icon">
