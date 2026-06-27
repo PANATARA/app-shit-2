@@ -1,5 +1,5 @@
-<script>
-  import { showDays } from "./settings.js";
+<script lang="ts">
+  import { showDays } from "$lib/settings.js";
 
   let tooltipX = 0;
   let tooltipY = 0;

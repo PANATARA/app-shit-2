@@ -58,7 +58,6 @@ function createSettingsStore(key, defaultValue) {
 export const showDays = createSettingsStore('showDays', false);
 export const theme = createSettingsStore('theme', 'dark');
 export const language = createSettingsStore('lang', 'ru');
-export const blur = createSettingsStore('blur', false);
 export const materialYou = createSettingsStore('materialYou', false);
 
 // theme
@@ -72,15 +71,6 @@ if (typeof document !== 'undefined') {
     });
 }
 
-if (typeof document !== 'undefined') {
-    blur.subscribe(value => {
-        if (value === true) {
-            document.body.classList.add('blur');
-        } else {
-            document.body.classList.remove('blur');
-        }
-    });
-}
 
 if (typeof document !== 'undefined') {
     materialYou.subscribe(value => {

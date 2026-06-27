@@ -3,7 +3,35 @@ export interface UserShort {
     username: string;
     name: string;
     surname: string;
-    avatar_version: number;
+    icon: string,
+    icon_color: string,
+    icon_bg: string,
+}
+
+export interface UserProfile {
+    id: string;
+    username: string;
+    name: string;
+    surname: string;
+    icon: string,
+    icon_color: string,
+    icon_bg: string,
+    experience: number,
+    is_family_member: boolean,
+    is_family_admin: boolean
+}
+
+export interface FamilyProfile {
+    id: string;
+    name: string;
+    icon: string,
+    icon_color: string,
+    icon_bg: string,
+    experience: number,
+}
+
+export interface FamilyMembers {
+    members: UserShort[]
 }
 
 export interface ChoreShort {

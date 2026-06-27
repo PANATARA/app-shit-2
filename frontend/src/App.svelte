@@ -1,22 +1,22 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
-  import AuthScreen from "./AuthScreen.svelte";
+  import BoardScreen from "$screens/app/BoardScreen.svelte";
+  import StatsScreen from "$screens/app/StatsScreen.svelte";
+  import ProfileSettingsScreen from "$screens/app/ProfileSettingsScreen.svelte";
 
-  import AddHabit from "./AddHabit.svelte";
-  import Settings from "./Settings.svelte";
-  import Habits from "./Habits.svelte";
-  import Debug from "./FamilyCreateJoin.svelte";
-  import { icons } from "./lib/icons";
-  import { t } from "./lib/i18n.js";
+  import AuthScreen from "$screens/onBoarding/AuthScreen.svelte";
+  import FamilyEntryScreen from "$screens/onBoarding/FamilyEntryScreen.svelte";
 
-  import { isLoggedInStore, clearTokens } from "./api/client.js";
-  import { getProfile } from "./api/me.js";
+  import { t } from "$lib/i18n.js";
+  import Icon from "@iconify/svelte";
+  import { isLoggedInStore, clearTokens } from "$api/client.js";
+  import { getProfile } from "$api/me.js";
 
   let isAuthed = false;
   let isInFamily = false;
   let checkingAuth = true;
 
-  let activeTab = "habits";
+  let activeTab = "boardScreen";
   let selectedHabit = null;
 
   onMount(async () => {
@@ -66,7 +66,7 @@
   {:else if !isAuthed}
     <AuthScreen on:auth={() => (isAuthed = true)} />
   {:else if !isInFamily}
-    <Debug />
+    <FamilyEntryScreen />
   {:else}
     {#if !selectedHabit}
       <header class="top-bar">
@@ -75,12 +75,12 @@
     {/if}
 
     <div class="content" class:no-topbar={!!selectedHabit}>
-      {#if activeTab === "habits"}
-        <Habits />
-      {:else if activeTab === "add"}
-        <AddHabit />
-      {:else if activeTab === "settings"}
-        <Settings />
+      {#if activeTab === "statsScreen"}
+        <StatsScreen />
+      {:else if activeTab === "boardScreen"}
+        <BoardScreen />
+      {:else if activeTab === "settingsScreen"}
+        <ProfileSettingsScreen />
       {/if}
     </div>
 
@@ -88,53 +88,38 @@
       <nav class="bottom-nav">
         <button
           class="nav-item"
-          on:click={() => (activeTab = "habits")}
-          class:active={activeTab === "habits"}
-          aria-label="Habits"
+          on:click={() => (activeTab = "statsScreen")}
+          class:active={activeTab === "statsScreen"}
         >
-          <span class="icon">
-            <svg width="25" height="25" fill="currentColor">
-              <path d={icons.home} />
-            </svg>
-          </span>
+          <Icon icon="material-symbols:bar-chart-rounded" width="24" height="24" />
         </button>
 
         <button
           class="nav-item plus-btn"
-          on:click={() => (activeTab = "add")}
-          class:active={activeTab === "add"}
-          aria-label="New habit"
+          on:click={() => (activeTab = "boardScreen")}
+          class:active={activeTab === "boardScreen"}
         >
           <span class="icon">
-            <svg width="25" height="25" fill="currentColor">
-              <path d={icons.language} />
-            </svg>
+            <Icon
+              icon="material-symbols:calendar-check"
+              width="24"
+              height="24"
+            />
           </span>
         </button>
 
         <button
           class="nav-item"
-          on:click={() => (activeTab = "settings")}
-          class:active={activeTab === "settings"}
+          on:click={() => (activeTab = "settingsScreen")}
+          class:active={activeTab === "settingsScreen"}
           aria-label="Settings"
         >
           <span class="icon">
-            <svg width="25" height="25" fill="currentColor">
-              <path d={icons.settings} />
-            </svg>
-          </span>
-        </button>
-
-        <button
-          class="nav-item"
-          on:click={() => (activeTab = "debug")}
-          class:active={activeTab === "debug"}
-          aria-label="Settings"
-        >
-          <span class="icon">
-            <svg width="25" height="25" fill="currentColor">
-              <path d={icons.settings} />
-            </svg>
+            <Icon
+              icon="material-symbols:settings-rounded"
+              width="24"
+              height="24"
+            />
           </span>
         </button>
       </nav>
@@ -144,14 +129,12 @@
 
 <style>
   /* ── CSS переменные: тёмная тема (default) ── */
-  /* ── Тёмная тема ───────────────────────────── */
-
   :global(:root) {
     /* Backgrounds */
     --bg: #2b2622;
     --surface: #35302b;
     --surface-alt: #413a34;
-    --bg-bar: rgba(53, 48, 43, 0.9);
+    --bg-bar: rgba(53, 48, 43);
 
     /* Text */
     --text: #f2ebe3;
@@ -173,20 +156,14 @@
     --divider: #433b35;
 
     /* Navigation */
-    --nav-bg: rgba(53, 48, 43, 0.9);
-    --nav-active-bg: rgba(213, 138, 114, 0.18);
+    --bg-nav: #35302b;
+    --nav-active-bg: rgba(213, 138, 114);
     --nav-active-fg: #f2ebe3;
     --shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.25);
 
     /* Effects */
     --shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     --blur-effect: none;
-  }
-
-  :global(body.blur) {
-    --nav-bg: rgba(53, 48, 43, 0.72);
-    --bg-bar: rgba(53, 48, 43, 0.72);
-    --blur-effect: blur(10px);
   }
 
   /* ── Светлая тема ───────────────────────────── */
@@ -196,7 +173,7 @@
     --bg: #f4ede4;
     --surface: #fbf7f2;
     --surface-alt: #efe3d4;
-    --bg-bar: rgba(251, 247, 242, 0.9);
+    --bg-bar: rgba(251, 247, 242);
 
     /* Text */
     --text: #4d433a;
@@ -218,20 +195,14 @@
     --divider: #e8dccd;
 
     /* Navigation */
-    --nav-bg: rgba(251, 247, 242, 0.9);
-    --nav-active-bg: rgba(201, 123, 99, 0.15);
+    --nav-bg: rgba(251, 247, 242);
+    --nav-active-bg: rgba(201, 123, 99);
     --nav-active-fg: #4d433a;
     --shadow-nav: 0 10px 30px rgba(77, 67, 58, 0.08);
 
     /* Effects */
     --shadow: 0 8px 24px rgba(77, 67, 58, 0.08);
     --blur-effect: none;
-  }
-
-  :global(body.light.blur) {
-    --nav-bg: rgba(251, 247, 242, 0.72);
-    --bg-bar: rgba(251, 247, 242, 0.72);
-    --blur-effect: blur(10px);
   }
 
   :global(body) {
@@ -246,12 +217,6 @@
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-overflow-scrolling: touch;
-  }
-
-  :global(body.blur) .top-bar,
-  :global(body.blur) .bottom-nav {
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
   }
 
   main {

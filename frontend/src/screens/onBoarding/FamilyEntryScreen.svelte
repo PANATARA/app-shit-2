@@ -2,8 +2,8 @@
   import { onMount } from "svelte";
   import { createEventDispatcher } from "svelte";
   import { fade, slide, scale } from "svelte/transition";
-  import BackButton from "./components/backbtn.svelte";
-  import { createFamily } from "./api/family";
+  import BackButton from "$ui/backbtn.svelte";
+  import { createFamily } from "$api/family";
 
   const dispatch = createEventDispatcher();
 

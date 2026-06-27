@@ -2,11 +2,15 @@
   import { onMount } from "svelte";
   import { slide, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
-  import WeekCalendar from "./components/WeekCalendar.svelte";
-  import ChoreCard from "./components/choreCard.svelte";
-  import AddChoreModal from "./components/addChoreModal.svelte";
-  import { completePlannedChore, getPlannedChore } from "./api/chores";
-  import type { PlannedChore } from "./types";
+  import WeekCalendar from "$ui/WeekCalendar.svelte";
+  import ChoreCard from "$features/chores/choreCard.svelte";
+  import AddChoreModal from "$features/chores/addChoreModal.svelte";
+  import {
+    completePlannedChore,
+    getPlannedChore,
+    unCompletePlannedChore,
+  } from "$api/chores";
+  import type { PlannedChore } from "$types/index";
 
   // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -21,10 +25,11 @@
 
   // ─── Data fetching ───────────────────────────────────────────────────────────
 
-  export async function loadPlannedChores(due_date: string) {
+  async function loadPlannedChores(due_date: string) {
     loading = true;
     try {
       plannedChores = await getPlannedChore({ due_date });
+      console.log(plannedChores);
     } catch (e) {
       console.error("Failed to load planned chores:", e);
     } finally {
@@ -66,29 +71,32 @@
     loadPlannedChores(formatDateKey(selectedDate));
   }
 
-  async function handleChoreComplete(choreItem: PlannedChore) {
+  async function toggleChore(choreItem: PlannedChore) {
     const previous = plannedChores;
 
-    // optimistic update
+    const isCompleted = choreItem.completed_by !== null;
+
     plannedChores = plannedChores.map((c) =>
       c.id === choreItem.id
-        ? { ...c, completed_by: c.completed_by ? null : c.assigned_to }
+        ? {
+            ...c,
+            completed_by: isCompleted ? null : c.assigned_to,
+          }
         : c,
     );
 
     try {
-      const updated = await completePlannedChore(choreItem.id);
+      const updated = isCompleted
+        ? await unCompletePlannedChore(choreItem.id)
+        : await completePlannedChore(choreItem.id);
+
       plannedChores = plannedChores.map((c) =>
         c.id === updated.id ? updated : c,
       );
     } catch (e) {
       plannedChores = previous;
-      console.error("Failed to complete chore:", e);
+      console.error(e);
     }
-  }
-
-  function handleAdd(event: CustomEvent) {
-    // оставлено без изменений — ты сказал не трогать
   }
 
   // ─── Reactive ────────────────────────────────────────────────────────────────
@@ -200,7 +208,7 @@
               transition:slide|local={{ duration: 250 }}
               animate:flip={{ duration: 250 }}
             >
-              <ChoreCard item={chore} onComplete={handleChoreComplete} />
+              <ChoreCard item={chore} onToggle={toggleChore} />
             </div>
           {/each}
         {/if}
@@ -223,7 +231,7 @@
               transition:slide|local={{ duration: 250 }}
               animate:flip={{ duration: 250 }}
             >
-              <ChoreCard item={plannedChore} onComplete={handleChoreComplete} />
+              <ChoreCard item={plannedChore} onToggle={toggleChore} />
             </div>
           {/each}
         </div>
@@ -232,7 +240,7 @@
   {/if}
 
   {#if modalOpen}
-    <AddChoreModal on:close={() => (modalOpen = false)} on:add={handleAdd} />
+    <AddChoreModal on:close={() => (modalOpen = false)} />
   {/if}
 </div>
 

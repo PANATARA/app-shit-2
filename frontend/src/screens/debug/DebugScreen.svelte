@@ -1,8 +1,8 @@
-<script>
-  import BottomSheet from "./components/BottomSheet.svelte";
-  import { icons } from "./lib/icons";
-  import { showDays, theme, blur, language } from "./lib/settings.js";
-  import { t } from "./lib/i18n.js";
+<script lang="ts">
+  import BottomSheet from "$ui/BottomSheet.svelte";
+  import { showDays, theme, language } from "$lib/settings.js";
+  import { t } from "$lib/i18n.js";
+  import Icon from "@iconify/svelte";
 
   let notificationsEnabled = true;
 
@@ -42,9 +42,7 @@
   <div class="group">
     <button class="item" on:click={() => openSheet("lang")}>
       <div class="item-icon">
-        <svg width="24" height="24" fill="currentColor" viewBox="0 0 25 25"
-          ><path d={icons.language} /></svg
-        >
+        <Icon icon="material-symbols:globe" width="24" height="24" />
       </div>
       <span class="item-label">{$t.settings.fields.language}</span>
       <span class="item-val">
@@ -65,9 +63,7 @@
 
     <button class="item" on:click={() => openSheet("theme")}>
       <div class="item-icon">
-        <svg width="24" height="24" fill="currentColor" viewBox="0 0 25 25"
-          ><path d={icons.theme} /></svg
-        >
+        <Icon icon="material-symbols:contrast" width="24" height="24" />
       </div>
       <span class="item-label">{$t.settings.fields.appearance}</span>
       <span class="item-val">{currentThemeLabel}</span>
@@ -87,9 +83,11 @@
 
     <div class="item">
       <div class="item-icon">
-        <svg width="24" height="24" fill="currentColor" viewBox="0 0 25 25"
-          ><path d={icons.notification} /></svg
-        >
+        <Icon
+          icon="material-symbols:notifications-rounded"
+          width="24"
+          height="24"
+        />
       </div>
       <span class="item-label">{$t.settings.fields.notifications}</span>
       <label class="tog">
@@ -103,9 +101,11 @@
 
     <div class="item">
       <div class="item-icon">
-        <svg width="24" height="24" fill="currentColor" viewBox="0 0 25 25"
-          ><path d={icons.calendar} /></svg
-        >
+        <Icon
+          icon="material-symbols:calendar-month-rounded"
+          width="24"
+          height="24"
+        />
       </div>
       <span class="item-label">{$t.settings.fields.showWeekdays}</span>
       <label class="tog">

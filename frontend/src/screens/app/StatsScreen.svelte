@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Block from "./components/block.svelte";
-  import HeatGraph from "./lib/HeatGraph.svelte";
-  import { t } from "./lib/i18n.js";
+  import Block from "$ui/block.svelte";
+  import HeatGraph from "$features/stats/HeatGraph.svelte";
+  import { t } from "$lib/i18n.js";
 
   const family = {
     name: "Семья Васильевых",

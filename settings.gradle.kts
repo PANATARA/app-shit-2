@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "HeatMap Habit"
+rootProject.name = "Household"
 include(":app")

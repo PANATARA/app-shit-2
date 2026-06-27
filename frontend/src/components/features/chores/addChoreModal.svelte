@@ -1,9 +1,13 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
-  import BottomSheet from "./BottomSheet.svelte";
-  import { getChores } from "../api/chores";
-  import { getStatisticsOnFamilyChore } from "../api/stats";
-  import type { ChoreItem } from "../types";
+  import BottomSheet from "$ui/BottomSheet.svelte";
+  import RepeatSelector from "$features/chores/RepeatSelector.svelte";
+  import { getChores } from "$api/chores";
+  import { getStatisticsOnFamilyChore } from "$api/stats";
+  import { createPlannedChore } from "$api/chores";
+  import { getFamilyMembers } from "$api/family";
+  import type { ChoreItem, FamilyMembers } from "$types/index";
+  import UserAvatar from "$ui/UserAvatar.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -21,29 +25,35 @@
   let selectedChore: ChoreWithUsage | null = null;
   let comment = "";
   let dueDate = "";
-  let repeat: RepeatOption = "none";
   let assignedTo: string | null = null;
   let searchQuery = "";
 
   let chores: ChoreWithUsage[] = [];
+  let familyMembers: FamilyMembers | null = null;
   let loading = true;
   let error = false;
 
+  type FrequencyType = "none" | "daily" | "weekly" | "monthly";
+
+  interface RepeatConfig {
+    frequency_type: FrequencyType;
+    interval: number;
+    days_of_week: number[]; // 0-6 (Sun-Sat)
+    day_of_month: number | null;
+    starts_at: string;
+    ends_at: string | null;
+  }
+
+  let repeat: RepeatConfig = {
+    frequency_type: "none",
+    interval: 1,
+    days_of_week: [],
+    day_of_month: null,
+    starts_at: getTodayIso(),
+    ends_at: null,
+  };
+
   const FREQUENT_THRESHOLD = 5;
-
-  const repeatOptions: { value: RepeatOption; label: string }[] = [
-    { value: "none", label: "Не повторять" },
-    { value: "daily", label: "Каждый день" },
-    { value: "weekly", label: "Каждую неделю" },
-    { value: "monthly", label: "Каждый месяц" },
-  ];
-
-  const fakeUsers = [
-    { id: "1", name: "Алекс", avatar: "АЛ" },
-    { id: "2", name: "Мария", avatar: "МА" },
-    { id: "3", name: "Дима", avatar: "ДИ" },
-    { id: "4", name: "Соня", avatar: "СО" },
-  ];
 
   // ─── Data fetching ───────────────────────────────────────────────────────
 
@@ -53,18 +63,19 @@
     loading = true;
     error = false;
     try {
-      const [rawChores, stats] = await Promise.all([
+      const [rawChores, stats, members] = await Promise.all([
         getChores(),
         getStatisticsOnFamilyChore({
           start_date: getDateNDaysAgo(30),
           end_date: getTodayIso(),
         }),
+        getFamilyMembers(),
       ]);
-      console.log(rawChores);
 
       const usageMap = new Map(
         stats.map((s) => [s.chore_id, s.chores_completions_counts]),
       );
+      familyMembers = members;
 
       // присоединяем usageCount из статистики и сортируем
       chores = rawChores.chores
@@ -86,6 +97,21 @@
     const d = new Date();
     d.setDate(d.getDate() - n);
     return d.toISOString().split("T")[0];
+  }
+
+  function buildSchedulePayload() {
+    if (repeat.frequency_type === "none") return null;
+
+    return {
+      frequency_type: repeat.frequency_type,
+      interval: repeat.interval,
+      days_of_week:
+        repeat.frequency_type === "weekly" ? repeat.days_of_week : null,
+      day_of_month:
+        repeat.frequency_type === "monthly" ? repeat.day_of_month : null,
+      starts_at: repeat.starts_at,
+      ends_at: repeat.ends_at,
+    };
   }
 
   // ─── Navigation ──────────────────────────────────────────────────────────
@@ -121,15 +147,34 @@
     });
   }
 
-  function add() {
-    dispatch("add", {
-      ...selectedChore,
-      comment,
-      dueDate,
-      repeat,
-      assignedTo: fakeUsers.find((u) => u.id === assignedTo) ?? null,
-    });
-    close();
+  async function add() {
+    if (!selectedChore) return;
+
+    const payload = {
+      message: comment || "",
+      assigned_to_id: assignedTo,
+      due_date: dueDate || null,
+    };
+
+    try {
+      const res = await createPlannedChore(selectedChore.id, payload);
+
+      const assignedUser =
+        familyMembers?.members.find((u) => u.id === assignedTo) ?? null;
+
+      dispatch("add", {
+        chore: selectedChore,
+        comment,
+        dueDate,
+        repeat,
+        assignedTo: assignedUser,
+        apiResponse: res,
+      });
+
+      close();
+    } catch (e) {
+      console.error("Failed to create planned chore:", e);
+    }
   }
 
   // ─── Search & filtering ──────────────────────────────────────────────────
@@ -297,16 +342,17 @@
             class:user-active={assignedTo === null}
             on:click={() => (assignedTo = null)}
           >
-            <div class="user-avatar avatar-none">—</div>
+            <UserAvatar size={46} />
             <span>Никому</span>
           </button>
-          {#each fakeUsers as user}
+          {#each familyMembers?.members ?? [] as user}
             <button
               class="user-btn"
               class:user-active={assignedTo === user.id}
               on:click={() => (assignedTo = user.id)}
             >
-              <div class="user-avatar">{user.avatar}</div>
+              <UserAvatar {user} size={46} />
+
               <span>{user.name}</span>
             </button>
           {/each}
@@ -329,18 +375,7 @@
       </div>
 
       <div class="field">
-        <label class="field-label">Повторять</label>
-        <div class="repeat-grid">
-          {#each repeatOptions as opt}
-            <button
-              class="repeat-btn"
-              class:repeat-active={repeat === opt.value}
-              on:click={() => (repeat = opt.value)}
-            >
-              {opt.label}
-            </button>
-          {/each}
-        </div>
+        <RepeatSelector bind:value={repeat} />
       </div>
     </div>
 
@@ -630,69 +665,14 @@
     padding: 0;
   }
 
-  .user-avatar {
-    width: 46px;
-    height: 46px;
-    border-radius: 15px;
-    background: var(--bg-card);
-    border: 2px solid transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    transition: all 0.15s;
-  }
-
-  .avatar-none {
-    font-size: 18px;
-    color: var(--text-muted);
-  }
-
   .user-btn span {
     font-size: 11px;
     color: var(--text-muted);
     transition: color 0.15s;
   }
 
-  .user-active .user-avatar {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-    color: var(--accent);
-  }
-
   .user-active span {
     color: var(--accent);
-  }
-
-  .repeat-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .repeat-btn {
-    padding: 10px 8px;
-    background: var(--bg-card);
-    border: 1.5px solid transparent;
-    border-radius: 12px;
-    color: var(--text-secondary);
-    font-size: 13px;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
-  }
-
-  .repeat-btn:active {
-    opacity: 0.7;
-  }
-
-  .repeat-active {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-soft);
   }
 
   .add-btn {

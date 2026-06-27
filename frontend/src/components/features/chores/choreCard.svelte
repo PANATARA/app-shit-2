@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { PlannedChore } from "../types";
+  import type { PlannedChore } from "$types/index";
 
   export let item: PlannedChore;
-  export let onComplete: (item: PlannedChore) => void;
+  export let onToggle: (item: PlannedChore) => void;
   console.log(item);
 
   $: done = item.completed_by !== null;
@@ -19,7 +19,7 @@
     : "?";
 
   function handleComplete() {
-    onComplete?.(item);
+    onToggle?.(item);
   }
 </script>
 

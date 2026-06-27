@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "$api/*": ["src/api/*"],
+      "$features/*": ["src/components/features/*"],
+      "$ui/*": ["src/components/ui/*"],
+      "$screens/*": ["src/screens/*"],
+      "$types/*": ["src/types/*"],
+      "$lib/*": ["src/lib/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "../app",
+    "../backend"
+  ]
+}

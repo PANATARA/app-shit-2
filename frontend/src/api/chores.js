@@ -51,7 +51,7 @@ export async function updateChore(choreId, choreData) {
 }
 
 // ==========================================
-// 2. CHORE COMPLETIONS (ВЫПОЛНЕНИЕ ЗАДАЧ)
+// 2. PLANNED CHORES
 // ==========================================
 
 /**
@@ -85,6 +85,17 @@ export async function getPlannedChore(filters = {}) {
  */
 export async function completePlannedChore(plannedChoreID) {
     return apiFetch(`/api/chores/planned/${plannedChoreID}/complete`, {
+        method: 'PATCH',
+    });
+}
+
+/**
+ * Create a chore completion for a specific chore
+ * @param {string} plannedChoreID
+ * @returns {Promise<any>}
+ */
+export async function unCompletePlannedChore(plannedChoreID) {
+    return apiFetch(`/api/chores/planned/${plannedChoreID}/uncomplete`, {
         method: 'PATCH',
     });
 }

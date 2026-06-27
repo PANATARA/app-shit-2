@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { requestCode, verifyCode, debugAuth } from "./api/auth";
+  import { requestCode, verifyCode, debugAuth } from "$api/auth";
 
   const dispatch = createEventDispatcher();
 
