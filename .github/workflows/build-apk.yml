@@ -46,7 +46,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Make gradlew executable
-        run: chmod +x app/gradlew
+        run: chmod +x gradlew
         # поправь путь если gradlew лежит в другом месте
 
       - name: Build debug APK
