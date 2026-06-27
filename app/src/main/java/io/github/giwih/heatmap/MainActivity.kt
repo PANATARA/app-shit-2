@@ -36,8 +36,8 @@ class MainActivity : Activity() {
         myWebView.addJavascriptInterface(WebAppInterface(), "AndroidBridge")
 
         setContentView(myWebView)
-        // myWebView.loadUrl("file:///android_asset/index.html")
-        myWebView.loadUrl("192.168.0.233:5173")
+        myWebView.loadUrl("file:///android_asset/index.html")
+        //myWebView.loadUrl("192.168.0.233:5173")
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
