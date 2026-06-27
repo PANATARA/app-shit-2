@@ -50,9 +50,7 @@ jobs:
         # поправь путь если gradlew лежит в другом месте
 
       - name: Build debug APK
-        run: |
-          cd app
-          ./gradlew assembleDebug
+        run: ./gradlew assembleDebug
 
       - name: Find APK
         id: find_apk
