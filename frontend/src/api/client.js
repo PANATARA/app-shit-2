@@ -5,7 +5,7 @@ let savedUrl = 'http://192.168.0.233:8000';
 try {
     if (typeof localStorage !== 'undefined') {
         savedUrl = localStorage.getItem('api_base_url') || '';
-    }
+    } 
 } catch (e) {
     console.warn('localStorage not available:', e);
 }
