@@ -10,7 +10,7 @@ try {
     console.warn('localStorage not available:', e);
 }
 
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://192.168.0.233:8000';
+let apiBaseUrl = import.meta.env.VITE_API_URL || 'http://192.168.0.233:8000';
 // let apiBaseUrl = savedUrl || (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) || '';
 export function getBaseUrl() {
     return apiBaseUrl;
