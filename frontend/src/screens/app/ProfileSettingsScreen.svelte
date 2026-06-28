@@ -8,6 +8,7 @@
   import Icon from "@iconify/svelte";
   import AvatarConstructor from "$features/settings/AvatarConstructor.svelte";
   import ToggleSwitch from "$ui/ToggleSwitch.svelte";
+  import ChoresList from "$features/settings/ChoresList.svelte";
 
   // ─── STATE MACHINE ─────────────────────────────
   let notificationsEnabled = true;
@@ -22,6 +23,7 @@
 
   let loading = true;
   let error = false;
+  let modalOpen = false;
 
   let meUser: UserProfile | null = null;
   let familyMembers: FamilyMembers | null = null;
@@ -231,6 +233,35 @@
       </div>
     </Block>
 
+    <!-- ───────── FAMILY SETTINGS ───────── -->
+    <div class="section-label">Настройки семьи</div>
+
+    <Block>
+      <div class="row clickable" on:click={() => (modalOpen = true)}>
+        <div class="row-icon">
+          <Icon
+            icon="material-symbols:dataset-rounded"
+            width="24"
+            height="24"
+          />
+        </div>
+
+        <div class="row-text"><div class="row-title">Домашние дела</div></div>
+        <div class="row-right">Русский</div>
+        <span class="arrow">›</span>
+      </div>
+
+      <div class="row clickable">
+        <div class="row-icon">
+          <Icon icon="material-symbols:shield-rounded" width="24" height="24" />
+        </div>
+
+        <div class="row-text"><div class="row-title">Разрешения</div></div>
+        <div class="row-right">Тёмная</div>
+        <span class="arrow">›</span>
+      </div>
+    </Block>
+
     <!-- ───────── SETTINGS ───────── -->
     <div class="section-label">Настройки</div>
 
@@ -329,6 +360,10 @@
         </div>
       </div>
     </Block>
+  {/if}
+
+  {#if modalOpen}
+    <ChoresList on:close={() => (modalOpen = false)} />
   {/if}
 </div>
 

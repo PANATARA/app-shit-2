@@ -34,6 +34,16 @@ export interface FamilyMembers {
     members: UserShort[]
 }
 
+export interface DefaultChore {
+    id: string;
+    icon: string;
+    icon_color: string;
+    icon_bg: string;
+    valuation: number;
+    name: string;
+    description?: string;
+}
+
 export interface ChoreShort {
     id: string;
     name: string;
