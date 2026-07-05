@@ -44,17 +44,20 @@ export interface DefaultChore {
     description?: string;
 }
 
-export interface ChoreShort {
+export interface ChoreItem {
     id: string;
     name: string;
-    description: string;
     icon: string;
+    icon_color: string;
+    icon_bg: string;
+    description: string;
     valuation: number;
+    usageCount: number;
 }
 
 export interface PlannedChore {
     id: string;
-    chore: ChoreShort;
+    chore: ChoreItem;
     completed_by: UserShort | null;
     assigned_to: UserShort | null;
     due_date: string;
@@ -72,11 +75,3 @@ export interface StatFilters {
     end_date?: string;
 }
 
-export interface ChoreItem {
-    id: string;
-    name: string;
-    icon: string;
-    description: string;
-    valuation: number;
-    usageCount: number;
-}

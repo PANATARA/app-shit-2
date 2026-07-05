@@ -2,47 +2,44 @@
   import { createEventDispatcher, onMount } from "svelte";
   import BottomSheet from "$ui/BottomSheet.svelte";
   import RepeatSelector from "$features/chores/RepeatSelector.svelte";
-  import { getChores } from "$api/chores";
-  import { getStatisticsOnFamilyChore } from "$api/stats";
-  import { createPlannedChore } from "$api/chores";
+  import { getChores, createPlannedChore } from "$api/chores";
   import { getFamilyMembers } from "$api/family";
   import type { ChoreItem, FamilyMembers } from "$types/index";
   import UserAvatar from "$ui/UserAvatar.svelte";
+  import SearchBox from "$ui/SearchBox.svelte";
+  import ChoreListItem from "$features/chores/ChoreListItem.svelte";
+  import AsyncStateView from "$ui/AsyncStateView.svelte";
+  import ChoreIcon from "$ui/ChoreIcon.svelte";
+  import Backbtn from "$ui/backbtn.svelte";
 
   const dispatch = createEventDispatcher();
 
   // ─── Types ───────────────────────────────────────────────────────────────
-
-  type RepeatOption = "none" | "daily" | "weekly" | "monthly";
-
-  interface ChoreWithUsage extends ChoreItem {
-    usageCount: number;
-  }
-
-  // ─── State ───────────────────────────────────────────────────────────────
-
-  let modalStep: 1 | 2 = 1;
-  let selectedChore: ChoreWithUsage | null = null;
-  let comment = "";
-  let dueDate = "";
-  let assignedTo: string | null = null;
-  let searchQuery = "";
-
-  let chores: ChoreWithUsage[] = [];
-  let familyMembers: FamilyMembers | null = null;
-  let loading = true;
-  let error = false;
 
   type FrequencyType = "none" | "daily" | "weekly" | "monthly";
 
   interface RepeatConfig {
     frequency_type: FrequencyType;
     interval: number;
-    days_of_week: number[]; // 0-6 (Sun-Sat)
+    days_of_week: number[];
     day_of_month: number | null;
     starts_at: string;
     ends_at: string | null;
   }
+
+  // ─── State ───────────────────────────────────────────────────────────────
+
+  let modalStep: 1 | 2 = 1;
+  let selectedChore: ChoreItem | null = null;
+  let comment = "";
+  let dueDate = "";
+  let assignedTo: string | null = null;
+  let searchQuery = "";
+
+  let chores: ChoreItem[] = [];
+  let familyMembers: FamilyMembers | null = null;
+  let loading = true;
+  let error = false;
 
   let repeat: RepeatConfig = {
     frequency_type: "none",
@@ -53,34 +50,21 @@
     ends_at: null,
   };
 
-  const FREQUENT_THRESHOLD = 5;
-
   // ─── Data fetching ───────────────────────────────────────────────────────
 
-  onMount(loadChores);
+  onMount(loadData);
 
-  async function loadChores() {
+  async function loadData() {
     loading = true;
     error = false;
     try {
-      const [rawChores, stats, members] = await Promise.all([
+      const [rawChores, members] = await Promise.all([
         getChores(),
-        getStatisticsOnFamilyChore({
-          start_date: getDateNDaysAgo(30),
-          end_date: getTodayIso(),
-        }),
         getFamilyMembers(),
       ]);
-
-      const usageMap = new Map(
-        stats.map((s) => [s.chore_id, s.chores_completions_counts]),
-      );
+      // бэкенд уже вернул отсортированный список — просто сохраняем
+      chores = rawChores.chores ?? [];
       familyMembers = members;
-
-      // присоединяем usageCount из статистики и сортируем
-      chores = rawChores.chores
-        .map((c) => ({ ...c, usageCount: usageMap.get(c.id) ?? 0 }))
-        .sort((a, b) => b.usageCount - a.usageCount);
     } catch (e) {
       console.error("Failed to load chores:", e);
       error = true;
@@ -93,27 +77,6 @@
     return new Date().toISOString().split("T")[0];
   }
 
-  function getDateNDaysAgo(n: number): string {
-    const d = new Date();
-    d.setDate(d.getDate() - n);
-    return d.toISOString().split("T")[0];
-  }
-
-  function buildSchedulePayload() {
-    if (repeat.frequency_type === "none") return null;
-
-    return {
-      frequency_type: repeat.frequency_type,
-      interval: repeat.interval,
-      days_of_week:
-        repeat.frequency_type === "weekly" ? repeat.days_of_week : null,
-      day_of_month:
-        repeat.frequency_type === "monthly" ? repeat.day_of_month : null,
-      starts_at: repeat.starts_at,
-      ends_at: repeat.ends_at,
-    };
-  }
-
   // ─── Navigation ──────────────────────────────────────────────────────────
 
   function reset() {
@@ -121,7 +84,14 @@
     selectedChore = null;
     comment = "";
     dueDate = "";
-    repeat = "none";
+    repeat = {
+      frequency_type: "none",
+      interval: 1,
+      days_of_week: [],
+      day_of_month: null,
+      starts_at: getTodayIso(),
+      ends_at: null,
+    };
     assignedTo = null;
     searchQuery = "";
   }
@@ -131,20 +101,9 @@
     reset();
   }
 
-  function selectChore(chore: ChoreWithUsage) {
+  function selectChore(chore: ChoreItem) {
     selectedChore = chore;
     modalStep = 2;
-  }
-
-  function selectNewChore(title: string) {
-    selectChore({
-      id: "-1",
-      name: title,
-      icon: "🧹",
-      description: "",
-      valuation: 0,
-      usageCount: 0,
-    });
   }
 
   async function add() {
@@ -158,7 +117,6 @@
 
     try {
       const res = await createPlannedChore(selectedChore.id, payload);
-
       const assignedUser =
         familyMembers?.members.find((u) => u.id === assignedTo) ?? null;
 
@@ -177,21 +135,14 @@
     }
   }
 
-  // ─── Search & filtering ──────────────────────────────────────────────────
-  // сортировка уже сделана при загрузке, здесь только фильтрация по поиску
+  // ─── Search & filtering ───────────────────────────────────────────────────
+  // сортировка на бэкенде, здесь только фильтрация по поиску
 
   $: normalizedQuery = searchQuery.trim().toLowerCase();
 
   $: filteredChores = normalizedQuery
     ? chores.filter((c) => c.name.toLowerCase().includes(normalizedQuery))
     : chores;
-
-  $: frequentChores = filteredChores.filter(
-    (c) => c.usageCount >= FREQUENT_THRESHOLD,
-  );
-  $: otherChores = filteredChores.filter(
-    (c) => c.usageCount < FREQUENT_THRESHOLD,
-  );
 
   $: hasExactMatch = filteredChores.some(
     (c) => c.name.toLowerCase() === normalizedQuery,
@@ -207,130 +158,42 @@
   flyDuration={320}
 >
   {#if modalStep === 1}
-    <div class="search-box">
-      <svg
-        class="search-icon"
-        width="18"
-        height="18"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <circle cx="11" cy="11" r="7" />
-        <path d="M21 21l-4.35-4.35" />
-      </svg>
-      <input
-        class="search-input"
-        type="text"
-        placeholder="Поиск или новое дело..."
-        bind:value={searchQuery}
-      />
-      {#if searchQuery}
-        <button class="search-clear" on:click={() => (searchQuery = "")}
-          >×</button
-        >
-      {/if}
-    </div>
+    <SearchBox bind:searchQuery />
 
-    {#if loading}
-      <div class="state-msg">
-        <div class="shimmer-list">
-          {#each Array(5) as _}
-            <div class="shimmer-item">
-              <div class="shimmer-circle"></div>
-              <div class="shimmer-line"></div>
-            </div>
-          {/each}
-        </div>
-      </div>
-    {:else if error}
-      <div class="state-msg">
-        <p class="state-text">Не удалось загрузить дела</p>
-        <button class="retry-btn" on:click={loadChores}>Повторить</button>
-      </div>
-    {:else}
+    <AsyncStateView
+      {loading}
+      {error}
+      errorMessage="Не удалось загрузить дела"
+      onRetry={loadData}
+      shimmerCount={5}
+    >
       {#if showCreateNew}
         <button
           class="create-new-item"
-          on:click={() => selectNewChore(searchQuery.trim())}
+          on:click={() => selectChore(searchQuery.trim())}
         >
           <span class="create-new-icon">+</span>
           <span class="chore-label">Создать «{searchQuery.trim()}»</span>
         </button>
       {/if}
 
-      {#if frequentChores.length > 0}
-        <div class="section-label">Часто используемые</div>
+      {#if filteredChores.length > 0}
         <div class="chore-list">
-          {#each frequentChores as chore (chore.id)}
-            <button class="chore-item" on:click={() => selectChore(chore)}>
-              <span class="chore-icon">{chore.icon}</span>
-              <span class="chore-label">{chore.name}</span>
-              <svg
-                class="chore-arrow"
-                width="16"
-                height="16"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
+          {#each filteredChores as chore (chore.id)}
+            <ChoreListItem {chore} on:click={() => selectChore(chore)} />
           {/each}
         </div>
-      {/if}
-
-      {#if otherChores.length > 0}
-        {#if frequentChores.length > 0}
-          <div class="section-label">Все дела</div>
-        {/if}
-        <div class="chore-list">
-          {#each otherChores as chore (chore.id)}
-            <button class="chore-item" on:click={() => selectChore(chore)}>
-              <span class="chore-icon">{chore.icon}</span>
-              <span class="chore-label">{chore.name}</span>
-              <svg
-                class="chore-arrow"
-                width="16"
-                height="16"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          {/each}
-        </div>
-      {/if}
-
-      {#if filteredChores.length === 0 && !showCreateNew}
+      {:else if !showCreateNew}
         <div class="state-msg">
           <p class="state-text">Ничего не найдено</p>
         </div>
       {/if}
-    {/if}
+    </AsyncStateView>
   {:else}
-    <button class="back-btn" on:click={() => (modalStep = 1)}>
-      <svg
-        width="18"
-        height="18"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <path d="M15 18l-6-6 6-6" />
-      </svg>
-      Назад
-    </button>
+    <Backbtn label="Назад" on:click={() => (modalStep = 1)} />
 
     <div class="selected-header">
-      <span class="selected-icon">{selectedChore?.icon}</span>
+      <ChoreIcon chore={selectedChore} size={90} />
     </div>
 
     <div class="detail-form">
@@ -352,7 +215,6 @@
               on:click={() => (assignedTo = user.id)}
             >
               <UserAvatar {user} size={46} />
-
               <span>{user.name}</span>
             </button>
           {/each}
@@ -384,48 +246,6 @@
 </BottomSheet>
 
 <style>
-  .search-box {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 10px 14px;
-    margin: 0 16px 14px;
-  }
-
-  .search-icon {
-    color: var(--text-muted);
-    flex-shrink: 0;
-  }
-
-  .search-input {
-    flex: 1;
-    background: none;
-    border: none;
-    outline: none;
-    color: var(--text-primary);
-    font-size: 15px;
-    font-family: inherit;
-    min-width: 0;
-  }
-
-  .search-input::placeholder {
-    color: var(--text-muted);
-  }
-
-  .search-clear {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 20px;
-    line-height: 1;
-    cursor: pointer;
-    padding: 0 2px;
-    flex-shrink: 0;
-  }
-
   .state-msg {
     display: flex;
     flex-direction: column;
@@ -437,61 +257,6 @@
   .state-text {
     font-size: 14px;
     color: var(--text-muted);
-  }
-
-  .retry-btn {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 8px 18px;
-    font-size: 14px;
-    font-family: inherit;
-    color: var(--accent);
-    cursor: pointer;
-  }
-
-  .shimmer-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-    padding: 0 16px;
-  }
-
-  .shimmer-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 13px 14px;
-    background: var(--bg-card);
-    border-radius: 14px;
-  }
-
-  .shimmer-circle {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    background: var(--border);
-    flex-shrink: 0;
-    animation: shimmer 1.2s ease-in-out infinite;
-  }
-
-  .shimmer-line {
-    flex: 1;
-    height: 14px;
-    border-radius: 6px;
-    background: var(--border);
-    animation: shimmer 1.2s ease-in-out infinite;
-  }
-
-  @keyframes shimmer {
-    0%,
-    100% {
-      opacity: 0.5;
-    }
-    50% {
-      opacity: 1;
-    }
   }
 
   .section-label {
@@ -538,40 +303,6 @@
     padding: 0 16px;
   }
 
-  .chore-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 13px 14px;
-    background: var(--bg-card);
-    border: none;
-    border-radius: 14px;
-    color: var(--text-primary);
-    font-size: 15px;
-    font-family: inherit;
-    cursor: pointer;
-    text-align: left;
-    transition: opacity 0.1s;
-  }
-
-  .chore-item:active {
-    opacity: 0.7;
-  }
-
-  .chore-icon {
-    font-size: 20px;
-    width: 28px;
-    text-align: center;
-  }
-  .chore-label {
-    flex: 1;
-    font-weight: 500;
-  }
-  .chore-arrow {
-    color: var(--text-muted);
-    flex-shrink: 0;
-  }
-
   .back-btn {
     display: flex;
     align-items: center;
@@ -591,10 +322,6 @@
     align-items: center;
     justify-content: center;
     padding: 4px 0;
-  }
-
-  .selected-icon {
-    font-size: 32px;
   }
 
   .detail-form {

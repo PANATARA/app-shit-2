@@ -8,7 +8,11 @@
   import Icon from "@iconify/svelte";
   import AvatarConstructor from "$features/settings/AvatarConstructor.svelte";
   import ToggleSwitch from "$ui/ToggleSwitch.svelte";
-  import ChoresList from "$features/settings/ChoresList.svelte";
+  import ChoreEditorModal from "@/components/features/settings/ChoreEditorModal.svelte";
+  import InviteModal from "$features/settings/InviteModal.svelte";
+  import UserProfileModal from "$features/common/UserProfileModal.svelte";
+  import LangModal from "$features/settings/LangModal.svelte";
+  import ThemeModal from "$features/settings/ThemeModal.svelte";
 
   // ─── STATE MACHINE ─────────────────────────────
   let notificationsEnabled = true;
@@ -23,11 +27,18 @@
 
   let loading = true;
   let error = false;
-  let modalOpen = false;
+
+  // ─── MODALS STATE ───────────────────────────────
+  let choreModalOpen = false;
+  let inviteModalOpen = false;
+  let profileModalOpen = false;
+  let languageModalOpen = false;
+  let themeModalOpen = false;
 
   let meUser: UserProfile | null = null;
   let familyMembers: FamilyMembers | null = null;
   let familyProfile: FamilyProfile | null = null;
+  let selectedUser: UserProfile | null = null;
 
   // ─── EDIT STATE ───────────────────────────────
 
@@ -204,7 +215,13 @@
       <div class="divider" />
 
       {#each familyMembers?.members ?? [] as member (member.id)}
-        <div class="row clickable">
+        <div
+          class="row clickable"
+          on:click={() => {
+            profileModalOpen = true;
+            selectedUser = member;
+          }}
+        >
           <UserAvatar user={member} size={30} />
 
           <div class="row-text">
@@ -222,7 +239,10 @@
 
       <div class="divider" />
 
-      <div class="row clickable invite-row">
+      <div
+        class="row clickable invite-row"
+        on:click={() => (inviteModalOpen = true)}
+      >
         <div class="invite-icon">+</div>
 
         <div class="row-text">
@@ -237,7 +257,7 @@
     <div class="section-label">Настройки семьи</div>
 
     <Block>
-      <div class="row clickable" on:click={() => (modalOpen = true)}>
+      <div class="row clickable" on:click={() => (choreModalOpen = true)}>
         <div class="row-icon">
           <Icon
             icon="material-symbols:dataset-rounded"
@@ -246,8 +266,9 @@
           />
         </div>
 
-        <div class="row-text"><div class="row-title">Домашние дела</div></div>
-        <div class="row-right">Русский</div>
+        <div class="row-text">
+          <div class="row-title">Домашние дела</div>
+        </div>
         <span class="arrow">›</span>
       </div>
 
@@ -257,7 +278,6 @@
         </div>
 
         <div class="row-text"><div class="row-title">Разрешения</div></div>
-        <div class="row-right">Тёмная</div>
         <span class="arrow">›</span>
       </div>
     </Block>
@@ -266,7 +286,12 @@
     <div class="section-label">Настройки</div>
 
     <Block>
-      <div class="row clickable">
+      <div
+        class="row clickable"
+        on:click={() => {
+          languageModalOpen = true;
+        }}
+      >
         <div class="row-icon muted">
           <svg
             width="18"
@@ -287,7 +312,12 @@
         <span class="arrow">›</span>
       </div>
 
-      <div class="row clickable">
+      <div
+        class="row clickable"
+        on:click={() => {
+          themeModalOpen = true;
+        }}
+      >
         <div class="row-icon muted">
           <svg
             width="18"
@@ -362,8 +392,19 @@
     </Block>
   {/if}
 
-  {#if modalOpen}
-    <ChoresList on:close={() => (modalOpen = false)} />
+  {#if choreModalOpen}
+    <ChoreEditorModal on:close={() => (choreModalOpen = false)} />
+  {:else if inviteModalOpen}
+    <InviteModal on:close={() => (inviteModalOpen = false)} />
+  {:else if profileModalOpen && selectedUser}
+    <UserProfileModal
+      user={selectedUser}
+      on:close={() => (profileModalOpen = false)}
+    />
+  {:else if languageModalOpen}
+    <LangModal on:close={() => (languageModalOpen = false)} />
+  {:else if themeModalOpen}
+    <ThemeModal on:close={() => (themeModalOpen = false)} />
   {/if}
 </div>
 

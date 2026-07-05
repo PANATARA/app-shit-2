@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { fly } from "svelte/transition";
+  import { fly, fade } from "svelte/transition";
 
   export let title = "";
   export let flyY = 300;
@@ -81,6 +81,7 @@
   tabindex="0"
   on:click={close}
   on:keydown={(e) => e.key === "Escape" && close()}
+  transition:fade={{ duration: 250 }}
 ></div>
 
 <div

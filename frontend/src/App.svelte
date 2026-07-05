@@ -17,6 +17,13 @@
   let isInFamily = false;
   let checkingAuth = true;
 
+  const screenTitle: Record<string, string> = {
+    statsScreen: "Обзор",
+    boardScreen: "Домашние дела",
+    settingsScreen: "Настройки",
+    debugScreen: "Debug",
+  };
+
   let activeTab = "boardScreen";
   let selectedHabit = null;
 
@@ -71,7 +78,7 @@
   {:else}
     {#if !selectedHabit}
       <header class="top-bar">
-        <h1>{activeTab}</h1>
+        <h1>{screenTitle[activeTab]}</h1>
       </header>
     {/if}
 
@@ -136,11 +143,7 @@
           aria-label="Debug"
         >
           <span class="icon">
-            <Icon
-              icon="material-symbols:bug-report"
-              width="24"
-              height="24"
-            />
+            <Icon icon="material-symbols:bug-report" width="24" height="24" />
           </span>
         </button>
       </nav>

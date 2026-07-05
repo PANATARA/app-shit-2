@@ -29,7 +29,7 @@ export async function createFamily(familyData) {
 export async function uploadFamilyAvatar(file) {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     return apiFetch('/api/families/avatar/file/', {
         method: 'POST',
         body: formData,
@@ -107,10 +107,9 @@ export async function changeFamilyAdmin(userId) {
  * @param {object} inviteData - { should_confirm_chore_completion: boolean }
  * @returns {Promise<any>}
  */
-export async function generateInviteToken(inviteData) {
+export async function generateInviteToken() {
     return apiFetch('/api/families/invite', {
         method: 'POST',
-        body: inviteData
     });
 }
 

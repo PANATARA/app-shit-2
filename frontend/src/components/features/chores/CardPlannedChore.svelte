@@ -1,5 +1,10 @@
 <script lang="ts">
   import type { PlannedChore } from "$types/index";
+  import ChoreIcon from "$ui/ChoreIcon.svelte";
+  import UserAvatar from "$ui/UserAvatar.svelte";
+  import { createEventDispatcher } from "svelte";
+
+  const dispatch = createEventDispatcher();
 
   export let item: PlannedChore;
   export let onToggle: (item: PlannedChore) => void;
@@ -23,38 +28,33 @@
   }
 </script>
 
-<div class="card" class:card-done={done}>
-  <div class="icon-wrapper">
-    <div class="icon-inner">{icon}</div>
-  </div>
-
+<div
+  class="card"
+  class:card-done={done}
+  on:click
+  on:keydown={(e) => e.key === "Enter" && dispatch("click")}
+  role="button"
+  tabindex="0"
+>
+  <ChoreIcon chore={item.chore} />
   <div class="content">
     <div class="title" class:completed-text={done}>{title}</div>
     {#if comment}
       <div class="subtitle" class:completed-text={done}>{comment}</div>
     {/if}
-
     {#if assignee}
       <div class="assignee-badge">
-        <div class="avatar">{assigneeLetters}</div>
-        <span class="name">
-          Назначено: {assignee.name}
-        </span>
+        <UserAvatar user={item.assigned_to} size={20} />
+        <span class="name">Назначено: {assignee.name}</span>
       </div>
     {/if}
     {#if completer}
       <div class="completed-badge">
-        <div class="avatar completed-avatar">
-          {completerLetters}
-        </div>
-
-        <span class="name">
-          Выполнил: {completer.name}
-        </span>
+        <UserAvatar user={item.completed_by} size={20} />
+        <span class="name">Выполнил: {completer.name}</span>
       </div>
     {/if}
   </div>
-
   <div class="right">
     <button
       class="check"
@@ -113,37 +113,6 @@
     transform: none;
   }
 
-  /* ── ICON ───────────────────────────── */
-  .icon-wrapper {
-    position: relative;
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--accent-soft);
-    flex-shrink: 0;
-    transition: transform 0.3s ease;
-  }
-
-  .card:hover .icon-wrapper {
-    transform: scale(1.05) rotate(4deg);
-  }
-
-  .card-done .icon-wrapper {
-    background: var(--divider);
-    transform: none !important;
-  }
-
-  .icon-inner {
-    font-size: 24px;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
   /* ── CONTENT ───────────────────────────── */
   .content {
     flex: 1;
@@ -195,24 +164,6 @@
     border-color: var(--border);
   }
 
-  .avatar {
-    width: 18px;
-    height: 18px;
-    border-radius: 6px;
-    background: var(--accent);
-    color: #fff;
-    font-size: 9px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-transform: uppercase;
-  }
-
-  .card-done .avatar {
-    background: var(--text-muted);
-  }
-
   .name {
     font-size: 11px;
     font-weight: 600;
@@ -230,10 +181,6 @@
 
     background: rgba(34, 197, 94, 0.08);
     border: 1px solid rgba(34, 197, 94, 0.2);
-  }
-
-  .completed-avatar {
-    background: var(--success);
   }
 
   /* ── CHECK BUTTON ───────────────────────────── */

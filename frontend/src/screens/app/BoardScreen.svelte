@@ -3,8 +3,9 @@
   import { slide, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
   import WeekCalendar from "$ui/WeekCalendar.svelte";
-  import ChoreCard from "$features/chores/choreCard.svelte";
-  import AddChoreModal from "$features/chores/addChoreModal.svelte";
+  import CardPlannedChore from "@/components/features/chores/CardPlannedChore.svelte";
+  import CreatePlannedChore from "@/components/features/chores/CreatePlannedChore.svelte";
+  import DetailPlannedChoreModal from "$features/chores/DetailPlannedChoreModal.svelte";
   import {
     completePlannedChore,
     getPlannedChore,
@@ -18,6 +19,8 @@
   let loading = false;
   let modalOpen = false;
   let plannedChores: PlannedChore[] = [];
+  let selectedPlannedChore: PlannedChore | null = null;
+  let detailModalOpen = false;
 
   onMount(() => {
     loadPlannedChores(formatDateKey(new Date()));
@@ -208,7 +211,14 @@
               transition:slide|local={{ duration: 250 }}
               animate:flip={{ duration: 250 }}
             >
-              <ChoreCard item={chore} onToggle={toggleChore} />
+              <CardPlannedChore
+                item={chore}
+                onToggle={toggleChore}
+                on:click={() => {
+                  selectedPlannedChore = chore;
+                  detailModalOpen = true;
+                }}
+              />
             </div>
           {/each}
         {/if}
@@ -231,7 +241,14 @@
               transition:slide|local={{ duration: 250 }}
               animate:flip={{ duration: 250 }}
             >
-              <ChoreCard item={plannedChore} onToggle={toggleChore} />
+              <CardPlannedChore
+                item={plannedChore}
+                onToggle={toggleChore}
+                on:click={() => {
+                  selectedPlannedChore = plannedChore;
+                  detailModalOpen = true;
+                }}
+              />
             </div>
           {/each}
         </div>
@@ -240,7 +257,20 @@
   {/if}
 
   {#if modalOpen}
-    <AddChoreModal on:close={() => (modalOpen = false)} />
+    <CreatePlannedChore on:close={() => (modalOpen = false)} />
+  {:else if detailModalOpen && selectedPlannedChore}
+    <DetailPlannedChoreModal
+      plannedChore={selectedPlannedChore}
+      on:close={() => (detailModalOpen = false)}
+      on:deleted={(e) => {
+        plannedChores = plannedChores.filter((c) => c.id !== e.detail);
+      }}
+      on:updated={(e) => {
+        plannedChores = plannedChores.map((c) =>
+          c.id === e.detail.id ? e.detail : c,
+        );
+      }}
+    />
   {/if}
 </div>
 

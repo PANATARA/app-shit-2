@@ -51,18 +51,7 @@ export async function updateChore(choreId, choreData) {
 }
 
 export async function getDefaultChores() {
-  return [
-    { id: "1", icon: "material-symbols:dish-washer-rounded", icon_color: "#ffffff", icon_bg: "linear-gradient(135deg, #e8856a 0%, #c17a45 100%)", valuation: 10, name: "Помыть посуду", description: "" },
-    { id: "2", icon: "material-symbols:delete-rounded", icon_color: "#ffffff", icon_bg: "linear-gradient(135deg, #e8856a 0%, #c17a45 100%)", valuation: 10, name: "Вынести мусор", description: "" },
-    { id: "3", icon: "material-symbols:vacuum-rounded", icon_color: "#ffffff", icon_bg: "linear-gradient(135deg, #6ab8a0 0%, #3d8c75 100%)", valuation: 15, name: "Пылесос", description: "" },
-    { id: "4", icon: "material-symbols:local-laundry-service-rounded", icon_color: "#ffffff", icon_bg: "linear-gradient(135deg, #6ab8a0 0%, #3d8c75 100%)", valuation: 20, name: "Стирка", description: "" },
-    { id: "5", icon: "material-symbols:pets-rounded", icon_color: "#ffffff", icon_bg: "linear-gradient(135deg, #e8a87c 0%, #c17a45 100%)", valuation: 15, name: "Выгулять собаку", description: "" },
-    { id: "6", icon: "material-symbols:water-drop-rounded", icon_color: "#ffffff", icon_bg: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)", valuation: 10, name: "Полить цветы", description: "" },
-    { id: "7", icon: "material-symbols:iron-rounded", icon_color: "#ffffff", icon_bg: "linear-gradient(135deg, #e8856a 0%, #c17a45 100%)", valuation: 15, name: "Глажка", description: "" },
-    { id: "8", icon: "material-symbols:cooking-rounded", icon_color: "#ffffff", icon_bg: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)", valuation: 25, name: "Приготовить еду", description: "" },
-    { id: "9", icon: "material-symbols:mop-rounded", icon_color: "#ffffff", icon_bg: "linear-gradient(135deg, #6ab8a0 0%, #3d8c75 100%)", valuation: 20, name: "Помыть полы", description: "" },
-    { id: "10", icon: "material-symbols:shopping-cart-rounded", icon_color: "#ffffff", icon_bg: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)", valuation: 20, name: "Закупить продукты", description: "" },
-  ];
+    return apiFetch(`/api/chores/default`);
 }
 
 // ==========================================
@@ -114,3 +103,12 @@ export async function unCompletePlannedChore(plannedChoreID) {
         method: 'PATCH',
     });
 }
+
+export async function deletePlannedChore(id) {
+  return apiFetch(`/api/planned-chores/${id}`, { method: "DELETE" });
+}
+
+export async function reschedulePlannedChore(id, data) {
+  return apiFetch(`/api/planned-chores/${id}/reschedule`, { method: "PATCH", body: data });
+}
+
