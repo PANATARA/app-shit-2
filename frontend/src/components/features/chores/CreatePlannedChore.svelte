@@ -116,20 +116,8 @@
     };
 
     try {
-      const res = await createPlannedChore(selectedChore.id, payload);
-      const assignedUser =
-        familyMembers?.members.find((u) => u.id === assignedTo) ?? null;
-
-      dispatch("add", {
-        chore: selectedChore,
-        comment,
-        dueDate,
-        repeat,
-        assignedTo: assignedUser,
-        apiResponse: res,
-      });
-
-      close();
+      await createPlannedChore(selectedChore.id, payload);
+      dispatch("add");
     } catch (e) {
       console.error("Failed to create planned chore:", e);
     }

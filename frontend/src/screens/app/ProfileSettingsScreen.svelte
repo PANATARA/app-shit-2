@@ -7,24 +7,14 @@
   import Block from "$ui/block.svelte";
   import Icon from "@iconify/svelte";
   import AvatarConstructor from "$features/settings/AvatarConstructor.svelte";
-  import ToggleSwitch from "$ui/ToggleSwitch.svelte";
   import ChoreEditorModal from "@/components/features/settings/ChoreEditorModal.svelte";
   import InviteModal from "$features/settings/InviteModal.svelte";
   import UserProfileModal from "$features/common/UserProfileModal.svelte";
   import LangModal from "$features/settings/LangModal.svelte";
   import ThemeModal from "$features/settings/ThemeModal.svelte";
+  import { showDays, theme, language } from "$lib/settings.js";
 
   // ─── STATE MACHINE ─────────────────────────────
-  let notificationsEnabled = true;
-  async function handleClick(e) {
-    const value = e.detail;
-
-    notificationsEnabled = value;
-
-    // console.log(e);
-    console.log(value);
-  }
-
   let loading = true;
   let error = false;
 
@@ -139,7 +129,6 @@
     {#if isEditing}
       <Block padding={10}>
         <div class="edit-avatar-wrap">
-          <!-- <UserAvatar user={meUser} size={100} /> -->
           <AvatarConstructor
             initialIcon={editAvatar.icon}
             initialIconColor={editAvatar.icon_color}
@@ -202,7 +191,7 @@
 
     <Block>
       <div class="row clickable">
-        <UserAvatar user={familyProfile} size={40} />
+        <UserAvatar user={familyProfile} size={30} />
 
         <div class="row-text">
           <div class="row-title">{familyProfile?.name}</div>
@@ -236,8 +225,6 @@
           <span class="arrow">›</span>
         </div>
       {/each}
-
-      <div class="divider" />
 
       <div
         class="row clickable invite-row"
@@ -286,57 +273,37 @@
     <div class="section-label">Настройки</div>
 
     <Block>
-      <div
-        class="row clickable"
+      <button
+        class="btn-row clickable"
         on:click={() => {
           languageModalOpen = true;
         }}
       >
-        <div class="row-icon muted">
-          <svg
-            width="18"
-            height="18"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="1.8"
-          >
-            <path
-              d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
-            />
-          </svg>
+        <div class="row-icon">
+          <Icon icon="material-symbols:language" width="24" height="24" />
         </div>
 
         <div class="row-text"><div class="row-title">Язык</div></div>
-        <div class="row-right">Русский</div>
+        <div class="row-right">
+          {$language === "ru" ? "Русский" : "English"}
+        </div>
         <span class="arrow">›</span>
-      </div>
+      </button>
 
-      <div
-        class="row clickable"
+      <button
+        class="btn-row clickable"
         on:click={() => {
           themeModalOpen = true;
         }}
       >
-        <div class="row-icon muted">
-          <svg
-            width="18"
-            height="18"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="1.8"
-          >
-            <path
-              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-            />
-          </svg>
+        <div class="row-icon">
+          <Icon icon="material-symbols:palette" width="24" height="24" />
         </div>
 
         <div class="row-text"><div class="row-title">Тема</div></div>
-        <div class="row-right">Тёмная</div>
+        <div class="row-right">{$theme}</div>
         <span class="arrow">›</span>
-      </div>
+      </button>
 
       <div class="row">
         <div class="row-icon">
@@ -347,8 +314,13 @@
           />
         </div>
 
-        <div class="row-text"><div class="row-title">Версия</div></div>
-        <ToggleSwitch checked={notificationsEnabled} on:change={handleClick} />
+        <div class="row-text">
+          <div class="row-title">Дни недели на тепловой карте</div>
+        </div>
+        <label class="tog">
+          <input type="checkbox" bind:checked={$showDays} />
+          <span class="tog-track"><span class="tog-thumb"></span></span>
+        </label>
       </div>
 
       <div class="row">
@@ -375,7 +347,7 @@
 
     <div class="section-label">Аккаунт</div>
 
-    <Block>
+    <Block padding={10}>
       <div class="row clickable danger-row">
         <div class="row-text">
           <div class="row-title danger-title">Покинуть семью</div>
@@ -398,7 +370,7 @@
     <InviteModal on:close={() => (inviteModalOpen = false)} />
   {:else if profileModalOpen && selectedUser}
     <UserProfileModal
-      user={selectedUser}
+      userId={selectedUser.id}
       on:close={() => (profileModalOpen = false)}
     />
   {:else if languageModalOpen}
@@ -409,6 +381,28 @@
 </div>
 
 <style>
+  .btn-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+
+    background: transparent;
+    border: none;
+
+    text-align: left;
+    cursor: pointer;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .btn-row:focus {
+    outline: none;
+  }
+
+  .btn-row:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
   .screen {
     background: var(--bg, #2a2318);
     min-height: 100vh;
@@ -546,7 +540,8 @@
 
   /* ── Invite row ────────────────────────────── */
   .invite-row {
-    background: rgba(232, 168, 124, 0.08);
+    /* background: rgba(232, 168, 124, 0.08); */
+    /* border-radius: 22px; */
   }
 
   .invite-icon {
@@ -669,5 +664,49 @@
 
   .btn-save:active {
     opacity: 0.8;
+  }
+  /* Toggle */
+  .tog {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .tog input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .tog-track {
+    width: 42px;
+    height: 24px;
+    background: var(--accent-container);
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.22s;
+    display: block;
+  }
+  .tog input:checked + .tog-track {
+    background: var(--accent);
+  }
+  .tog-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    display: block;
+  }
+  .tog input:checked + .tog-track .tog-thumb {
+    transform: translateX(18px);
+  }
+  .danger-title {
+    color: rgb(244, 60, 60);
   }
 </style>

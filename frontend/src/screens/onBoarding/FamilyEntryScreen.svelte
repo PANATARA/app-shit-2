@@ -103,7 +103,7 @@
   }
 
   function handleProceedToApp() {
-    dispatch("success", { family: successData });
+    dispatch("handleFamilySuccess", { family: successData });
   }
 
   // ─── Avatar ──────────────────────────────────────────────────────────────────

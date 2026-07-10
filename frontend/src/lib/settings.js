@@ -20,71 +20,56 @@ const getSetting = (key, defaultValue) => {
     }
 };
 
-// function applyTheme(theme) {
-//   if (theme === 'light') {
-//     document.body.classList.add('light');
-//   } else {
-//     document.body.classList.remove('light');
-//   }
-// }
-
 // Инициализируем из localStorage, подписываемся на изменения
 function createSettingsStore(key, defaultValue) {
-  const initialValue = getSetting(key, defaultValue);
-  const { subscribe, set, update } = writable(initialValue);
+    const initialValue = getSetting(key, defaultValue);
+    const { subscribe, set, update } = writable(initialValue);
 
-  return {
-    subscribe,
-    set: (value) => {
-      saveSetting(key, value);
-      set(value);
-    },
-    toggle: () => update(value => {
-      const newValue = !value;
-      saveSetting(key, newValue);
-      return newValue;
-    }),
-    update: (fn) => {
-      update(current => {
-        const newValue = fn(current);
-        saveSetting(key, newValue);
-        return newValue;
-    });
-    }
-  };
-} 
+    return {
+        subscribe,
+        set: (value) => {
+            saveSetting(key, value);
+            set(value);
+        },
+        toggle: () => update(value => {
+            const newValue = !value;
+            saveSetting(key, newValue);
+            return newValue;
+        }),
+        update: (fn) => {
+            update(current => {
+                const newValue = fn(current);
+                saveSetting(key, newValue);
+                return newValue;
+            });
+        }
+    };
+}
 
 // Exports
 export const showDays = createSettingsStore('showDays', false);
-export const theme = createSettingsStore('theme', 'dark');
+export const theme = createSettingsStore('theme', 'warm');
 export const language = createSettingsStore('lang', 'ru');
-export const materialYou = createSettingsStore('materialYou', false);
 
 // theme
 if (typeof document !== 'undefined') {
-    theme.subscribe(value => {
-        if (value === 'light') {
-            document.body.classList.add('light');
-        } else {
-            document.body.classList.remove('light');
-        }
-    });
-}
-
-
-if (typeof document !== 'undefined') {
-    materialYou.subscribe(value => {
-        if (value === true) {
-            document.body.classList.add('material-you');
-        } else {
-            document.body.classList.remove('material-you');
-        }
+    theme.subscribe((value) => {
+        // список всех тем
+        const themes = [
+            "sunset",
+            "lavender",
+            "warm",
+            "midnight",
+            "amber",
+        ];
+        document.body.classList.remove(...themes);
+        document.body.classList.add(value);
     });
 }
 
 if (typeof document !== 'undefined') {
-  language.subscribe(value => {
-    document.documentElement.setAttribute('lang', value);
-    document.documentElement.setAttribute('data-lang', value);
-  });
+    language.subscribe(value => {
+        document.documentElement.setAttribute('lang', value);
+        document.documentElement.setAttribute('data-lang', value);
+    });
 }

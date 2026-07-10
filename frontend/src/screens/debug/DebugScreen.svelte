@@ -17,7 +17,7 @@
   ];
   const themes = ["Тёмное", "Светлое", "Системное"];
 
-  $: currentThemeLabel = $theme === "light" ? "Светлое" : "Тёмное";
+  $: currentThemeLabel = $theme;
 
   function openSheet(type) {
     sheetType = type;

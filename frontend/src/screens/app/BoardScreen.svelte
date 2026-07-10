@@ -257,7 +257,13 @@
   {/if}
 
   {#if modalOpen}
-    <CreatePlannedChore on:close={() => (modalOpen = false)} />
+    <CreatePlannedChore
+      on:close={() => (modalOpen = false)}
+      on:add={() => {
+        modalOpen = false;
+        loadPlannedChores(currentDueDateStr);
+      }}
+    />
   {:else if detailModalOpen && selectedPlannedChore}
     <DetailPlannedChoreModal
       plannedChore={selectedPlannedChore}

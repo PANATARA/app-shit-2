@@ -29,34 +29,56 @@
 
   onMount(async () => {
     if ($isLoggedInStore) {
-      try {
-        const profile = await getProfile();
-        isInFamily = !!profile.is_family_member;
-      } catch (err) {
-        console.warn("Auth token validation failed, logging out:", err);
-        clearTokens();
-      }
+      await checkProfile();
     }
     checkingAuth = false;
-  });
 
-  $: isAuthed = $isLoggedInStore;
-
-  onMount(() => {
-    // Регистрируем глобальный хук для нативного back
     window.onAndroidBack = () => {
       if (selectedHabit) {
         closeDetail();
       } else if (activeTab !== "habits") {
         activeTab = "habits";
       } else {
-        AndroidBridge?.finish?.();
+        (window as any).AndroidBridge?.finish?.();
       }
     };
+
     return () => {
       window.onAndroidBack = null;
     };
   });
+
+  async function checkProfile() {
+    try {
+      console.log("calling getProfile...");
+      const profile = await getProfile();
+      console.log("profile:", profile);
+      isAuthed = true;
+      isInFamily = !!profile.is_family_member;
+    } catch (err) {
+      console.warn("checkProfile failed:", err);
+      clearTokens();
+      isAuthed = false;
+      isInFamily = false;
+    }
+  }
+
+  async function handleAuth() {
+    console.log("handleAuth called, isLoggedInStore:", $isLoggedInStore);
+    checkingAuth = true;
+    await checkProfile();
+    console.log(
+      "after checkProfile, isAuthed:",
+      isAuthed,
+      "isInFamily:",
+      isInFamily,
+    );
+    checkingAuth = false;
+  }
+
+  function handleFamilySuccess() {
+    isInFamily = true;
+  }
 
   function closeDetail() {
     selectedHabit = null;
@@ -72,9 +94,9 @@
       </p>
     </div>
   {:else if !isAuthed}
-    <AuthScreen on:auth={() => (isAuthed = true)} />
+    <AuthScreen on:auth={handleAuth} />
   {:else if !isInFamily}
-    <FamilyEntryScreen />
+    <FamilyEntryScreen on:success={handleFamilySuccess} />
   {:else}
     {#if !selectedHabit}
       <header class="top-bar">
@@ -136,7 +158,7 @@
             />
           </span>
         </button>
-        <button
+        <!-- <button
           class="nav-item"
           on:click={() => (activeTab = "debugScreen")}
           class:active={activeTab === "debugScreen"}
@@ -145,7 +167,7 @@
           <span class="icon">
             <Icon icon="material-symbols:bug-report" width="24" height="24" />
           </span>
-        </button>
+        </button> -->
       </nav>
     </div>
   {/if}
@@ -153,7 +175,7 @@
 
 <style>
   /* ── CSS переменные: тёмная тема (default) ── */
-  :global(:root) {
+  :global(body.warm) {
     /* Backgrounds */
     --bg: #2b2622;
     --surface: #35302b;
@@ -190,42 +212,158 @@
     --blur-effect: none;
   }
 
-  /* ── Светлая тема ───────────────────────────── */
+  /* ─── OCEAN ──────────────────────────────────────────────── */
+  :global(body.ocean) {
+    --bg: #0d1b2a;
+    --surface: #112236;
+    --surface-alt: #162d45;
+    --bg-bar: rgba(17, 34, 54, 0.9);
 
-  :global(body.light) {
-    /* Backgrounds */
-    --bg: #f4ede4;
-    --surface: #fbf7f2;
-    --surface-alt: #efe3d4;
-    --bg-bar: rgba(251, 247, 242);
+    --text: #e0f0ff;
+    --text-primary: #e0f0ff;
+    --text-secondary: #93c5e8;
+    --text-muted: #5a8aaa;
+    --text-nav: #93c5e8;
 
-    /* Text */
-    --text: #4d433a;
-    --text-primary: #4d433a;
-    --text-secondary: #8a8076;
-    --text-muted: #b0a59a;
-    --text-nav: #8a8076;
+    --accent: #38bdf8;
+    --accent-soft: #0c2a3d;
 
-    /* Brand */
-    --accent: #c97b63;
-    --accent-soft: #f1ddd6;
+    --success: #34d399;
+    --success-soft: #0d2e24;
 
-    /* Success */
-    --success: #8faf9a;
-    --success-soft: #e3ece6;
+    --border: #1a3a55;
+    --divider: #152f45;
 
-    /* UI */
-    --border: #e3d6c7;
-    --divider: #e8dccd;
+    --bg-nav: #112236;
+    --nav-active-bg: rgba(56, 189, 248, 0.2);
+    --nav-active-fg: #e0f0ff;
+    --shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.4);
 
-    /* Navigation */
-    --nav-bg: rgba(251, 247, 242);
-    --nav-active-bg: rgba(201, 123, 99);
-    --nav-active-fg: #4d433a;
-    --shadow-nav: 0 10px 30px rgba(77, 67, 58, 0.08);
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --blur-effect: none;
+  }
 
-    /* Effects */
-    --shadow: 0 8px 24px rgba(77, 67, 58, 0.08);
+  /* ─── LAVENDER ───────────────────────────────────────────── */
+  :global(body.lavender) {
+    --bg: #16101f;
+    --surface: #1e1530;
+    --surface-alt: #261c3d;
+    --bg-bar: rgba(30, 21, 48, 0.9);
+
+    --text: #ede8f5;
+    --text-primary: #ede8f5;
+    --text-secondary: #c4b8e0;
+    --text-muted: #8a7aaa;
+    --text-nav: #c4b8e0;
+
+    --accent: #a78bfa;
+    --accent-soft: #241a3a;
+
+    --success: #6ee7b7;
+    --success-soft: #0f2820;
+
+    --border: #302248;
+    --divider: #271a3e;
+
+    --bg-nav: #1e1530;
+    --nav-active-bg: rgba(167, 139, 250, 0.2);
+    --nav-active-fg: #ede8f5;
+    --shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.4);
+
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --blur-effect: none;
+  }
+
+  /* ─── SUNSET ─────────────────────────────────────────────── */
+  :global(body.sunset) {
+    --bg: #1a1015;
+    --surface: #251520;
+    --surface-alt: #301a28;
+    --bg-bar: rgba(37, 21, 32, 0.9);
+
+    --text: #f5e8ef;
+    --text-primary: #f5e8ef;
+    --text-secondary: #d4a8bf;
+    --text-muted: #9a6a82;
+    --text-nav: #d4a8bf;
+
+    --accent: #f472b6;
+    --accent-soft: #3a1228;
+
+    --success: #fb923c;
+    --success-soft: #2e1508;
+
+    --border: #3d1f30;
+    --divider: #321828;
+
+    --bg-nav: #251520;
+    --nav-active-bg: rgba(244, 114, 182, 0.2);
+    --nav-active-fg: #f5e8ef;
+    --shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.4);
+
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --blur-effect: none;
+  }
+
+  /* ─── MIDNIGHT ───────────────────────────────────────────── */
+  :global(body.midnight) {
+    --bg: #070b14;
+    --surface: #0d1526;
+    --surface-alt: #111d35;
+    --bg-bar: rgba(13, 21, 38, 0.9);
+
+    --text: #e8eeff;
+    --text-primary: #e8eeff;
+    --text-secondary: #8fa8d4;
+    --text-muted: #4a6090;
+    --text-nav: #8fa8d4;
+
+    --accent: #6366f1;
+    --accent-soft: #0f1435;
+
+    --success: #22d3ee;
+    --success-soft: #062030;
+
+    --border: #1a2a4a;
+    --divider: #111f3a;
+
+    --bg-nav: #0d1526;
+    --nav-active-bg: rgba(99, 102, 241, 0.2);
+    --nav-active-fg: #e8eeff;
+    --shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --blur-effect: none;
+  }
+
+  /* ─── AMBER ──────────────────────────────────────────────── */
+  :global(body.amber) {
+    --bg: #14100a;
+    --surface: #1e1710;
+    --surface-alt: #281f15;
+    --bg-bar: rgba(30, 23, 16, 0.9);
+
+    --text: #f5ede0;
+    --text-primary: #f5ede0;
+    --text-secondary: #c8a87a;
+    --text-muted: #8a6a40;
+    --text-nav: #c8a87a;
+
+    --accent: #f59e0b;
+    --accent-soft: #2a1f08;
+
+    --success: #84cc16;
+    --success-soft: #1a2208;
+
+    --border: #362a18;
+    --divider: #2a2010;
+
+    --bg-nav: #1e1710;
+    --nav-active-bg: rgba(245, 158, 11, 0.2);
+    --nav-active-fg: #f5ede0;
+    --shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.45);
+
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
     --blur-effect: none;
   }
 

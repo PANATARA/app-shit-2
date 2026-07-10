@@ -1,108 +1,89 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import BottomSheet from "$ui/BottomSheet.svelte";
   import UserAvatar from "$ui/UserAvatar.svelte";
   import Icon from "@iconify/svelte";
+  import { getUserProfile } from "$api/me";
   import type { UserProfile } from "$types/index";
+  import AsyncStateView from "$ui/AsyncStateView.svelte";
 
   const dispatch = createEventDispatcher();
 
-  export let user: UserProfile;
+  export let userId: string;
+  let user: UserProfile;
+  let loading = true;
+  let error = false;
 
-  // ─── Helpers ─────────────────────────────────────────────────────────────
+  onMount(loadData);
 
-  function getLevel(exp: number): number {
-    return Math.floor(exp / 100) + 1;
-  }
+  async function loadData() {
+    loading = true;
+    error = false;
 
-  function getExpInLevel(exp: number): number {
-    return exp % 100;
-  }
-
-  function getLevelTitle(level: number): string {
-    if (level < 3) return "Новичок";
-    if (level < 6) return "Помощник";
-    if (level < 10) return "Активист";
-    if (level < 15) return "Мастер дома";
-    return "Легенда семьи";
+    try {
+      user = await getUserProfile(userId);
+    } catch (e) {
+      console.error(e);
+      error = true;
+    } finally {
+      loading = false;
+    }
   }
 
   function close() {
     dispatch("close");
   }
-
-  $: level = getLevel(user.experience);
-  $: expInLevel = getExpInLevel(user.experience);
-  $: levelTitle = getLevelTitle(level);
-  $: progressPercent = expInLevel;
 </script>
 
 <BottomSheet title="" on:close={close} flyY={999} flyDuration={320}>
-  <div class="content">
-    <!-- ── Аватар и имя ── -->
-    <div class="profile-header">
-      <UserAvatar {user} size={90} />
-      <div class="profile-info">
-        <div class="profile-name">{user.name} {user.surname}</div>
-        <div class="profile-username">@{user.username}</div>
-        <div class="level-badge">
-          <Icon
-            icon="material-symbols:military-tech-rounded"
-            width="14"
-            height="14"
-          />
-          {levelTitle}
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Уровень и опыт ── -->
-    <div class="exp-card">
-      <div class="exp-header">
-        <div class="exp-level-wrap">
-          <span class="exp-level-label">Уровень</span>
-          <span class="exp-level-num">{level}</span>
-        </div>
-        <div class="exp-numbers">
-          <span class="exp-current">{expInLevel}</span>
-          <span class="exp-divider">/</span>
-          <span class="exp-max">100 XP</span>
+  <AsyncStateView
+    {loading}
+    {error}
+    errorMessage="Не удалось загрузить профиль"
+    onRetry={loadData}
+    shimmerCount={5}
+  >
+    <div class="content">
+      <!-- ── Аватар и имя ── -->
+      <div class="profile-header">
+        <UserAvatar {user} size={90} />
+        <div class="profile-info">
+          <div class="profile-name">{user.name} {user.surname}</div>
+          <div class="profile-username">@{user.username}</div>
+          <div class="level-badge">
+            <Icon
+              icon="material-symbols:military-tech-rounded"
+              width="14"
+              height="14"
+            />
+            Новичок
+          </div>
         </div>
       </div>
 
-      <div class="progress-track">
-        <div class="progress-fill" style="width: {progressPercent}%"></div>
-      </div>
+      <!-- ── Уровень и опыт ── -->
+      <div class="exp-card">
+        <div class="exp-header">
+          <div class="exp-level-wrap">
+            <span class="exp-level-label">Уровень</span>
+            <span class="exp-level-num">{user.level}</span>
+          </div>
+          <div class="exp-numbers">
+            <span class="exp-current">{user.experience}</span>
+            <span class="exp-divider">/</span>
+            <span class="exp-max">{user.exp_to_next_total}</span>
+          </div>
+        </div>
 
-      <div class="exp-total">
-        <Icon
-          icon="material-symbols:star-rounded"
-          width="14"
-          height="14"
-          color="var(--accent)"
-        />
-        <span>Всего опыта: <strong>{user.experience} XP</strong></span>
+        <div class="progress-track">
+          <div
+            class="progress-fill"
+            style="width: {user.progress_percent}%"
+          ></div>
+        </div>
       </div>
     </div>
-
-    <!-- ── Стата ── -->
-    <div class="stats-row">
-      <div class="stat-cell">
-        <span class="stat-num">{level}</span>
-        <span class="stat-label">Уровень</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-cell">
-        <span class="stat-num">{user.experience}</span>
-        <span class="stat-label">Опыт</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-cell">
-        <span class="stat-num">{100 - expInLevel}</span>
-        <span class="stat-label">До след. уровня</span>
-      </div>
-    </div>
-  </div>
+  </AsyncStateView>
 </BottomSheet>
 
 <style>

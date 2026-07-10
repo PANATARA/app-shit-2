@@ -1,15 +1,16 @@
 <script lang="ts">
   import BottomSheet from "$ui/BottomSheet.svelte";
   import Icon from "@iconify/svelte";
-  import { theme as themeStore } from "$lib/settings.js";
+  import { theme } from "$lib/settings.js";
   import { createEventDispatcher } from "svelte";
+  import { get } from "svelte/store";
   const dispatch = createEventDispatcher();
 
   function close() {
     dispatch("close");
   }
 
-  let currentTheme = "warm";
+  let currentTheme = get(theme) || "warm";
   let selectedTheme = currentTheme;
 
   const themes = [
@@ -20,22 +21,28 @@
       colors: ["#D58A72", "#F4E7DD", "#A85D49"],
     },
     {
-      id: "forest",
-      name: "Лес",
-      description: "Спокойные зелёные оттенки",
-      colors: ["#4CAF50", "#A5D6A7", "#2E7D32"],
-    },
-    {
-      id: "ocean",
-      name: "Океан",
-      description: "Холодные синие оттенки",
-      colors: ["#2196F3", "#90CAF9", "#1565C0"],
-    },
-    {
       id: "lavender",
       name: "Лаванда",
       description: "Мягкие фиолетовые оттенки",
       colors: ["#9C6ADE", "#D1C4E9", "#6A1B9A"],
+    },
+    {
+      id: "sunset",
+      name: "Закат",
+      description: "Тёплые розово-малиновые оттенки",
+      colors: ["#1a1015", "#f472b6", "#fb923c"],
+    },
+    {
+      id: "midnight",
+      name: "Полночь",
+      description: "Глубокий синий с индиго акцентом",
+      colors: ["#070b14", "#6366f1", "#22d3ee"],
+    },
+    {
+      id: "amber",
+      name: "Янтарь",
+      description: "Тёплый золотисто-коричневый",
+      colors: ["#14100a", "#f59e0b", "#84cc16"],
     },
   ];
 
@@ -45,7 +52,8 @@
 
   function applyTheme() {
     currentTheme = selectedTheme;
-    themeStore.set(selectedTheme);
+    theme.set(selectedTheme);
+
     close();
   }
 </script>
@@ -62,27 +70,25 @@
     </p>
 
     <div class="themes">
-      {#each themes as theme}
+      {#each themes as t}
         <button
           class="theme-card"
-          class:selected={theme.id === selectedTheme}
-          on:click={() => selectTheme(theme.id)}
+          class:selected={t.id === selectedTheme}
+          on:click={() => selectTheme(t.id)}
         >
           <div class="left">
             <div class="preview">
-              {#each theme.colors as color}
+              {#each t.colors as color}
                 <span class="color" style={`background:${color}`}></span>
               {/each}
             </div>
-
             <div class="text">
-              <div class="title">{theme.name}</div>
-              <div class="subtitle">{theme.description}</div>
+              <div class="title">{t.name}</div>
+              <div class="subtitle">{t.description}</div>
             </div>
           </div>
-
           <div class="selection">
-            {#if theme.id === currentTheme}
+            {#if t.id === selectedTheme}
               <div class="active">
                 <Icon icon="material-symbols:check-rounded" width="16" />
               </div>
@@ -104,7 +110,7 @@
       Применить
     </button>
   </div>
-</BottomSheet>3
+</BottomSheet>
 
 <style>
   .container {

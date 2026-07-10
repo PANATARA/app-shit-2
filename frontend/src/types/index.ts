@@ -17,6 +17,10 @@ export interface UserProfile {
     icon_color: string,
     icon_bg: string,
     experience: number,
+    level: number,
+    exp_to_next_total: number,
+    progress_percent: number,
+    is_max_level: boolean,
     is_family_member: boolean,
     is_family_admin: boolean
 }
