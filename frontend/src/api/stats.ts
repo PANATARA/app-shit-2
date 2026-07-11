@@ -12,3 +12,14 @@ export async function getStatisticsOnFamilyChore(
     params: filters,
   });
 }
+
+/**
+ * Get family chores sorted by completion count
+ */
+export async function getStatisticsFamilyMembers(
+  filters: StatFilters = {}
+): Promise<ChoreCompletionStat[]> {
+  return apiFetch("/api/stats/families/members", {
+    params: filters,
+  });
+}

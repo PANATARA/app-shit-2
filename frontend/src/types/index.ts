@@ -79,3 +79,9 @@ export interface StatFilters {
     end_date?: string;
 }
 
+export interface FamilyCreateForm {
+    name: string
+    icon: string;
+    icon_color: string;
+    icon_bg: string;
+}

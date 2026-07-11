@@ -8,7 +8,6 @@
   import AuthScreen from "$screens/onBoarding/AuthScreen.svelte";
   import FamilyEntryScreen from "$screens/onBoarding/FamilyEntryScreen.svelte";
 
-  import { t } from "$lib/i18n.js";
   import Icon from "@iconify/svelte";
   import { isLoggedInStore, clearTokens } from "$api/client.js";
   import { getProfile } from "$api/me.js";
@@ -158,7 +157,7 @@
             />
           </span>
         </button>
-        <!-- <button
+        <button
           class="nav-item"
           on:click={() => (activeTab = "debugScreen")}
           class:active={activeTab === "debugScreen"}
@@ -167,7 +166,7 @@
           <span class="icon">
             <Icon icon="material-symbols:bug-report" width="24" height="24" />
           </span>
-        </button> -->
+        </button>
       </nav>
     </div>
   {/if}

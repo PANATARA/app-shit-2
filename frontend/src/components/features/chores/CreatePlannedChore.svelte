@@ -153,7 +153,7 @@
       {error}
       errorMessage="Не удалось загрузить дела"
       onRetry={loadData}
-      shimmerCount={5}
+      shimmerCount={9}
     >
       {#if showCreateNew}
         <button

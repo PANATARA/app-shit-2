@@ -10,7 +10,6 @@
   class="btn-back"
   class:icon-only={iconOnly}
   on:click
-  aria-label={iconOnly ? (label ?? $t('common.back')) : undefined}
 >
   <svg
     width="16"
@@ -24,7 +23,7 @@
     <polyline points="12 19 5 12 12 5" />
   </svg>
   {#if !iconOnly}
-    {label ?? $t('common.back')}
+    {label}
   {/if}
 </button>
 

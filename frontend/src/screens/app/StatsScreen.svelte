@@ -2,12 +2,21 @@
   import Block from "$ui/block.svelte";
   import HeatGraph from "$features/stats/HeatGraph.svelte";
   import { t } from "$lib/i18n.js";
+  import { onMount } from "svelte";
+  import { getFamily, getFamilyMembers } from "$api/family";
+  import { getProfile } from "$api/me";
+  import type { FamilyMembers, UserProfile, FamilyProfile } from "$types/index";
+  import AsyncStateView from "$ui/AsyncStateView.svelte";
+  import UserAvatar from "$ui/UserAvatar.svelte";
+  import Icon from "@iconify/svelte";
 
-  const family = {
-    name: "Семья Васильевых",
-    completed: 248,
-    weekCompleted: 32,
-  };
+  // ─── STATE MACHINE ─────────────────────────────
+  let loading = true;
+  let error = false;
+
+  let meUser: UserProfile | null = null;
+  let familyMembers: FamilyMembers | null = null;
+  let familyProfile: FamilyProfile | null = null;
 
   function initials(name: string) {
     return name
@@ -17,126 +26,157 @@
       .slice(0, 2)
       .toUpperCase();
   }
+
+  onMount(() => {
+    loadData();
+  });
+
+  // ─── Data fetching ───────────────────────────────────────────────────────────
+
+  async function loadData() {
+    loading = true;
+    try {
+      const [profile, members, family] = await Promise.all([
+        getProfile(),
+        getFamilyMembers(),
+        getFamily(),
+      ]);
+      meUser = profile;
+      familyMembers = members;
+      familyProfile = family;
+    } catch (e) {
+      console.error("Failed to load planned chores:", e);
+    } finally {
+      loading = false;
+    }
+  }
 </script>
 
 <div class="screen">
   <!-- FAMILY CARD -->
-  <Block>
-    <div class="family-card">
-      <div class="top">
-        <div class="family-avatar-wrapper">
-          <div class="family-avatar">
-            {initials(family.name)}
+  <AsyncStateView
+    {loading}
+    {error}
+    errorMessage="Не удалось загрузить дела"
+    onRetry={loadData}
+    shimmerCount={5}
+  >
+    <Block>
+      <div class="family-card">
+        <div class="top">
+          <div class="family-avatar-wrapper">
+            <UserAvatar user={familyProfile} size={64} />
           </div>
-          <span class="pulse-indicator" title="Активно"></span>
+
+          <div class="info">
+            <div class="family-tag">Семейный круг</div>
+            <p class="family-name">
+              {familyProfile.name}
+            </p>
+          </div>
+
+          <!-- <div class="avatar-stack">
+            <div class="stack-avatar accent">A</div>
+            <div class="stack-avatar success">M</div>
+            <div class="stack-avatar neutral">J</div>
+          </div> -->
         </div>
 
-        <div class="info">
-          <div class="family-tag">Семейный круг</div>
-          <p class="family-name">
-            {family.name}
-          </p>
-        </div>
+        <!-- stats -->
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-header">
+              <Icon
+                icon="material-symbols:trophy-rounded"
+                width="32"
+                height="32"
+                color="yellow"
+              />
+              <span class="trend-badge positive">Рекорд</span>
+            </div>
+            <span class="value"> 248 </span>
+            <p class="label">{$t.homeScreen.familyCard.choresTotalСompleted}</p>
+          </div>
 
-        <div class="avatar-stack">
-          <div class="stack-avatar accent">A</div>
-          <div class="stack-avatar success">M</div>
-          <div class="stack-avatar neutral">J</div>
+          <div class="stat">
+            <div class="stat-header">
+              <span class="stat-icon">⚡</span>
+              <span class="trend-badge active">В топе</span>
+            </div>
+            <span class="value"> 90 </span>
+            <p class="label">{$t.homeScreen.familyCard.choresWeekСompleted}</p>
+          </div>
         </div>
       </div>
+    </Block>
 
-      <!-- stats -->
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-header">
-            <span class="stat-icon">🏆</span>
-            <span class="trend-badge positive">Рекорд</span>
-          </div>
-          <span class="value">
-            {family.completed}
-          </span>
-          <p class="label">{$t.homeScreen.familyCard.choresTotalСompleted}</p>
+    <!-- LEADERBOARD -->
+    <Block>
+      <div class="leader-card">
+        <div class="leader-title-container">
+          <span class="leader-title">{$t.homeScreen.leadersCard.title}</span>
         </div>
 
-        <div class="stat">
-          <div class="stat-header">
-            <span class="stat-icon">⚡</span>
-            <span class="trend-badge active">В топе</span>
+        <div class="leader-list">
+          <!-- Rank 1 -->
+          <div class="leader-row rank-1">
+            <div class="avatar gold-bg">A</div>
+            <div class="leader-info">
+              <div class="name">Alex</div>
+              <div class="sub">Лидер недели</div>
+            </div>
+            <div class="score">128</div>
           </div>
-          <span class="value">
-            {family.weekCompleted}
-          </span>
-          <p class="label">{$t.homeScreen.familyCard.choresWeekСompleted}</p>
+
+          <!-- Rank 2 -->
+          <div class="leader-row rank-2">
+            <div class="avatar silver-bg">M</div>
+            <div class="leader-info">
+              <div class="name">Maria</div>
+              <div class="sub">Активный участник</div>
+            </div>
+            <div class="score">102</div>
+          </div>
+
+          <!-- Rank 3 -->
+          <div class="leader-row rank-3">
+            <div class="avatar bronze-bg">J</div>
+            <div class="leader-info">
+              <div class="name">John</div>
+              <div class="sub">Уверенный шаг</div>
+            </div>
+            <div class="score">87</div>
+          </div>
         </div>
       </div>
-    </div>
-  </Block>
+    </Block>
 
-  <!-- LEADERBOARD -->
-  <Block>
-    <div class="leader-card">
-      <div class="leader-title-container">
-        <span class="leader-icon">👑</span>
-        <span class="leader-title">{$t.homeScreen.leadersCard.title}</span>
-      </div>
+    <!-- HEATMAP -->
+    <Block title="Карта активности" padding={16}>
+      <div class="heatmap-section">
+        <div class="heatmap-wrapper-inner">
+          <HeatGraph
+            data={[]}
+            dailyGoal={5}
+            fake={true}
+            theme="var(--accent)"
+          />
+        </div>
 
-      <div class="leader-list">
-        <!-- Rank 1 -->
-        <div class="leader-row rank-1">
-          <div class="rank-badge gold">1</div>
-          <div class="avatar gold-bg">A</div>
-          <div class="leader-info">
-            <div class="name">Alex</div>
-            <div class="sub">Лидер недели</div>
+        <div class="heatmap-legend">
+          <span class="legend-text">Меньше</span>
+          <div class="legend-cells">
+            <div class="legend-cell level-0"></div>
+            <div class="legend-cell level-1"></div>
+            <div class="legend-cell level-2"></div>
+            <div class="legend-cell level-3"></div>
+            <div class="legend-cell level-4"></div>
           </div>
-          <div class="score">+128 <span class="fire-icon">🔥</span></div>
-        </div>
-
-        <!-- Rank 2 -->
-        <div class="leader-row rank-2">
-          <div class="rank-badge silver">2</div>
-          <div class="avatar silver-bg">M</div>
-          <div class="leader-info">
-            <div class="name">Maria</div>
-            <div class="sub">Активный участник</div>
-          </div>
-          <div class="score">+102</div>
-        </div>
-
-        <!-- Rank 3 -->
-        <div class="leader-row rank-3">
-          <div class="rank-badge bronze">3</div>
-          <div class="avatar bronze-bg">J</div>
-          <div class="leader-info">
-            <div class="name">John</div>
-            <div class="sub">Уверенный шаг</div>
-          </div>
-          <div class="score">+87</div>
+          <span class="legend-text">Больше</span>
         </div>
       </div>
-    </div>
-  </Block>
-
-  <!-- HEATMAP -->
-  <Block title="Карта активности" padding={16}>
-    <div class="heatmap-section">
-      <div class="heatmap-wrapper-inner">
-        <HeatGraph data={[]} dailyGoal={5} fake={true} theme="var(--accent)" />
-      </div>
-
-      <div class="heatmap-legend">
-        <span class="legend-text">Меньше</span>
-        <div class="legend-cells">
-          <div class="legend-cell level-0"></div>
-          <div class="legend-cell level-1"></div>
-          <div class="legend-cell level-2"></div>
-          <div class="legend-cell level-3"></div>
-          <div class="legend-cell level-4"></div>
-        </div>
-        <span class="legend-text">Больше</span>
-      </div>
-    </div>
-  </Block>
+    </Block>
+  </AsyncStateView>
 </div>
 
 <style>
@@ -398,9 +438,37 @@
     border-color: var(--border);
   }
 
+  /* 🥇 Gold */
   .leader-row.rank-1 {
-    background: linear-gradient(95deg, var(--surface-alt), var(--accent-soft));
-    border: 1px solid rgba(213, 138, 114, 0.2);
+    background: linear-gradient(
+      95deg,
+      var(--surface-alt) 0%,
+      rgba(255, 224, 130, 0.25) 50%,
+      rgba(255, 193, 7, 0.12) 100%
+    );
+    border: 1px solid rgba(255, 193, 7, 0.25);
+  }
+
+  /* 🥈 Silver */
+  .leader-row.rank-2 {
+    background: linear-gradient(
+      95deg,
+      var(--surface-alt) 0%,
+      rgba(224, 224, 224, 0.25) 50%,
+      rgba(189, 189, 189, 0.12) 100%
+    );
+    border: 1px solid rgba(158, 158, 158, 0.25);
+  }
+
+  /* 🥉 Bronze */
+  .leader-row.rank-3 {
+    background: linear-gradient(
+      95deg,
+      var(--surface-alt) 0%,
+      rgba(188, 140, 96, 0.22) 50%,
+      rgba(141, 110, 99, 0.12) 100%
+    );
+    border: 1px solid rgba(141, 110, 99, 0.25);
   }
 
   .leader-row.rank-1:hover {
@@ -481,9 +549,9 @@
   }
 
   .score {
-    font-size: 14px;
+    font-size: 20px;
     font-weight: 800;
-    color: var(--success);
+    color: #ffffff95;
     display: flex;
     align-items: center;
     gap: 4px;
