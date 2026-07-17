@@ -13,6 +13,9 @@
   import LangModal from "$features/settings/LangModal.svelte";
   import ThemeModal from "$features/settings/ThemeModal.svelte";
   import { showDays, theme, language } from "$lib/settings.js";
+  import { userSession } from "$api/client";
+
+  console.log($userSession.userId);
 
   // ─── STATE MACHINE ─────────────────────────────
   let loading = true;
@@ -216,7 +219,7 @@
           <div class="row-text">
             <div class="row-title">
               {member.name}
-              {#if member.id === meUser?.id}
+              {#if member.id === $userSession.userId}
                 <span class="you-badge">(Вы)</span>
               {/if}
             </div>
@@ -259,14 +262,20 @@
         <span class="arrow">›</span>
       </div>
 
-      <div class="row clickable">
-        <div class="row-icon">
-          <Icon icon="material-symbols:shield-rounded" width="24" height="24" />
-        </div>
+      {#if $userSession.isFamilyAdmin}
+        <div class="row clickable">
+          <div class="row-icon">
+            <Icon
+              icon="material-symbols:shield-rounded"
+              width="24"
+              height="24"
+            />
+          </div>
 
-        <div class="row-text"><div class="row-title">Разрешения</div></div>
-        <span class="arrow">›</span>
-      </div>
+          <div class="row-text"><div class="row-title">Разрешения</div></div>
+          <span class="arrow">›</span>
+        </div>
+      {/if}
     </Block>
 
     <!-- ───────── SETTINGS ───────── -->

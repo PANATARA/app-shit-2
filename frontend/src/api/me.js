@@ -1,11 +1,18 @@
-import { apiFetch, getApiUrl } from './client.js';
+import { apiFetch, getApiUrl, userSession } from './client.js';
 
 /**
  * Get current user's profile
  * @returns {Promise<any>}
  */
 export async function getProfile() {
-    return apiFetch('/api/users/me/profile');
+    const data = await apiFetch('/api/users/me/profile');
+    if (data) {
+        userSession.set({
+            userId: data.id,
+            isFamilyAdmin: data.is_family_admin,
+        });
+    }
+    return data;
 }
 
 /**
@@ -48,7 +55,7 @@ export async function updateSettings(settingsData) {
 export async function uploadAvatar(file) {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     return apiFetch('/api/usersme/avatar/file', {
         method: 'POST',
         body: formData,

@@ -54,6 +54,17 @@ export async function getDefaultChores() {
     return apiFetch(`/api/chores/default`);
 }
 
+/**
+ * Edit a family chore (admin only)
+ * @returns {Promise<any>}
+ */
+export async function createChoresFromDefault(data) {
+    return apiFetch('/api/chores/from-defaults/', {
+        method: 'POST',
+        body: data
+    });
+}
+
 // ==========================================
 // 2. PLANNED CHORES
 // ==========================================
@@ -105,10 +116,10 @@ export async function unCompletePlannedChore(plannedChoreID) {
 }
 
 export async function deletePlannedChore(id) {
-  return apiFetch(`/api/planned-chores/${id}`, { method: "DELETE" });
+    return apiFetch(`/api/planned-chores/${id}`, { method: "DELETE" });
 }
 
 export async function reschedulePlannedChore(id, data) {
-  return apiFetch(`/api/planned-chores/${id}/reschedule`, { method: "PATCH", body: data });
+    return apiFetch(`/api/planned-chores/${id}/reschedule`, { method: "PATCH", body: data });
 }
 

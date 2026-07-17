@@ -5,7 +5,7 @@ let savedUrl = 'http://192.168.0.233:8000';
 try {
     if (typeof localStorage !== 'undefined') {
         savedUrl = localStorage.getItem('api_base_url') || '';
-    } 
+    }
 } catch (e) {
     console.warn('localStorage not available:', e);
 }
@@ -37,7 +37,7 @@ const getStoredToken = (key) => {
         if (typeof localStorage !== 'undefined') {
             return localStorage.getItem(key) || '';
         }
-    } catch (e) {}
+    } catch (e) { }
     return '';
 };
 
@@ -50,7 +50,7 @@ const setStoredToken = (key, value) => {
                 localStorage.removeItem(key);
             }
         }
-    } catch (e) {}
+    } catch (e) { }
 };
 
 // Svelte Stores for JWT state
@@ -73,12 +73,12 @@ refreshTokenStore.subscribe(value => {
 export function setTokens(access, refresh) {
     accessTokenStore.set(access);
     setStoredToken('access_token', access);
-    
+
     if (refresh) {
         refreshTokenStore.set(refresh);
         setStoredToken('refresh_token', refresh);
     }
-    
+
     isLoggedInStore.set(!!access);
 }
 
@@ -110,13 +110,13 @@ function onRefreshed(token) {
  * @returns {Promise<any>}
  */
 export async function apiFetch(path, options = {}) {
-    const { 
-        method = 'GET', 
-        headers = {}, 
-        body, 
-        params, 
+    const {
+        method = 'GET',
+        headers = {},
+        body,
+        params,
         skipAuth = false,
-        isMultipart = false 
+        isMultipart = false
     } = options;
 
     let url = `${apiBaseUrl}${path}`;
@@ -248,3 +248,8 @@ async function refreshAccessToken(refreshToken) {
     }
     return await res.json();
 }
+
+export const userSession = writable({
+    userId: null,
+    isFamilyAdmin: false,
+});

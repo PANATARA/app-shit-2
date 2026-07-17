@@ -56,7 +56,7 @@ export interface ChoreItem {
     icon_bg: string;
     description: string;
     valuation: number;
-    usageCount: number;
+    default_chore_id: number | null;
 }
 
 export interface PlannedChore {
@@ -85,3 +85,4 @@ export interface FamilyCreateForm {
     icon_color: string;
     icon_bg: string;
 }
+

@@ -109,7 +109,7 @@
   <div class="sheet-content">
     <slot />
   </div>
-  <button class="sheet-cancel" on:click={close}> Отмена </button>
+  <!-- <button class="sheet-cancel" on:click={close}> Отмена </button> -->
 </div>
 
 <style>
@@ -132,7 +132,7 @@
     display: flex;
     flex-direction: column;
     max-height: 90vh;
-    transition: transform 0.2s ease;
+    transition: none;
     touch-action: none;
   }
 

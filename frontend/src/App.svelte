@@ -24,27 +24,12 @@
   };
 
   let activeTab = "boardScreen";
-  let selectedHabit = null;
 
   onMount(async () => {
     if ($isLoggedInStore) {
       await checkProfile();
     }
     checkingAuth = false;
-
-    window.onAndroidBack = () => {
-      if (selectedHabit) {
-        closeDetail();
-      } else if (activeTab !== "habits") {
-        activeTab = "habits";
-      } else {
-        (window as any).AndroidBridge?.finish?.();
-      }
-    };
-
-    return () => {
-      window.onAndroidBack = null;
-    };
   });
 
   async function checkProfile() {
@@ -78,10 +63,6 @@
   function handleFamilySuccess() {
     isInFamily = true;
   }
-
-  function closeDetail() {
-    selectedHabit = null;
-  }
 </script>
 
 <main>
@@ -97,13 +78,11 @@
   {:else if !isInFamily}
     <FamilyEntryScreen on:success={handleFamilySuccess} />
   {:else}
-    {#if !selectedHabit}
-      <header class="top-bar">
-        <h1>{screenTitle[activeTab]}</h1>
-      </header>
-    {/if}
+    <header class="top-bar">
+      <h1>{screenTitle[activeTab]}</h1>
+    </header>
 
-    <div class="content" class:no-topbar={!!selectedHabit}>
+    <div class="content">
       {#if activeTab === "statsScreen"}
         <StatsScreen />
       {:else if activeTab === "boardScreen"}

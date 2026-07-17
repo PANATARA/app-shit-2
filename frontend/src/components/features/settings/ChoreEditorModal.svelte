@@ -6,6 +6,7 @@
     createChore,
     deleteChore,
     updateChore,
+    createChoresFromDefault,
   } from "$api/chores";
   import { getDefaultChores } from "$api/chores";
   import Icon from "@iconify/svelte";
@@ -15,7 +16,8 @@
   import ChoreListItem from "$features/chores/ChoreListItem.svelte";
   import AsyncStateView from "$ui/AsyncStateView.svelte";
   import ChoreIcon from "$ui/ChoreIcon.svelte";
-  import AvatarConstructor from "$features/settings/AvatarConstructor.svelte";
+  import ChoreFormComp from "$features/settings/ChoreForm.svelte";
+  import DefaultChoreListItem from "$features/chores/DefaultChoreListItem.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -40,6 +42,10 @@
   let defaultChores: DefaultChore[] = [];
 
   let chores: ChoreItem[] = [];
+
+  let creatingFromDefault = false;
+  let selectedDefaultChore: DefaultChore | null = null;
+
   let loading = true;
   let loadingDefaults = false;
   let error = false;
@@ -99,19 +105,10 @@
     goToStep(2);
   }
 
-  function openCreateFromDefault(def: DefaultChore) {
-    form = {
-      name: def.name,
-      description: def.description ?? "",
-      icon: def.icon,
-      icon_color: def.icon_color,
-      icon_bg: def.icon_bg,
-      valuation: def.valuation,
-    };
-    goToStep("3b");
-  }
-
   function openCreateCustom() {
+    selectedDefaultChore = null;
+    creatingFromDefault = false;
+
     form = {
       name: "",
       description: "",
@@ -120,6 +117,7 @@
       icon_bg: "#fff",
       valuation: 10,
     };
+
     goToStep("3b");
   }
 
@@ -138,9 +136,14 @@
 
   function reset() {
     step = 1;
-    selectedChore = null;
     searchQuery = "";
+    selectedChore = null;
+
+    selectedDefaultChore = null;
+    creatingFromDefault = false;
+
     isEditing = false;
+
     form = {
       name: "",
       description: "",
@@ -167,11 +170,34 @@
         selectedChore = updated;
         isEditing = false;
       } else {
-        const created = await createChore(form);
+        let created;
+        if (creatingFromDefault && selectedDefaultChore) {
+          created = await createChoresFromDefault({
+            default_chore_ids: [selectedDefaultChore.id],
+            language: "ru",
+          });
+        } else {
+          created = await createChore(form);
+        }
+
         chores = [created, ...chores];
         goToStep(1);
       }
       dispatch("updated");
+    } catch (e) {
+      console.error(e);
+    } finally {
+      saving = false;
+    }
+  }
+
+  async function handleCreateFromDefault(def: DefaultChore) {
+    saving = true;
+    try {
+      let created = await createChoresFromDefault({
+        default_chore_ids: [def.id],
+        language: "ru",
+      });
     } catch (e) {
       console.error(e);
     } finally {
@@ -235,7 +261,9 @@
       onRetry={loadData}
       empty={filteredChores.length === 0}
       emptyMessage="Дел пока нет"
+      shimmerCount={7}
     >
+      <div class="section-label">Дела моего семейного круга</div>
       <div class="chore-list">
         {#each filteredChores as chore (chore.id)}
           <ChoreListItem {chore} on:click={() => openChoreDetail(chore)} />
@@ -245,9 +273,8 @@
 
     <!-- ─── ШАГ 2: Детали дела ─────────────────────────────────────────────── -->
   {:else if step === 2 && selectedChore}
-    <Backbtn label="Назад" on:click={() => goToStep(1)} />
-
     {#if !isEditing}
+      <Backbtn label="Назад" on:click={() => goToStep(1)} />
       <!-- Просмотр -->
       <div class="detail-view">
         <ChoreIcon chore={selectedChore} size={80} />
@@ -296,45 +323,16 @@
         </div>
       </div>
     {:else}
-      <!-- Редактирование -->
-      <div class="form-fields">
-        <div class="field">
-          <label class="field-label">Название</label>
-          <input
-            class="field-input"
-            type="text"
-            bind:value={form.name}
-            placeholder="Например: Покормить кота"
-          />
-        </div>
-        <div class="field">
-          <label class="field-label">Описание</label>
-          <textarea
-            class="field-input"
-            bind:value={form.description}
-            placeholder="Дополнительные детали..."
-            rows="2"
-          ></textarea>
-        </div>
-        <div class="field">
-          <label class="field-label">Награда (монеты)</label>
-          <input
-            class="field-input"
-            type="number"
-            bind:value={form.valuation}
-            min="0"
-            max="1000"
-          />
-        </div>
-        <div class="form-actions">
-          <button class="btn-cancel" on:click={() => (isEditing = false)}
-            >Отмена</button
-          >
-          <button class="btn-save" on:click={handleSave} disabled={saving}>
-            {saving ? "Сохранение..." : "Сохранить"}
-          </button>
-        </div>
-      </div>
+      <ChoreFormComp
+        bind:form
+        {selectedChore}
+        mode="edit"
+        {saving}
+        submitText="Сохранить"
+        cancelText="Отмена"
+        onCancel={() => (isEditing = false)}
+        onSubmit={handleSave}
+      />
     {/if}
 
     <!-- ─── ШАГ 3a: Список шаблонов ───────────────────────────────────────── -->
@@ -346,13 +344,13 @@
       <span class="chore-label">Создать своё дело</span>
     </button>
 
-    <AsyncStateView loading={loadingDefaults} shimmerCount={4}>
+    <AsyncStateView loading={loadingDefaults} shimmerCount={7}>
       <div class="section-label">Стандартные дела</div>
       <div class="chore-list">
         {#each defaultChores as def (def.id)}
-          <ChoreListItem
+          <DefaultChoreListItem
             chore={def}
-            on:click={() => openCreateFromDefault(def)}
+            onAdd={() => handleCreateFromDefault(def)}
           />
         {/each}
       </div>
@@ -360,67 +358,15 @@
 
     <!-- ─── ШАГ 3b: Форма создания/редактирования ─────────────────────────── -->
   {:else if step === "3b"}
-    <Backbtn label="Назад" on:click={() => goToStep(1)} />
-
-    <AvatarConstructor
-      initialIcon={form.icon}
-      initialIconColor={form.icon_color}
-      initialBg={form.icon_bg}
-      on:change={(e) => {
-        const { icon, icon_color, icon_bg } = e.detail;
-
-        form = {...form,
-          icon,
-          icon_color,
-          icon_bg,
-        };
-      }}
-      on:cancel={() => (isEditing = false)}
+    <ChoreFormComp
+      bind:form
+      mode="create"
+      {saving}
+      submitText="Создать"
+      cancelText="Отмена"
+      onCancel={() => goToStep("3a")}
+      onSubmit={handleSave}
     />
-
-    <div class="form-fields">
-      <div class="field">
-        <label class="field-label">Название</label>
-        <input
-          class="field-input"
-          type="text"
-          bind:value={form.name}
-          placeholder="Например: Покормить собаку"
-        />
-      </div>
-      <div class="field">
-        <label class="field-label">Описание</label>
-        <textarea
-          class="field-input"
-          bind:value={form.description}
-          placeholder="Дополнительные детали..."
-          rows="2"
-        ></textarea>
-      </div>
-      <div class="field">
-        <label class="field-label">Награда (монеты)</label>
-        <input
-          class="field-input"
-          type="number"
-          bind:value={form.valuation}
-          min="0"
-          max="1000"
-        />
-      </div>
-
-      <div class="form-actions">
-        <button class="btn-cancel" on:click={() => goToStep("3a")}
-          >Отмена</button
-        >
-        <button
-          class="btn-save"
-          on:click={handleSave}
-          disabled={saving || !form.name.trim()}
-        >
-          {saving ? "Создание..." : "Создать"}
-        </button>
-      </div>
-    </div>
   {/if}
 </BottomSheet>
 
@@ -573,84 +519,6 @@
     opacity: 0.7;
   }
   .btn-delete:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  /* ── Form ───────────────────────────── */
-  .form-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    padding: 0 16px;
-  }
-
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .field-input {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 11px 14px;
-    color: var(--text-primary);
-    font-size: 15px;
-    font-family: inherit;
-    resize: none;
-    outline: none;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .field-input:focus {
-    border-color: var(--accent);
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 6px;
-  }
-
-  .btn-cancel {
-    flex: 1;
-    padding: 13px;
-    background: var(--bg-card);
-    border: none;
-    border-radius: 14px;
-    color: var(--text-muted);
-    font-size: 15px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-
-  .btn-cancel:active {
-    opacity: 0.7;
-  }
-
-  .btn-save {
-    flex: 2;
-    padding: 13px;
-    background: var(--accent);
-    border: none;
-    border-radius: 14px;
-    color: #2a1800;
-    font-size: 15px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-
-  .btn-save:active {
-    opacity: 0.8;
-  }
-  .btn-save:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }

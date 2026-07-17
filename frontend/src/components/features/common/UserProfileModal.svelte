@@ -4,8 +4,10 @@
   import UserAvatar from "$ui/UserAvatar.svelte";
   import Icon from "@iconify/svelte";
   import { getUserProfile } from "$api/me";
+  import { kickFamilyMember, changeFamilyAdmin } from "$api/family";
   import type { UserProfile } from "$types/index";
   import AsyncStateView from "$ui/AsyncStateView.svelte";
+  import { userSession } from "$api/client";
 
   const dispatch = createEventDispatcher();
 
@@ -32,6 +34,32 @@
 
   function close() {
     dispatch("close");
+  }
+  async function handleKickMember() {
+    try {
+      await kickFamilyMember(userId);
+
+      // закрываем профиль после успешного удаления
+      dispatch("close");
+
+      // можно отправить событие родителю для обновления списка
+      dispatch("updated");
+    } catch (e) {
+      console.error("Ошибка при исключении пользователя:", e);
+    }
+  }
+
+  async function handleChangeAdmin() {
+    try {
+      await changeFamilyAdmin(userId);
+
+      dispatch("updated");
+
+      // закрываем профиль
+      dispatch("close");
+    } catch (e) {
+      console.error("Ошибка при смене администратора:", e);
+    }
   }
 </script>
 
@@ -81,6 +109,17 @@
             style="width: {user.progress_percent}%"
           ></div>
         </div>
+        {#if $userSession.isFamilyAdmin && $userSession.userId != user.id}
+          <div class="actions-card">
+            <button class="action-btn primary" on:click={handleChangeAdmin}>
+              Сделать главой семьи
+            </button>
+
+            <button class="action-btn danger" on:click={handleKickMember}>
+              Исключить из семейного круга
+            </button>
+          </div>
+        {/if}
       </div>
     </div>
   </AsyncStateView>
@@ -210,53 +249,48 @@
     transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     min-width: 4px;
   }
+  /* ── Actions ───────────────────────── */
 
-  .exp-total {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--text-muted);
-  }
-
-  .exp-total strong {
-    color: var(--text-primary);
-    font-weight: 600;
-  }
-
-  /* ── Stats row ───────────────────────── */
-  .stats-row {
-    display: flex;
-    align-items: center;
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 14px 0;
-  }
-
-  .stat-cell {
-    flex: 1;
+  .actions-card {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4px;
+    gap: 10px;
+    margin-top: 4px;
+    padding-bottom: 8px;
   }
 
-  .stat-num {
-    font-size: 20px;
-    font-weight: 800;
+  .action-btn {
+    width: 100%;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    border: none;
+    border-radius: 14px;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+    transition:
+      transform 0.15s ease,
+      opacity 0.15s ease;
+  }
+
+  .action-btn:active {
+    transform: scale(0.97);
+  }
+
+  .action-btn.primary {
+    background: var(--accent-soft);
     color: var(--text-primary);
   }
 
-  .stat-label {
-    font-size: 11px;
-    color: var(--text-muted);
-    text-align: center;
-    line-height: 1.3;
-  }
-
-  .stat-divider {
-    width: 0.5px;
-    height: 32px;
-    background: var(--border, rgba(255, 255, 255, 0.08));
+  .action-btn.danger {
+    background: rgba(220, 80, 80, 0.08);
+    color: #d65a5a;
   }
 </style>

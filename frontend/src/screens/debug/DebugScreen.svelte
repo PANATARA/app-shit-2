@@ -103,7 +103,8 @@
   // ─── Join family ─────────────────────────────────────────────────────────────
 
   async function handleJoinByCode() {
-    if (codeInputRaw.replace("-", "").length < 6) {
+    codeInputRaw = codeInputRaw.replace("-", "");
+    if (codeInputRaw.length < 6) {
       errorMessage = "Введите полный 6-значный код (например, ABC-123)";
       return;
     }
@@ -114,7 +115,9 @@
 
     try {
       const [profile] = await Promise.all([
-        joinFamily(codeInputRaw),
+        joinFamily({
+          invite_code: codeInputRaw,
+        }),
         new Promise((resolve) => setTimeout(resolve, 2000)),
       ]);
 

@@ -115,11 +115,12 @@ export async function generateInviteToken() {
 
 /**
  * Join to family by invite-token
- * @param {string} inviteToken
+ * @param {object} inviteData - { invite_code }
  * @returns {Promise<any>}
  */
-export async function joinFamily(inviteToken) {
-    return apiFetch(`/api/families/join/${inviteToken}`, {
-        method: 'POST'
+export async function joinFamily(inviteData) {
+    return apiFetch('/api/families/join', {
+        method: 'POST',
+        body: inviteData
     });
 }

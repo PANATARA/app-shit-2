@@ -98,13 +98,6 @@
     overflow: hidden;
   }
 
-  .card:hover {
-    transform: translateY(-2px);
-    background: var(--surface-alt);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    border-color: var(--accent-soft);
-  }
-
   .card.card-done {
     opacity: 0.65;
     background: var(--surface);
@@ -204,12 +197,6 @@
     color: transparent;
     transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     padding: 0;
-  }
-
-  .check:hover {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-    transform: scale(1.1);
   }
 
   .check:active {

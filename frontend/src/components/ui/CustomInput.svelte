@@ -2,11 +2,16 @@
   import { createEventDispatcher } from "svelte";
   import { fade } from "svelte/transition";
 
-  export let value = "";
+  export let value;
   export let placeholder = "";
   export let icon = "🏡";
   export let maxlength = 36;
   export let showClear = true;
+  export let showIcon = false;
+  export let inputType = "text";
+  export let min = 0;
+  export let max = 999;
+  export let disabled = false;
 
   function clear() {
     value = "";
@@ -15,26 +20,47 @@
   const dispatch = createEventDispatcher();
 
   function handleInput(event: Event) {
-    value = (event.target as HTMLInputElement).value;
+    if (disabled) return;
+    const input = event.target as HTMLInputElement;
+    let newValue = input.value;
+    if (inputType === "number") {
+      let numberValue = Number(newValue);
+      if (max !== undefined && numberValue > max) {
+        numberValue = max;
+      }
+      if (min !== undefined && numberValue < min) {
+        numberValue = min;
+      }
+      newValue = String(numberValue);
+      input.value = newValue;
+    }
+    value = newValue;
     dispatch("inputChange", value);
   }
 </script>
 
 <div class="input-container">
-  <span class="input-icon-left">
-    {icon}
-  </span>
+  {#if showIcon}
+    <span class="input-icon-left">
+      {icon}
+    </span>
+  {/if}
 
   <input
-    type="text"
-    value={value}
+    type={inputType}
+    {value}
     on:input={handleInput}
     {placeholder}
     {maxlength}
     class="custom-input"
+    class:with-icon={showIcon}
+    class:disabled
+    {disabled}
+    {min}
+    {max}
   />
 
-  {#if value && showClear}
+  {#if value && showClear && !disabled}
     <button
       class="clear-btn"
       on:click={clear}
@@ -68,12 +94,34 @@
     box-sizing: border-box;
     background: var(--surface-alt);
     border: 1.5px solid var(--border);
-    padding: 14px 44px 14px 42px;
+    padding: 14px 44px 14px 14px;
     border-radius: 14px;
     font-size: 15px;
     font-weight: 600;
     color: var(--text-primary);
     transition: all 0.2s ease;
+  }
+
+  .custom-input.with-icon {
+    padding-left: 42px;
+  }
+
+  .custom-input.disabled {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+
+  .custom-input.disabled::placeholder {
+    color: var(--text-muted);
+  }
+
+  .custom-input.disabled:focus {
+    outline: none;
+    box-shadow: none;
+    border-color: var(--border);
   }
 
   .custom-input:focus {
