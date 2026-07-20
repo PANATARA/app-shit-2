@@ -8,6 +8,10 @@ export async function getFamily() {
     return apiFetch('/api/families');
 }
 
+export async function getFamilyStats() {
+    return apiFetch('/api/families/stats');
+}
+
 /**
  * Create a new family and add the current user as a member
  * @param {object} familyData - { name, icon }

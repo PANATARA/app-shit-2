@@ -131,10 +131,10 @@
   }
 
   /* Hover and active effects */
-  .lang-card:hover {
+  /* .lang-card:hover {
     background: var(--surface-alt);
     border-color: var(--text-muted);
-  }
+  } */
 
   .lang-card:active {
     transform: scale(0.985);
@@ -237,9 +237,9 @@
     transition: all 0.2s ease;
   }
 
-  .lang-card:hover .indicator-inactive {
+  /* .lang-card:hover .indicator-inactive {
     border-color: var(--text-muted);
-  }
+  } */
 
   .check-icon {
     display: block;

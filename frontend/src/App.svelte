@@ -78,9 +78,9 @@
   {:else if !isInFamily}
     <FamilyEntryScreen on:success={handleFamilySuccess} />
   {:else}
-    <header class="top-bar">
+    <!-- <header class="top-bar">
       <h1>{screenTitle[activeTab]}</h1>
-    </header>
+    </header> -->
 
     <div class="content">
       {#if activeTab === "statsScreen"}
@@ -357,6 +357,7 @@
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-overflow-scrolling: touch;
+
   }
 
   main {
@@ -393,12 +394,12 @@
     flex: 1;
     overflow-y: auto;
     position: relative;
-    padding-top: calc(50px + env(safe-area-inset-top));
-    padding-bottom: calc(50px + env(safe-area-inset-bottom));
+    padding-top: calc(env(safe-area-inset-top));
+    padding-bottom: calc(85px + env(safe-area-inset-bottom));
   }
 
   .nav-wrapper {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
     display: flex;
     justify-content: center;
     background: transparent;

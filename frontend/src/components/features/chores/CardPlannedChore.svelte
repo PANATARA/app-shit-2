@@ -92,10 +92,19 @@
     border-radius: 20px;
     background: var(--surface);
     border: 1px solid var(--border);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      opacity 0.25s ease,
+      transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    will-change: transform;
     position: relative;
     overflow: hidden;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
   .card.card-done {
@@ -103,7 +112,7 @@
     background: var(--surface);
     border-color: transparent;
     box-shadow: none;
-    transform: none;
+    transform: translateZ(0);
   }
 
   /* ── CONTENT ───────────────────────────── */
@@ -131,7 +140,7 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    transition: all 0.2s;
+    transition: color 0.2s ease;
   }
 
   .completed-text {
@@ -195,7 +204,12 @@
     align-items: center;
     justify-content: center;
     color: transparent;
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition:
+      transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+      background-color 0.2s ease,
+      border-color 0.2s ease;
+
+    will-change: transform;
     padding: 0;
   }
 
@@ -210,16 +224,19 @@
   }
 
   .check-icon {
-    animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation: checkAppear 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  @keyframes popIn {
-    0% {
-      transform: scale(0) rotate(-15deg);
+  @keyframes checkAppear {
+    from {
+      transform: scale(0) rotate(-20deg);
+
       opacity: 0;
     }
-    100% {
-      transform: scale(1) rotate(0deg);
+
+    to {
+      transform: scale(1) rotate(0);
+
       opacity: 1;
     }
   }

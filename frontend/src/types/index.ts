@@ -1,88 +1,109 @@
 export interface UserShort {
-    id: string;
-    username: string;
-    name: string;
-    surname: string;
-    icon: string,
-    icon_color: string,
-    icon_bg: string,
+  id: string;
+  username: string;
+  name: string;
+  surname: string;
+  icon: string;
+  icon_color: string;
+  icon_bg: string;
 }
 
 export interface UserProfile {
-    id: string;
-    username: string;
-    name: string;
-    surname: string;
-    icon: string,
-    icon_color: string,
-    icon_bg: string,
-    experience: number,
-    level: number,
-    exp_to_next_total: number,
-    progress_percent: number,
-    is_max_level: boolean,
-    is_family_member: boolean,
-    is_family_admin: boolean
+  id: string;
+  username: string;
+  name: string;
+  surname: string;
+  icon: string;
+  icon_color: string;
+  icon_bg: string;
+  experience: number;
+  level: number;
+  exp_to_next_total: number;
+  progress_percent: number;
+  is_max_level: boolean;
+  is_family_member: boolean;
+  is_family_admin: boolean;
 }
 
 export interface FamilyProfile {
-    id: string;
-    name: string;
-    icon: string,
-    icon_color: string,
-    icon_bg: string,
-    experience: number,
+  id: string;
+  name: string;
+  icon: string;
+  icon_color: string;
+  icon_bg: string;
+  experience: number;
+}
+
+export interface FamilyStatsProfile {
+  id: string;
+  name: string;
+  icon: string;
+  icon_color: string;
+  icon_bg: string;
+  experience: number;
+  members_count: number;
+  total_completed: number;
+  week_completed: number;
+  streak: number;
 }
 
 export interface FamilyMembers {
-    members: UserShort[]
+  members: UserShort[];
 }
 
 export interface DefaultChore {
-    id: string;
-    icon: string;
-    icon_color: string;
-    icon_bg: string;
-    valuation: number;
-    name: string;
-    description?: string;
+  id: string;
+  icon: string;
+  icon_color: string;
+  icon_bg: string;
+  valuation: number;
+  name: string;
+  description?: string;
 }
 
 export interface ChoreItem {
-    id: string;
-    name: string;
-    icon: string;
-    icon_color: string;
-    icon_bg: string;
-    description: string;
-    valuation: number;
-    default_chore_id: number | null;
+  id: string;
+  name: string;
+  icon: string;
+  icon_color: string;
+  icon_bg: string;
+  description: string;
+  valuation: number;
+  default_chore_id: number | null;
 }
 
 export interface PlannedChore {
-    id: string;
-    chore: ChoreItem;
-    completed_by: UserShort | null;
-    assigned_to: UserShort | null;
-    due_date: string;
-    status: string;
-    message: string;
+  id: string;
+  chore: ChoreItem;
+  completed_by: UserShort | null;
+  assigned_to: UserShort | null;
+  due_date: string;
+  status: string;
+  message: string;
 }
 
 export interface ChoreCompletionStat {
-    chore_id: string;
-    chores_completions_counts: number;
+  chore_id: string;
+  chores_completions_counts: number;
 }
 
 export interface StatFilters {
-    start_date?: string; // "YYYY-MM-DD"
-    end_date?: string;
+  start_date?: string; // "YYYY-MM-DD"
+  end_date?: string;
 }
 
 export interface FamilyCreateForm {
-    name: string
-    icon: string;
-    icon_color: string;
-    icon_bg: string;
+  name: string;
+  icon: string;
+  icon_color: string;
+  icon_bg: string;
 }
 
+export interface FamilyLeader {
+  member: UserProfile;
+  chore_completion_count: number;
+}
+
+export interface WeeklyLeadersResponse {
+  leaders: FamilyLeader[];
+}

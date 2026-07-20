@@ -91,15 +91,6 @@
       box-shadow 0.18s ease;
   }
 
-  .choose-card:hover {
-    transform: translateY(-2px);
-
-    background: var(--surface-hover);
-    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
-
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  }
-
   .choose-icon {
     flex-shrink: 0;
 

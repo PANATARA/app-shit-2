@@ -154,8 +154,8 @@
     <div class="preview-avatar" style="background: {selectedBg}">
       <Icon
         icon={selectedIcon}
-        width="52"
-        height="52"
+        width="55"
+        height="55"
         color={selectedIconColor}
       />
     </div>

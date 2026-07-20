@@ -595,11 +595,6 @@
     outline: none;
   }
 
-  .repeat-option-card:hover {
-    border-color: var(--text-muted);
-    color: var(--text-primary);
-  }
-
   .repeat-option-card.active {
     background: var(--accent-soft);
     border-color: var(--accent);
@@ -656,11 +651,6 @@
     color: var(--text-primary);
     cursor: pointer;
     transition: all 0.15s;
-  }
-
-  .stepper-btn:hover:not(:disabled) {
-    background: var(--border);
-    color: var(--accent);
   }
 
   .stepper-btn:active:not(:disabled) {
@@ -722,11 +712,6 @@
     padding: 0;
   }
 
-  .day-circle:hover {
-    border-color: var(--text-muted);
-    color: var(--text-primary);
-  }
-
   .day-circle.active {
     background: var(--accent);
     border-color: var(--accent);
@@ -757,17 +742,8 @@
     font-family: inherit;
   }
 
-  .shortcut-link-btn:hover {
-    background: var(--accent-soft);
-  }
-
   .shortcut-link-btn.text-danger {
     color: var(--text-muted);
-  }
-
-  .shortcut-link-btn.text-danger:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: var(--text-primary);
   }
 
   .shortcut-divider {
@@ -810,11 +786,6 @@
     cursor: pointer;
     transition: all 0.15s;
     font-family: inherit;
-  }
-
-  .preset-chip:hover {
-    border-color: var(--text-muted);
-    color: var(--text-primary);
   }
 
   .preset-chip.active {
@@ -888,12 +859,6 @@
     box-sizing: border-box;
     width: 100%;
   }
-
-  .date-input-wrapper:hover {
-    border-color: var(--accent);
-    background: var(--surface);
-  }
-
   .date-input-icon {
     color: var(--accent);
     display: flex;
@@ -965,10 +930,6 @@
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: inherit;
-  }
-
-  .end-type-btn:hover {
-    color: var(--text-primary);
   }
 
   .end-type-btn.active {

@@ -170,8 +170,8 @@
   .week {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-    margin-bottom: 5px;
+    gap: 4px;
+    margin-bottom: 3px;
   }
 
   .day {
@@ -184,10 +184,6 @@
     border: 1px solid var(--border);
     cursor: pointer;
     transition: 0.15s ease;
-  }
-
-  .day:hover {
-    background: var(--surface-alt);
   }
 
   .weekday {

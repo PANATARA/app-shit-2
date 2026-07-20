@@ -36,6 +36,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
       "$api": path.resolve(__dirname, "./src/api"),
       "$features": path.resolve(__dirname, "./src/components/features"),
+      "$skeletons": path.resolve(__dirname, "./src/components/skeletons"),
       "$ui": path.resolve(__dirname, "./src/components/ui"),
       "$screens": path.resolve(__dirname, "./src/screens"),
       "$types": path.resolve(__dirname, "./src/types"),

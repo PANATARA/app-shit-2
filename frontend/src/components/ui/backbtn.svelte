@@ -50,10 +50,6 @@
     height: 36px;
   }
 
-  .btn-back:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--text-primary);
-  }
 
   .btn-back:active {
     background: rgba(255, 255, 255, 0.1);
