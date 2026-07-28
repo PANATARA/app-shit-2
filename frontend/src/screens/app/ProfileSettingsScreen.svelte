@@ -23,6 +23,7 @@
     import { logoutFromFamily } from "$api/family";
     import FamilyMembersSkeleton from "$skeletons/FamilyMembersSkeleton.svelte";
     import ProfileSkeleton from "$skeletons/ProfileSkeleton.svelte";
+    import { swr } from "$lib/swr";
 
     const dispatch = createEventDispatcher();
     // ─── STATE MACHINE ─────────────────────────────
@@ -36,9 +37,6 @@
     let languageModalOpen = false;
     let themeModalOpen = false;
 
-    let meUser: UserProfile | null = null;
-    let familyMembers: FamilyMembers | null = null;
-    let familyProfile: FamilyProfile | null = null;
     let selectedUser: UserProfile | null = null;
 
     // ─── EDIT STATE ───────────────────────────────
@@ -57,52 +55,19 @@
 
     // ─── LOAD DATA ────────────────────────────────
 
-    onMount(loadData);
+    const profile = swr("profile", getProfile);
+    const family = swr("family", getFamily);
+    const members = swr("family-members", getFamilyMembers);
 
-    let profileLoading = false;
-    let familyLoading = false;
+    $: meUser = $profile.data;
+    $: familyProfile = $family.data;
+    $: familyMembers = $members.data ?? [];
 
-    let profileError = false;
-    let familyError = false;
+    $: profileLoading = $profile.loading;
+    $: familyLoading = $family.loading || $members.loading;
 
-    async function loadProfile() {
-        profileLoading = true;
-        profileError = false;
-
-        try {
-            meUser = await getProfile();
-        } catch (e) {
-            console.error(e);
-            profileError = true;
-        } finally {
-            profileLoading = false;
-        }
-    }
-
-    async function loadFamily() {
-        familyLoading = true;
-        familyError = false;
-
-        try {
-            const [members, family] = await Promise.all([
-                getFamilyMembers(),
-                getFamily(),
-            ]);
-
-            familyMembers = members;
-            familyProfile = family;
-        } catch (e) {
-            console.error(e);
-            familyError = true;
-        } finally {
-            familyLoading = false;
-        }
-    }
-
-    async function loadData() {
-        loadProfile();
-        loadFamily();
-    }
+    $: profileError = $profile.error;
+    $: familyError = $family.error || $members.error;
 
     // ─── EDIT LOGIC ───────────────────────────────
 

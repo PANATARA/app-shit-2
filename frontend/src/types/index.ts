@@ -25,6 +25,12 @@ export interface UserProfile {
   is_family_admin: boolean;
 }
 
+export interface UserProfileStats extends UserProfile {
+  total_completed: number;
+  week_completed: number;
+  streak: number;
+}
+
 export interface FamilyProfile {
   id: string;
   name: string;

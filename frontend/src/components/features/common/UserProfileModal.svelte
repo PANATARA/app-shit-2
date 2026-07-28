@@ -1,35 +1,20 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount } from "svelte";
+    import { createEventDispatcher } from "svelte";
     import BottomSheet from "$ui/BottomSheet.svelte";
     import { getUserProfile } from "$api/me";
     import { kickFamilyMember, changeFamilyAdmin } from "$api/family";
-    import type { UserProfile } from "$types/index";
     import { userSession } from "$api/client";
     import CustButton from "$ui/button.svelte";
     import UserProfileCard from "$features/common/UserProfileCard.svelte";
+    import { swr } from "$lib/swr";
 
     const dispatch = createEventDispatcher();
 
     export let userId: string;
-    let user: UserProfile;
-    let loading = true;
-    let error = false;
 
-    onMount(loadData);
-
-    async function loadData() {
-        loading = true;
-        error = false;
-
-        try {
-            user = await getUserProfile(userId);
-        } catch (e) {
-            console.error(e);
-            error = true;
-        } finally {
-            loading = false;
-        }
-    }
+    const profile = swr(`user-profile-${userId}`, () => getUserProfile(userId));
+    $: user = $profile.data;
+    $: loading = $profile.loading;
 
     function close() {
         dispatch("close");

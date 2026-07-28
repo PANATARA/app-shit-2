@@ -23,7 +23,7 @@
     debugScreen: "Debug",
   };
 
-  let activeTab = "boardScreen";
+  let activeTab = "statsScreen";
 
   onMount(async () => {
     if ($isLoggedInStore) {
@@ -102,7 +102,7 @@
           class:active={activeTab === "statsScreen"}
         >
           <Icon
-            icon="material-symbols:bar-chart-rounded"
+            icon="material-symbols:home-rounded"
             width="24"
             height="24"
           />

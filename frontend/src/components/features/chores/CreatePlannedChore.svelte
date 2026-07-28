@@ -13,6 +13,7 @@
     import Backbtn from "$ui/backbtn.svelte";
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
     import CustomTextarea from "@/components/ui/CustomTextarea.svelte";
+    import { swr } from "$lib/swr";
 
     const dispatch = createEventDispatcher();
 
@@ -38,11 +39,6 @@
     let assignedTo: string | null = null;
     let searchQuery = "";
 
-    let chores: ChoreItem[] = [];
-    let familyMembers: FamilyMembers | null = null;
-    let loading = true;
-    let error = false;
-
     let repeat: RepeatConfig = {
         frequency_type: "none",
         interval: 1,
@@ -54,26 +50,14 @@
 
     // ─── Data fetching ───────────────────────────────────────────────────────
 
-    onMount(loadData);
+    const choresData = swr("chores", getChores);
+    const members = swr("family-members", getFamilyMembers);
 
-    async function loadData() {
-        loading = true;
-        error = false;
-        try {
-            const [rawChores, members] = await Promise.all([
-                getChores(),
-                getFamilyMembers(),
-            ]);
-            // бэкенд уже вернул отсортированный список — просто сохраняем
-            chores = rawChores.chores ?? [];
-            familyMembers = members;
-        } catch (e) {
-            console.error("Failed to load chores:", e);
-            error = true;
-        } finally {
-            loading = false;
-        }
-    }
+    $: chores = $choresData.data?.chores ?? [];
+    $: familyMembers = $members.data ?? [];
+
+    $: loading = $choresData.loading || $members.loading;
+    $: error = $choresData.error || $members.error;
 
     function getTodayIso(): string {
         return new Date().toISOString().split("T")[0];
@@ -152,9 +136,7 @@
 
         <AsyncStateView
             {loading}
-            {error}
             errorMessage="Не удалось загрузить дела"
-            onRetry={loadData}
             shimmerCount={9}
         >
             {#if showCreateNew}
@@ -219,10 +201,10 @@
             <div class="field">
                 <label class="field-label">Комментарий</label>
                 <CustomTextarea
-                  bind:value={comment}
-                  placeholder="Дополнительные детали..."
-                  maxlength={500}
-                  rows={3}
+                    bind:value={comment}
+                    placeholder="Дополнительные детали..."
+                    maxlength={500}
+                    rows={3}
                 />
             </div>
 
@@ -352,8 +334,6 @@
         font-family: inherit;
         resize: none;
         outline: none;
-        width: 100%;
-        box-sizing: border-box;
     }
 
     .field-input:focus {
@@ -402,5 +382,4 @@
     .add-btn {
         padding: 15px;
     }
-
 </style>

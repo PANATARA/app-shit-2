@@ -1,8 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { slide, fade, fly } from "svelte/transition";
-    import { cubicOut } from "svelte/easing";
-    import { flip } from "svelte/animate";
     import WeekCalendar from "$ui/WeekCalendar.svelte";
     import CardPlannedChore from "@/components/features/chores/CardPlannedChore.svelte";
     import CreatePlannedChore from "@/components/features/chores/CreatePlannedChore.svelte";
@@ -12,36 +8,31 @@
         getPlannedChore,
         unCompletePlannedChore,
     } from "$api/chores";
+    import ProgressBar from "$ui/ProgressBar.svelte";
     import type { PlannedChore } from "$types/index";
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
     import CardPlannedChoreSkeleton from "$skeletons/CardPlannedChoreSkeleton.svelte";
+    import { fade } from "svelte/transition";
+    import { swr } from "$lib/swr";
 
     // ─── State ───────────────────────────────────────────────────────────────────
 
     let selectedDate = new Date();
-    let loading = false;
     let modalOpen = false;
-    let plannedChores: PlannedChore[] = [];
     let selectedPlannedChore: PlannedChore | null = null;
     let detailModalOpen = false;
+    let optimisticChores: PlannedChore[] | null = null; // для optimistic update
 
-    onMount(() => {
-        loadPlannedChores(formatDateKey(new Date()));
-    });
+    $: dateKey = formatDateKey(selectedDate);
 
-    // ─── Data fetching ───────────────────────────────────────────────────────────
+    $: chores = swr(`planned-chores:${dateKey}`, () =>
+        getPlannedChore({ due_date: dateKey }),
+    );
 
-    async function loadPlannedChores(due_date: string) {
-        loading = true;
-        try {
-            plannedChores = await getPlannedChore({ due_date });
-            console.log(plannedChores);
-        } catch (e) {
-            console.error("Failed to load planned chores:", e);
-        } finally {
-            loading = false;
-        }
-    }
+    // optimistic перекрывает данные стора, сбрасывается при смене даты
+    $: if (dateKey) optimisticChores = null;
+    $: plannedChores = optimisticChores ?? $chores.data ?? [];
+    $: loading = $chores.loading;
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -74,20 +65,16 @@
 
     function handleDateChange(event: CustomEvent<Date>) {
         selectedDate = event.detail;
-        loadPlannedChores(formatDateKey(selectedDate));
     }
 
     async function toggleChore(choreItem: PlannedChore) {
         const previous = plannedChores;
-
         const isCompleted = choreItem.completed_by !== null;
 
-        plannedChores = plannedChores.map((c) =>
+        // optimistic update
+        optimisticChores = plannedChores.map((c) =>
             c.id === choreItem.id
-                ? {
-                      ...c,
-                      completed_by: isCompleted ? null : c.assigned_to,
-                  }
+                ? { ...c, completed_by: isCompleted ? null : c.assigned_to }
                 : c,
         );
 
@@ -96,11 +83,14 @@
                 ? await unCompletePlannedChore(choreItem.id)
                 : await completePlannedChore(choreItem.id);
 
-            plannedChores = plannedChores.map((c) =>
+            optimisticChores = optimisticChores.map((c) =>
                 c.id === updated.id ? updated : c,
             );
+
+            // обновляем кэш swr свежими данными
+            chores.revalidate();
         } catch (e) {
-            plannedChores = previous;
+            optimisticChores = previous;
             console.error(e);
         }
     }
@@ -128,26 +118,12 @@
     </div>
 
     <!-- Progress Bar Header -->
-    <div class="progress-section">
-        <div class="progress-info">
-            <span class="progress-title">{getFriendlyDate(selectedDate)}</span>
-            {#if totalCount > 0}
-                <span class="progress-ratio"
-                    >{completedCount} из {totalCount} выполнено</span
-                >
-            {:else}
-                <span class="progress-ratio">Задач нет</span>
-            {/if}
-        </div>
-        {#if totalCount > 0}
-            <div class="progress-bar-bg" transition:fade={{ duration: 300 }}>
-                <div
-                    class="progress-bar-fill"
-                    style="width: {progressPercentage}%"
-                ></div>
-            </div>
-        {/if}
-    </div>
+    <ProgressBar
+        {totalCount}
+        {completedCount}
+        {progressPercentage}
+        value={getFriendlyDate(selectedDate)}
+    />
 
     <ButtonPrimaryGlow
         on:click={() => (modalOpen = true)}
@@ -157,7 +133,7 @@
 
     <!-- MAIN LIST CONTROLLER -->
     {#if loading}
-        <CardPlannedChoreSkeleton count={3}/>
+        <CardPlannedChoreSkeleton count={3} />
     {:else if totalCount === 0}
         <!-- Absolute Zero Empty State -->
         <div class="empty-state perfect-empty" in:fade={{ duration: 200 }}>
@@ -178,10 +154,7 @@
 
             <div class="list">
                 {#if activePlannedChores.length === 0}
-                    <div
-                        class="empty-state clean-success"
-                        in:fade={{ duration: 200 }}
-                    >
+                    <div class="empty-state clean-success">
                         <div class="empty-icon">🎉</div>
                         <h3>Все дела сделаны!</h3>
                         <p>
@@ -191,16 +164,14 @@
                     </div>
                 {:else}
                     {#each activePlannedChores as chore (chore.id)}
-                        <div>
-                            <CardPlannedChore
-                                item={chore}
-                                onToggle={toggleChore}
-                                on:click={() => {
-                                    selectedPlannedChore = chore;
-                                    detailModalOpen = true;
-                                }}
-                            />
-                        </div>
+                        <CardPlannedChore
+                            item={chore}
+                            onToggle={toggleChore}
+                            on:click={() => {
+                                selectedPlannedChore = chore;
+                                detailModalOpen = true;
+                            }}
+                        />
                     {/each}
                 {/if}
             </div>
@@ -218,16 +189,14 @@
 
                 <div class="list">
                     {#each completedPlannedChores as plannedChore (plannedChore.id)}
-                        <div>
-                            <CardPlannedChore
-                                item={plannedChore}
-                                onToggle={toggleChore}
-                                on:click={() => {
-                                    selectedPlannedChore = plannedChore;
-                                    detailModalOpen = true;
-                                }}
-                            />
-                        </div>
+                        <CardPlannedChore
+                            item={plannedChore}
+                            onToggle={toggleChore}
+                            on:click={() => {
+                                selectedPlannedChore = plannedChore;
+                                detailModalOpen = true;
+                            }}
+                        />
                     {/each}
                 </div>
             </div>
@@ -276,56 +245,6 @@
         border-radius: 24px;
         border: 1px solid var(--border);
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
-    }
-
-    /* ── PROGRESS SECTION ─────────────────────────── */
-    .progress-section {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 4px;
-    }
-
-    .progress-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .progress-title {
-        font-size: 20px;
-        font-weight: 800;
-        color: var(--text-primary);
-        text-transform: capitalize;
-    }
-
-    .progress-ratio {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-secondary);
-        background: var(--surface);
-        padding: 4px 10px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-    }
-
-    .progress-bar-bg {
-        height: 8px;
-        background: var(--surface-alt);
-        border-radius: 4px;
-        overflow: hidden;
-        border: 1px solid var(--border);
-    }
-
-    .progress-bar-fill {
-        height: 100%;
-        background: linear-gradient(
-            90deg,
-            var(--accent) 0%,
-            var(--success) 100%
-        );
-        border-radius: 4px;
-        transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     /* ── SECTION HEADERS ─────────────────────────── */
@@ -413,76 +332,5 @@
     .perfect-empty {
         padding: 48px 20px;
         margin-top: 10px;
-    }
-
-    /* ── SHIMMER LOADING STATES ──────────────────── */
-    .shimmer-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .shimmer-card {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 16px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        overflow: hidden;
-        position: relative;
-    }
-
-    .shimmer-circle {
-        width: 48px;
-        height: 48px;
-        border-radius: 16px;
-        background: linear-gradient(
-            90deg,
-            var(--surface-alt) 25%,
-            var(--border) 50%,
-            var(--surface-alt) 75%
-        );
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
-    }
-
-    .shimmer-lines {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .shimmer-line {
-        height: 12px;
-        border-radius: 4px;
-        background: linear-gradient(
-            90deg,
-            var(--surface-alt) 25%,
-            var(--border) 50%,
-            var(--surface-alt) 75%
-        );
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
-    }
-
-    .shimmer-line.title-line {
-        width: 50%;
-        height: 14px;
-    }
-
-    .shimmer-line.desc-line {
-        width: 35%;
-    }
-
-    @keyframes shimmer {
-        0% {
-            background-position: -200% 0;
-        }
-        100% {
-            background-position: 200% 0;
-        }
     }
 </style>

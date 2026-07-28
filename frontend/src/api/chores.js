@@ -116,10 +116,9 @@ export async function unCompletePlannedChore(plannedChoreID) {
 }
 
 export async function deletePlannedChore(id) {
-    return apiFetch(`/api/planned-chores/${id}`, { method: "DELETE" });
+    return apiFetch(`/api/chores/planned/${id}`, { method: "DELETE" });
 }
 
 export async function reschedulePlannedChore(id, data) {
-    return apiFetch(`/api/planned-chores/${id}/reschedule`, { method: "PATCH", body: data });
+    return apiFetch(`/api/chores/planned/${id}/reschedule`, { method: "PATCH", body: data });
 }
-
