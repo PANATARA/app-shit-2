@@ -1,27 +1,33 @@
 <script lang="ts">
-    import WeekCalendar from "$ui/WeekCalendar.svelte";
-    import CardPlannedChore from "@/components/features/chores/CardPlannedChore.svelte";
-    import CreatePlannedChore from "@/components/features/chores/CreatePlannedChore.svelte";
-    import DetailPlannedChoreModal from "$features/chores/DetailPlannedChoreModal.svelte";
+    import { fade } from "svelte/transition";
+
     import {
         completePlannedChore,
         getPlannedChore,
         unCompletePlannedChore,
     } from "$api/chores";
-    import ProgressBar from "$ui/ProgressBar.svelte";
-    import type { PlannedChore } from "$types/index";
-    import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
-    import CardPlannedChoreSkeleton from "$skeletons/CardPlannedChoreSkeleton.svelte";
-    import { fade } from "svelte/transition";
     import { swr } from "$lib/swr";
+    import { formatDateKey, getFriendlyDate } from "$lib/utils";
+
+    import CardPlannedChore from "$features/chores/CardPlannedChore.svelte";
+    import CreatePlannedChore from "$features/chores/CreatePlannedChore.svelte";
+    import DetailPlannedChoreModal from "$features/chores/DetailPlannedChoreModal.svelte";
+
+    import CardPlannedChoreSkeleton from "$skeletons/CardPlannedChoreSkeleton.svelte";
+
+    import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
+    import ProgressBar from "$ui/ProgressBar.svelte";
+    import WeekCalendar from "$ui/WeekCalendar.svelte";
+
+    import type { PlannedChore } from "$types/index";
 
     // ─── State ───────────────────────────────────────────────────────────────────
 
-    let selectedDate = new Date();
     let modalOpen = false;
-    let selectedPlannedChore: PlannedChore | null = null;
     let detailModalOpen = false;
-    let optimisticChores: PlannedChore[] | null = null; // для optimistic update
+    let selectedDate = new Date();
+    let selectedPlannedChore: PlannedChore | null = null;
+    let optimisticChores: PlannedChore[] | null = null;
 
     $: dateKey = formatDateKey(selectedDate);
 
@@ -29,37 +35,11 @@
         getPlannedChore({ due_date: dateKey }),
     );
 
-    // optimistic перекрывает данные стора, сбрасывается при смене даты
+    // Optimistic данные перекрывают данные стора и сбрасываются при смене даты
     $: if (dateKey) optimisticChores = null;
+
     $: plannedChores = optimisticChores ?? $chores.data ?? [];
     $: loading = $chores.loading;
-
-    // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-    function formatDateKey(date: Date): string {
-        const y = date.getFullYear();
-        const m = String(date.getMonth() + 1).padStart(2, "0");
-        const d = String(date.getDate()).padStart(2, "0");
-        return `${y}-${m}-${d}`;
-    }
-
-    function getFriendlyDate(date: Date): string {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
-
-        if (date.toDateString() === today.toDateString()) return "Сегодня";
-        if (date.toDateString() === tomorrow.toDateString()) return "Завтра";
-        if (date.toDateString() === yesterday.toDateString()) return "Вчера";
-
-        return date.toLocaleDateString("ru-RU", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-        });
-    }
 
     // ─── Event handlers ──────────────────────────────────────────────────────────
 
@@ -71,11 +51,14 @@
         const previous = plannedChores;
         const isCompleted = choreItem.completed_by !== null;
 
-        // optimistic update
-        optimisticChores = plannedChores.map((c) =>
-            c.id === choreItem.id
-                ? { ...c, completed_by: isCompleted ? null : c.assigned_to }
-                : c,
+        // Optimistic update
+        optimisticChores = plannedChores.map((chore) =>
+            chore.id === choreItem.id
+                ? {
+                      ...chore,
+                      completed_by: isCompleted ? null : chore.assigned_to,
+                  }
+                : chore,
         );
 
         try {
@@ -83,11 +66,11 @@
                 ? await unCompletePlannedChore(choreItem.id)
                 : await completePlannedChore(choreItem.id);
 
-            optimisticChores = optimisticChores.map((c) =>
-                c.id === updated.id ? updated : c,
+            optimisticChores = optimisticChores.map((chore) =>
+                chore.id === updated.id ? updated : chore,
             );
 
-            // обновляем кэш swr свежими данными
+            // Обновляем кэш SWR свежими данными
             chores.revalidate();
         } catch (e) {
             optimisticChores = previous;
@@ -95,18 +78,25 @@
         }
     }
 
-    // ─── Reactive ────────────────────────────────────────────────────────────────
+    // ─── Derived state ───────────────────────────────────────────────────────────
 
     $: currentDueDateStr = formatDateKey(selectedDate);
+
     $: dateChores = plannedChores.filter(
-        (c) => c.due_date === currentDueDateStr,
+        (chore) => chore.due_date === currentDueDateStr,
     );
-    $: activePlannedChores = dateChores.filter((c) => c.completed_by === null);
+
+    $: activePlannedChores = dateChores.filter(
+        (chore) => chore.completed_by === null,
+    );
+
     $: completedPlannedChores = dateChores.filter(
-        (c) => c.completed_by !== null,
+        (chore) => chore.completed_by !== null,
     );
+
     $: totalCount = dateChores.length;
     $: completedCount = completedPlannedChores.length;
+
     $: progressPercentage =
         totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 </script>
@@ -208,7 +198,7 @@
             on:close={() => (modalOpen = false)}
             on:add={() => {
                 modalOpen = false;
-                loadPlannedChores(currentDueDateStr);
+                chores.revalidate();
             }}
         />
     {:else if detailModalOpen && selectedPlannedChore}
@@ -229,7 +219,7 @@
 
 <style>
     .screen {
-        padding: 16px;
+        padding: 10px;
         display: flex;
         flex-direction: column;
         gap: 20px;

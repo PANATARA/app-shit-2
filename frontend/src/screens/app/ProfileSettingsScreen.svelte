@@ -2,11 +2,6 @@
     import { createEventDispatcher, onMount } from "svelte";
     import { getFamily, getFamilyMembers } from "$api/family";
     import { getProfile, updateProfile } from "$api/me";
-    import type {
-        FamilyMembers,
-        UserProfile,
-        FamilyProfile,
-    } from "$types/index";
     import UserAvatar from "$ui/UserAvatar.svelte";
     import Block from "$ui/block.svelte";
     import CustButton from "$ui/button.svelte";
@@ -14,10 +9,9 @@
     import AvatarConstructor from "$features/settings/AvatarConstructor.svelte";
     import ChoreEditorModal from "@/components/features/settings/ChoreEditorModal.svelte";
     import InviteModal from "$features/settings/InviteModal.svelte";
-    import UserProfileModal from "$features/common/UserProfileModal.svelte";
     import LangModal from "$features/settings/LangModal.svelte";
     import ThemeModal from "$features/settings/ThemeModal.svelte";
-    import { showDays, theme, language } from "$lib/settings.js";
+    import { showDays, theme, language, openProfile } from "$lib/settings.js";
     import { userSession } from "$api/client";
     import { clearTokens } from "$api/client";
     import { logoutFromFamily } from "$api/family";
@@ -36,8 +30,6 @@
     let profileModalOpen = false;
     let languageModalOpen = false;
     let themeModalOpen = false;
-
-    let selectedUser: UserProfile | null = null;
 
     // ─── EDIT STATE ───────────────────────────────
 
@@ -237,10 +229,7 @@
             {#each familyMembers?.members ?? [] as member (member.id)}
                 <div
                     class="row clickable"
-                    on:click={() => {
-                        profileModalOpen = true;
-                        selectedUser = member;
-                    }}
+                    on:click={() => openProfile(member.id)}
                 >
                     <UserAvatar user={member} size={30} />
 
@@ -427,11 +416,6 @@
         <ChoreEditorModal on:close={() => (choreModalOpen = false)} />
     {:else if inviteModalOpen}
         <InviteModal on:close={() => (inviteModalOpen = false)} />
-    {:else if profileModalOpen && selectedUser}
-        <UserProfileModal
-            userId={selectedUser.id}
-            on:close={() => (profileModalOpen = false)}
-        />
     {:else if languageModalOpen}
         <LangModal on:close={() => (languageModalOpen = false)} />
     {:else if themeModalOpen}

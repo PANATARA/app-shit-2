@@ -40,8 +40,6 @@
     <Block padding={10}>
         <LeadersCard {weekLeaders} {loading} />
     </Block>
-
-
 </div>
 
 <style>
@@ -49,7 +47,7 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
-        padding: 12px;
+        padding: 10px;
         min-height: 100vh;
         font-family:
             system-ui,

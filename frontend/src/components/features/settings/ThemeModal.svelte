@@ -28,22 +28,28 @@
             colors: ["#9C6ADE", "#D1C4E9", "#6A1B9A"],
         },
         {
-            id: "sunset",
-            name: "Закат",
-            description: "Тёплые розово-малиновые оттенки",
-            colors: ["#1a1015", "#f472b6", "#fb923c"],
-        },
-        {
             id: "midnight",
             name: "Полночь",
             description: "Глубокий синий с индиго акцентом",
             colors: ["#070b14", "#6366f1", "#22d3ee"],
         },
         {
-            id: "amber",
-            name: "Янтарь",
-            description: "Тёплый золотисто-коричневый",
-            colors: ["#14100a", "#f59e0b", "#84cc16"],
+            id: "rose",
+            name: "rose",
+            description: "rose rose",
+            colors: ["#E0F2FE", "#C2185B", "#84cc16"],
+        },
+        {
+            id: "ocean",
+            name: "ocean",
+            description: "rose rose",
+            colors: ["#E0F2FE", "#C2185B", "#84cc16"],
+        },
+        {
+            id: "royal",
+            name: "royal",
+            description: "rose rose",
+            colors: ["#E0F2FE", "#C2185B", "#84cc16"],
         },
     ];
 
