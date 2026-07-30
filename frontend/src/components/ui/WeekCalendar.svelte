@@ -1,13 +1,11 @@
 <script lang="ts">
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher, onMount } from "svelte";
 
     const dispatch = createEventDispatcher<{ change: Date }>();
 
     export let selectedDate: Date = new Date();
 
     const today = normalize(new Date());
-
-    // ─── Helpers ─────────────────────────────────────────────────────────────
 
     function normalize(d: Date) {
         return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -37,45 +35,41 @@
         return isSameDay(date, selectedDate);
     }
 
-    // ─── Week offset (-1, 0, +1) ─────────────────────────────────────────────
+    // ─── Недели: прошлая, текущая, следующая ─────────────────────────────────
 
-    let weekOffset = 0;
     const MIN_OFFSET = -1;
     const MAX_OFFSET = 1;
 
-    $: canGoPrev = weekOffset > MIN_OFFSET;
-    $: canGoNext = weekOffset < MAX_OFFSET;
-
-    function prevWeek() {
-        if (canGoPrev) weekOffset -= 1;
-    }
-
-    function nextWeek() {
-        if (canGoNext) weekOffset += 1;
-    }
-
-    // ─── Days ─────────────────────────────────────────────────────────────────
-
-    $: days = (() => {
+    function getWeekDays(offset: number): Date[] {
         const base = getStartOfWeek(new Date());
-        base.setDate(base.getDate() + weekOffset * 7);
+        base.setDate(base.getDate() + offset * 7);
         return Array.from({ length: 7 }, (_, i) => {
             const d = new Date(base);
             d.setDate(base.getDate() + i);
             return d;
         });
-    })();
+    }
 
-    // ─── Week label ───────────────────────────────────────────────────────────
+    const weeks = [getWeekDays(-1), getWeekDays(0), getWeekDays(1)];
 
-    $: weekLabel = (() => {
-        if (weekOffset === -1) return "Прошлая неделя";
-        if (weekOffset === 0) return "Эта неделя";
-        if (weekOffset === 1) return "Следующая неделя";
-        return "";
-    })();
+    const weekLabels = ["Прошлая неделя", "Эта неделя", "Следующая неделя"];
 
-    // ─── Select ───────────────────────────────────────────────────────────────
+    // ─── Скролл ───────────────────────────────────────────────────────────────
+
+    let container: HTMLElement;
+    let currentWeek = 1; // начинаем с текущей недели
+
+    onMount(() => {
+        // скроллим к текущей неделе без анимации
+        const w = container.offsetWidth;
+        container.scrollLeft = w * currentWeek;
+    });
+
+    function onScroll() {
+        const w = container.offsetWidth;
+        const index = Math.round(container.scrollLeft / w);
+        currentWeek = Math.max(0, Math.min(2, index));
+    }
 
     function select(day: Date) {
         selectedDate = day;
@@ -84,102 +78,142 @@
 </script>
 
 <div class="calendar">
-    <div class="nav">
-        <button
-            class="nav-btn"
-            on:click={prevWeek}
-            disabled={!canGoPrev}
-            aria-label="Предыдущая неделя"
-        >
-            ‹
-        </button>
-        <span class="week-label">{weekLabel}</span>
-        <button
-            class="nav-btn"
-            on:click={nextWeek}
-            disabled={!canGoNext}
-            aria-label="Следующая неделя"
-        >
-            ›
-        </button>
-    </div>
+    <div class="scroll-wrapper">
+        <!-- {#if currentWeek > 0}
+            <div class="edge-hint left">‹</div>
+        {/if} -->
 
-    <div class="week">
-        {#each days as day}
-            <button
-                class="day"
-                class:selected={isSelected(day)}
-                class:today={isToday(day)}
-                on:click={() => select(day)}
-            >
-                <div class="weekday">{getDayName(day)}</div>
-                <div class="date">{day.getDate()}</div>
-            </button>
-        {/each}
+        <div
+            class="scroll-container"
+            bind:this={container}
+            on:scroll={onScroll}
+        >
+            {#each weeks as week}
+                <div class="week">
+                    {#each week as day}
+                        <button
+                            class="day"
+                            class:selected={isSelected(day)}
+                            class:today={isToday(day)}
+                            on:click={() => select(day)}
+                        >
+                            <div class="weekday">{getDayName(day)}</div>
+                            <div class="date">{day.getDate()}</div>
+                        </button>
+                    {/each}
+                </div>
+            {/each}
+        </div>
+
+        <!-- {#if currentWeek < weeks.length - 1}
+            <div class="edge-hint right">›</div>
+        {/if} -->
+    </div>
+    <div class="header">
+        <div class="week-label">{weekLabels[currentWeek]}</div>
+        <div class="dots">
+            {#each weeks as _, i}
+                <div class="dot" class:active={i === currentWeek}></div>
+            {/each}
+        </div>
     </div>
 </div>
 
 <style>
-    .calendar {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    /* ── Nav ───────────────────────── */
-    .nav {
+    .header {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 0 2px;
     }
 
+    .dots {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+    }
+
+    .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--border);
+        transition: all 0.2s ease;
+    }
+
+    .dot.active {
+        background: var(--accent);
+        width: 18px;
+        border-radius: 3px;
+    }
+
+    .scroll-wrapper {
+        position: relative;
+    }
+
+    .edge-hint {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 18px;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0.5;
+    }
+
+    .edge-hint.left {
+        left: -14px;
+    }
+    .edge-hint.right {
+        right: -14px;
+    }
+    .calendar {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
     .week-label {
         font-size: 13px;
         font-weight: 600;
         color: var(--text-muted);
+        padding: 0 2px;
     }
 
-    .nav-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        color: var(--text);
-        font-size: 20px;
-        line-height: 1;
-        cursor: pointer;
+    /* ── Скролл-контейнер ───────────────────────── */
+    .scroll-container {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: opacity 0.15s;
-        padding: 0;
+        overflow-x: scroll;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 0;
     }
 
-    .nav-btn:disabled {
-        opacity: 0.25;
-        cursor: default;
+    .scroll-container::-webkit-scrollbar {
+        display: none;
     }
 
-    .nav-btn:not(:disabled):active {
-        opacity: 0.6;
-    }
-
-    /* ── Week ───────────────────────── */
+    /* ── Неделя ───────────────────────── */
     .week {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         gap: 4px;
+        min-width: 100%;
+        scroll-snap-align: start;
         margin-bottom: 3px;
+        padding: 0 1px;
+        box-sizing: border-box;
     }
 
+    /* ── Дни ───────────────────────── */
     .day {
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 10px 6px;
-        border-radius: 14px;
+        padding: 18px 6px;
+        border-radius: 25px;
         background: var(--surface);
         border: 1px solid var(--border);
         cursor: pointer;

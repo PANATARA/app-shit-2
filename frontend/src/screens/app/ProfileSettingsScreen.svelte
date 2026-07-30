@@ -449,7 +449,7 @@
     .screen {
         background: var(--bg, #2a2318);
         min-height: 100vh;
-        padding: 15px 15px 48px;
+        padding: 10px;
         font-family: system-ui, sans-serif;
     }
 

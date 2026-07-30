@@ -118,13 +118,26 @@
                 >
                     <span class="icon">
                         <Icon
-                            icon="material-symbols:calendar-check"
+                            icon="material-symbols:calendar-month"
                             width="24"
                             height="24"
                         />
                     </span>
                 </button>
-
+                <button
+                    class="nav-item"
+                    on:click={() => (activeTab = "debugScreen")}
+                    class:active={activeTab === "debugScreen"}
+                    aria-label="Debug"
+                >
+                    <span class="icon">
+                        <Icon
+                            icon="material-symbols:location-on"
+                            width="24"
+                            height="24"
+                        />
+                    </span>
+                </button>
                 <button
                     class="nav-item"
                     on:click={() => (activeTab = "settingsScreen")}
@@ -139,7 +152,7 @@
                         />
                     </span>
                 </button>
-                <button
+                <!-- <button
                     class="nav-item"
                     on:click={() => (activeTab = "debugScreen")}
                     class:active={activeTab === "debugScreen"}
@@ -152,7 +165,7 @@
                             height="24"
                         />
                     </span>
-                </button>
+                </button> -->
             </nav>
         </div>
     {/if}
