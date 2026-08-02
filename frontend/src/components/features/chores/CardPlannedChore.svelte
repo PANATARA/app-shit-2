@@ -8,20 +8,13 @@
 
   export let item: PlannedChore;
   export let onToggle: (item: PlannedChore) => void;
-  console.log(item);
 
   $: done = item.completed_by !== null;
   $: title = item.chore.name;
   $: icon = item.chore.icon || "🧹";
   $: comment = item.message;
   $: assignee = item.assigned_to;
-  $: assigneeLetters = assignee
-    ? (assignee.name?.[0] ?? "") + (assignee.surname?.[0] ?? "")
-    : "?";
   $: completer = item.completed_by;
-  $: completerLetters = completer
-    ? (completer.name?.[0] ?? "") + (completer.surname?.[0] ?? "")
-    : "?";
 
   function handleComplete() {
     onToggle?.(item);
@@ -36,25 +29,32 @@
   role="button"
   tabindex="0"
 >
+  <!-- декоративный glow -->
+  {#if !done}
+    <span class="glow" />
+  {/if}
+
   <ChoreIcon chore={item.chore} />
+
   <div class="content">
     <div class="title" class:completed-text={done}>{title}</div>
     {#if comment}
       <div class="subtitle" class:completed-text={done}>{comment}</div>
     {/if}
-    {#if assignee}
+    {#if assignee && !completer}
       <div class="assignee-badge">
-        <UserAvatar user={item.assigned_to} size={20} />
-        <span class="name">Назначено: {assignee.name}</span>
+        <UserAvatar user={item.assigned_to} size={18} />
+        <span class="name">{assignee.name}</span>
       </div>
     {/if}
     {#if completer}
       <div class="completed-badge">
-        <UserAvatar user={item.completed_by} size={20} />
-        <span class="name">Выполнил: {completer.name}</span>
+        <UserAvatar user={item.completed_by} size={18} />
+        <span class="name">{completer.name}</span>
       </div>
     {/if}
   </div>
+
   <div class="right">
     <button
       class="check"
@@ -63,13 +63,7 @@
       aria-label="Завершить задачу"
     >
       {#if done}
-        <svg
-          class="check-icon"
-          width="12"
-          height="10"
-          viewBox="0 0 12 10"
-          fill="none"
-        >
+        <svg class="check-icon" width="12" height="10" viewBox="0 0 12 10" fill="none">
           <path
             d="M1.5 5L4.5 8L10.5 2"
             stroke="currentColor"
@@ -85,43 +79,65 @@
 
 <style>
   .card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    border-radius: 30px;
-    background: var(--surface);
-    transition:
-      background-color 0.25s ease,
-      border-color 0.25s ease,
-      opacity 0.25s ease,
-      transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-
-    will-change: transform;
     position: relative;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 24px;
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--accent) 5%, var(--surface)) 0%,
+      var(--surface) 50%
+    );
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.04),
+      0 4px 12px rgba(0, 0, 0, 0.06),
+      0 12px 28px rgba(0, 0, 0, 0.05);
+    transition:
+      opacity 0.25s ease,
+      transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 0.2s ease;
+    will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .card:active {
+    transform: scale(0.98);
+  }
+
+  /* glow в правом верхнем углу */
+  .glow {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    right: -60px;
+    top: -70px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    filter: blur(32px);
+    pointer-events: none;
   }
 
   .card.card-done {
-    opacity: 0.65;
+    opacity: 0.55;
     background: var(--surface);
-    border-color: transparent;
     box-shadow: none;
-    transform: translateZ(0);
   }
 
-  /* ── CONTENT ───────────────────────────── */
+  /* ── CONTENT ─────────────────────────────────── */
   .content {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 4px;
+    position: relative;
+    z-index: 1;
   }
 
   .title {
@@ -129,7 +145,7 @@
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1.2;
-    transition: all 0.2s;
+    transition: color 0.2s ease;
   }
 
   .subtitle {
@@ -140,7 +156,6 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    transition: color 0.2s ease;
   }
 
   .completed-text {
@@ -148,22 +163,26 @@
     color: var(--text-muted);
   }
 
-  /* ── ASSIGNEE BADGE ───────────────────────────── */
-  .assignee-badge {
+  /* ── BADGES ──────────────────────────────────── */
+  .assignee-badge,
+  .completed-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: var(--surface-alt);
-    padding: 3px 8px;
-    border-radius: 12px;
+    gap: 5px;
+    padding: 3px 8px 3px 4px;
+    border-radius: 99px;
     align-self: flex-start;
-    margin-top: 4px;
-    border: 1px solid var(--border);
+    margin-top: 5px;
   }
 
-  .card-done .assignee-badge {
-    background: transparent;
-    border-color: var(--border);
+  .assignee-badge {
+    background: color-mix(in srgb, var(--accent) 8%, var(--surface-alt));
+    border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+  }
+
+  .completed-badge {
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.2);
   }
 
   .name {
@@ -172,30 +191,19 @@
     color: var(--text-secondary);
   }
 
-  .completed-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 3px 8px;
-    border-radius: 12px;
-    align-self: flex-start;
-    margin-top: 4px;
-
-    background: rgba(34, 197, 94, 0.08);
-    border: 1px solid rgba(34, 197, 94, 0.2);
-  }
-
-  /* ── CHECK BUTTON ───────────────────────────── */
+  /* ── CHECK BUTTON ────────────────────────────── */
   .right {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    position: relative;
+    z-index: 1;
   }
 
   .check {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     border: 2px solid var(--border);
     background: transparent;
@@ -204,23 +212,27 @@
     align-items: center;
     justify-content: center;
     color: transparent;
+    padding: 0;
     transition:
       transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
       background-color 0.2s ease,
-      border-color 0.2s ease;
-
-    will-change: transform;
-    padding: 0;
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .check:active {
-    transform: scale(0.9);
+    transform: scale(0.88);
   }
 
   .check.checked {
     border-color: var(--success);
-    background: var(--success);
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--success) 80%, white),
+      var(--success)
+    );
     color: #fff;
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--success) 35%, transparent);
   }
 
   .check-icon {
@@ -228,16 +240,7 @@
   }
 
   @keyframes checkAppear {
-    from {
-      transform: scale(0) rotate(-20deg);
-
-      opacity: 0;
-    }
-
-    to {
-      transform: scale(1) rotate(0);
-
-      opacity: 1;
-    }
+    from { transform: scale(0) rotate(-20deg); opacity: 0; }
+    to   { transform: scale(1) rotate(0); opacity: 1; }
   }
 </style>

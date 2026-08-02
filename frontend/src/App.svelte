@@ -101,71 +101,67 @@
             <nav class="bottom-nav">
                 <button
                     class="nav-item"
-                    on:click={() => (activeTab = "statsScreen")}
                     class:active={activeTab === "statsScreen"}
+                    on:click={() => (activeTab = "statsScreen")}
+                    aria-label="Главная"
                 >
-                    <Icon
-                        icon="material-symbols:home-rounded"
-                        width="24"
-                        height="24"
-                    />
+                    <div class="nav-icon">
+                        <Icon
+                            icon="material-symbols:home-rounded"
+                            width="24"
+                            height="24"
+                        />
+                    </div>
+                    <span class="nav-label">Главная</span>
                 </button>
 
                 <button
-                    class="nav-item plus-btn"
-                    on:click={() => (activeTab = "boardScreen")}
+                    class="nav-item"
                     class:active={activeTab === "boardScreen"}
+                    on:click={() => (activeTab = "boardScreen")}
+                    aria-label="Доска"
                 >
-                    <span class="icon">
+                    <div class="nav-icon">
                         <Icon
                             icon="material-symbols:calendar-month"
                             width="24"
                             height="24"
                         />
-                    </span>
+                    </div>
+                    <span class="nav-label">Доска</span>
                 </button>
+
                 <button
                     class="nav-item"
-                    on:click={() => (activeTab = "debugScreen")}
                     class:active={activeTab === "debugScreen"}
-                    aria-label="Debug"
+                    on:click={() => (activeTab = "debugScreen")}
+                    aria-label="Карта"
                 >
-                    <span class="icon">
+                    <div class="nav-icon">
                         <Icon
                             icon="material-symbols:location-on"
                             width="24"
                             height="24"
                         />
-                    </span>
+                    </div>
+                    <span class="nav-label">Карта</span>
                 </button>
+
                 <button
                     class="nav-item"
-                    on:click={() => (activeTab = "settingsScreen")}
                     class:active={activeTab === "settingsScreen"}
-                    aria-label="Settings"
+                    on:click={() => (activeTab = "settingsScreen")}
+                    aria-label="Настройки"
                 >
-                    <span class="icon">
+                    <div class="nav-icon">
                         <Icon
                             icon="material-symbols:settings-rounded"
                             width="24"
                             height="24"
                         />
-                    </span>
+                    </div>
+                    <span class="nav-label">Профиль</span>
                 </button>
-                <!-- <button
-                    class="nav-item"
-                    on:click={() => (activeTab = "debugScreen")}
-                    class:active={activeTab === "debugScreen"}
-                    aria-label="Debug"
-                >
-                    <span class="icon">
-                        <Icon
-                            icon="material-symbols:bug-report"
-                            width="24"
-                            height="24"
-                        />
-                    </span>
-                </button> -->
             </nav>
         </div>
     {/if}
@@ -402,19 +398,11 @@
 
     .nav-wrapper {
         position: fixed;
-
-        bottom: 0;
         left: 0;
         right: 0;
-
-        padding-bottom: 0;
-
+        bottom: 0;
         display: flex;
-
-        background: transparent;
-
         pointer-events: none;
-
         z-index: 100;
     }
 
@@ -422,35 +410,92 @@
         width: 100%;
         pointer-events: all;
         display: flex;
+        align-items: flex-end;
         justify-content: space-around;
-        align-items: center;
-        background: var(--bg-nav);
-        border-radius: 20px 20px 0 0;
-        padding: 8px 16px calc(20px + env(safe-area-inset-bottom));
-        gap: 0;
-        box-shadow: var(--shadow-nav);
+        padding: 10px 8px calc(16px + env(safe-area-inset-bottom));
+        background: color-mix(in srgb, var(--bg-nav) 92%, transparent);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 28px 28px 0 0;
+        box-shadow:
+            0 -1px 0 rgba(255, 255, 255, 0.05),
+            0 -8px 32px rgba(0, 0, 0, 0.12);
     }
 
+    /* ── ITEM ────────────────────────────────────── */
     .nav-item {
-        background: transparent;
-        border: none;
-        width: 55px;
-        height: 55px;
-        border-radius: 20px;
+        position: relative;
+        flex: 1;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
+        gap: 4px;
+        padding: 6px 4px;
+        border: none;
+        border-radius: 18px;
+        background: transparent;
         color: var(--text-nav);
-        transition: all 0.2s ease;
-    }
-
-    .nav-item.active {
-        color: var(--nav-active-fg);
-        background-color: var(--nav-active-bg);
+        font-family: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     .nav-item:active {
-        transform: scale(0.9);
+        transform: scale(0.88);
+    }
+
+    /* ── ICON WRAP ───────────────────────────────── */
+    .nav-icon {
+        width: 44px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: transparent;
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .nav-item :global(svg) {
+        transition: transform 0.2s ease;
+    }
+
+    /* ── LABEL ───────────────────────────────────── */
+    .nav-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text-nav);
+        letter-spacing: 0.2px;
+        transition: color 0.2s ease;
+        line-height: 1;
+    }
+
+    /* ── ACTIVE ──────────────────────────────────── */
+    .nav-item.active {
+        color: var(--accent);
+    }
+
+    .nav-item.active .nav-icon {
+        background: color-mix(in srgb, var(--accent) 14%, transparent);
+        transform: translateY(-2px);
+    }
+
+    .nav-item.active .nav-icon :global(svg) {
+        transform: scale(1.1);
+    }
+
+    .nav-item.active .nav-label {
+        color: var(--accent);
+        font-weight: 700;
+    }
+
+    @media (hover: hover) {
+        .nav-item:hover .nav-icon {
+            background: rgba(255, 255, 255, 0.06);
+        }
     }
 
     .icon svg {

@@ -4,7 +4,7 @@
     import { getProfile } from "$api/me";
     import LeadersCard from "$features/stats/LeadersCard.svelte";
     import FamilyCard from "$features/stats/FamilyCard.svelte";
-    import UserProfileCard from "$features/common/UserProfileCard.svelte";
+    import UserProfileCard from "$features/stats/UserStatsCard.svelte";
     import { swr } from "$lib/swr";
     import UserNotificationButton from "$features/stats/CompactUserProfile.svelte";
 
@@ -30,24 +30,14 @@
     <!-- FAMILY CARD -->
 
     <UserNotificationButton
-        name="Andrey"
-        avatar="/avatars/me.png"
+        user={meUser}
         unread={true}
         onNotificationClick={() => console.log("notifications")}
     />
 
-    <Block padding={10}>
-        <UserProfileCard user={meUser} {loading} />
-    </Block>
+    <UserProfileCard user={meUser} {loading} />
 
-    <!-- <Block padding={10}>
-        <FamilyCard {familyProfile} {loading} />
-    </Block> -->
-
-    <!-- LEADERBOARD -->
-    <Block padding={10}>
-        <LeadersCard {weekLeaders} {loading} />
-    </Block>
+    <LeadersCard {weekLeaders} {loading} />
 </div>
 
 <style>

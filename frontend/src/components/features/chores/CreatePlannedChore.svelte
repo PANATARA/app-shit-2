@@ -145,19 +145,14 @@
                     on:click={() => selectChore(searchQuery.trim())}
                 >
                     <span class="create-new-icon">+</span>
-                    <span class="chore-label"
-                        >Создать «{searchQuery.trim()}»</span
-                    >
+                    <span>Создать «{searchQuery.trim()}»</span>
                 </button>
             {/if}
 
             {#if filteredChores.length > 0}
                 <div class="chore-list">
                     {#each filteredChores as chore (chore.id)}
-                        <ChoreListItem
-                            {chore}
-                            on:click={() => selectChore(chore)}
-                        />
+                        <ChoreListItem {chore} on:click={() => selectChore(chore)} />
                     {/each}
                 </div>
             {:else if !showCreateNew}
@@ -166,23 +161,31 @@
                 </div>
             {/if}
         </AsyncStateView>
+
     {:else}
         <Backbtn label="Назад" on:click={() => (modalStep = 1)} />
 
         <div class="selected-header">
-            <ChoreIcon chore={selectedChore} size={90} />
+            <div class="chore-icon-wrap">
+                <!-- <span class="icon-glow" /> -->
+                <ChoreIcon chore={selectedChore} size={68} />
+            </div>
         </div>
 
         <div class="detail-form">
-            <div class="field">
-                <label class="field-label">Кому назначить</label>
+
+            <!-- Кому назначить -->
+            <div class="section">
+                <div class="section-label">Кому назначить</div>
                 <div class="users-row">
                     <button
                         class="user-btn"
                         class:user-active={assignedTo === null}
                         on:click={() => (assignedTo = null)}
                     >
-                        <UserAvatar size={46} />
+                        <div class="user-avatar-wrap" class:active={assignedTo === null}>
+                            <UserAvatar size={44} />
+                        </div>
                         <span>Никому</span>
                     </button>
                     {#each familyMembers?.members ?? [] as user}
@@ -191,46 +194,51 @@
                             class:user-active={assignedTo === user.id}
                             on:click={() => (assignedTo = user.id)}
                         >
-                            <UserAvatar {user} size={46} />
+                            <div class="user-avatar-wrap" class:active={assignedTo === user.id}>
+                                <UserAvatar {user} size={44} />
+                            </div>
                             <span>{user.name}</span>
                         </button>
                     {/each}
                 </div>
             </div>
 
-            <div class="field">
-                <label class="field-label">Комментарий</label>
+            <!-- Комментарий + Дата в одной секции -->
+            <div class="section">
+                <div class="section-label">Детали</div>
+
                 <CustomTextarea
                     bind:value={comment}
-                    placeholder="Дополнительные детали..."
+                    placeholder="Комментарий..."
                     maxlength={500}
-                    rows={3}
+                    rows={2}
                 />
-            </div>
 
-            <div class="field">
-                <label class="field-label">Дата выполнения</label>
+                <div class="divider" />
+
                 <input class="field-input" type="date" bind:value={dueDate} />
             </div>
 
-            <div class="field">
+            <!-- Повтор -->
+            <div class="section">
                 <RepeatSelector bind:value={repeat} />
             </div>
+
         </div>
 
         <div class="add-btn">
-            <ButtonPrimaryGlow on:click={add} label={"Добавить"} fullWidth />
+            <ButtonPrimaryGlow on:click={add} label="Добавить" fullWidth />
         </div>
     {/if}
 </BottomSheet>
 
 <style>
+    /* ── STEP 1 ───────────────────────────────────── */
     .state-msg {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        padding: 24px 16px;
-        gap: 12px;
+        justify-content: center;
+        padding: 40px 16px;
     }
 
     .state-text {
@@ -238,148 +246,213 @@
         color: var(--text-muted);
     }
 
-    .section-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 12px 16px 8px;
-    }
-
     .create-new-item {
         display: flex;
         align-items: center;
         gap: 12px;
         width: calc(100% - 32px);
-        padding: 13px 14px;
-        background: var(--accent-soft);
-        border: 1.5px dashed var(--accent);
-        border-radius: 14px;
+        margin: 0 16px 14px;
+        padding: 14px 16px;
+        border: none;
+        border-radius: 20px;
+        background: linear-gradient(
+            160deg,
+            color-mix(in srgb, var(--accent) 14%, var(--surface)),
+            var(--surface)
+        );
         color: var(--accent);
         font-size: 15px;
-        font-weight: 600;
+        font-weight: 700;
         font-family: inherit;
-        cursor: pointer;
         text-align: left;
-        margin: 0 16px 12px;
-        transition: opacity 0.1s;
+        box-shadow:
+            0 1px 0 rgba(0,0,0,0.04),
+            0 8px 24px rgba(0,0,0,0.06);
+        transition: transform 0.15s ease, opacity 0.15s ease;
     }
 
     .create-new-item:active {
-        opacity: 0.7;
+        transform: scale(0.97);
+        opacity: 0.8;
     }
+
     .create-new-icon {
-        font-size: 20px;
-        width: 28px;
-        text-align: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: color-mix(in srgb, var(--accent) 16%, transparent);
+        font-size: 22px;
+        flex-shrink: 0;
     }
 
     .chore-list {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 8px;
         padding: 0 16px;
     }
 
-    .back-btn {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        background: none;
-        border: none;
-        color: var(--accent);
-        font-size: 14px;
-        font-family: inherit;
-        cursor: pointer;
-        padding: 0 16px;
-        margin-top: -4px;
-    }
-
+    /* ── STEP 2 HEADER ────────────────────────────── */
     .selected-header {
+        display: flex;
+        justify-content: center;
+        padding: 8px 0 16px;
+    }
+
+    .chore-icon-wrap {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        border-radius: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 4px 0;
+        background: linear-gradient(
+            160deg,
+            color-mix(in srgb, var(--accent) 16%, var(--surface)),
+            var(--surface)
+        );
+        box-shadow:
+            0 1px 0 rgba(0,0,0,0.04),
+            0 12px 32px rgba(0,0,0,0.1);
+        animation: icon-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
+    @keyframes icon-pop {
+        from { transform: scale(0.7); opacity: 0; }
+        to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .icon-glow {
+        position: absolute;
+        inset: -20px;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--accent) 20%, transparent);
+        filter: blur(28px);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* ── FORM ─────────────────────────────────────── */
     .detail-form {
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        padding: 8px 16px 4px;
+        gap: 10px;
+        padding: 0 16px 8px;
     }
 
-    .field {
+    .section {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 22px;
+        background: var(--surface);
+        box-shadow:
+            0 1px 0 rgba(0,0,0,0.04),
+            0 4px 12px rgba(0,0,0,0.05);
     }
 
-    .field-label {
-        font-size: 12px;
-        font-weight: 600;
+    .section-label {
+        font-size: 11px;
+        font-weight: 800;
         color: var(--text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.8px;
     }
 
-    .field-input {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 11px 14px;
-        color: var(--text-primary);
-        font-size: 15px;
-        font-family: inherit;
-        resize: none;
-        outline: none;
+    .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 0 -4px;
     }
 
-    .field-input:focus {
-        border-color: var(--accent);
-    }
-
-    .field-input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(0.6);
-    }
-
+    /* ── USERS ────────────────────────────────────── */
     .users-row {
         display: flex;
-        gap: 8px;
+        gap: 12px;
         overflow-x: auto;
-        padding-bottom: 4px;
+        padding: 2px 2px 4px;
         scrollbar-width: none;
     }
 
-    .users-row::-webkit-scrollbar {
-        display: none;
-    }
+    .users-row::-webkit-scrollbar { display: none; }
 
     .user-btn {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 5px;
-        background: none;
+        gap: 6px;
+        min-width: 54px;
+        padding: 0;
         border: none;
-        cursor: pointer;
+        background: none;
         font-family: inherit;
         flex-shrink: 0;
-        padding: 0;
+        transition: transform 0.15s ease;
+    }
+
+    .user-btn:active { transform: scale(0.9); }
+
+    .user-avatar-wrap {
+        padding: 3px;
+        border-radius: 50%;
+        border: 2.5px solid transparent;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .user-avatar-wrap.active {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent);
     }
 
     .user-btn span {
         font-size: 11px;
+        font-weight: 600;
         color: var(--text-muted);
         transition: color 0.15s;
     }
 
-    .user-active span {
-        color: var(--accent);
+    .user-active span { color: var(--accent); }
+
+    /* ── DATE INPUT ───────────────────────────────── */
+    .field-input {
+        width: 100%;
+        box-sizing: border-box;
+        height: 44px;
+        padding: 0 14px;
+        border: none;
+        outline: none;
+        border-radius: 14px;
+        background: var(--surface-alt);
+        color: var(--text-primary);
+        font-size: 15px;
+        font-weight: 600;
+        font-family: inherit;
+        transition: box-shadow 0.2s ease;
     }
 
+    .field-input:focus {
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+    }
+
+    .field-input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.5);
+        cursor: pointer;
+    }
+
+    /* ── ADD BUTTON ───────────────────────────────── */
     .add-btn {
-        padding: 15px;
+        position: sticky;
+        bottom: 0;
+        padding: 12px 16px 20px;
+        background: linear-gradient(
+            to bottom,
+            transparent,
+            var(--bg) 40%
+        );
     }
 </style>

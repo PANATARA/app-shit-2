@@ -20,7 +20,6 @@
     import WeekCalendar from "$ui/WeekCalendar.svelte";
 
     import type { PlannedChore } from "$types/index";
-    import { onDestroy, onMount } from "svelte";
 
     // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -229,29 +228,83 @@
 </div>
 
 <style>
+    .page {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
     .screen {
+        flex: 1;
+        overflow-y: auto;
         padding: 10px;
         display: flex;
         flex-direction: column;
         gap: 20px;
         box-sizing: border-box;
-        width: 100%;
-        min-height: 100%;
     }
 
     /* ── CALENDAR CARD ───────────────────────────── */
     .calendar-card {
-        background: var(--surface);
-        padding: 12px;
-        border-radius: 0 0 24px 24px;
-        /*border: 1px so/lid var(--border);*/
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+        position: relative;
+        overflow: hidden;
+        flex-shrink: 0;
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        position: sticky;
-        top: 0;
+        padding: 16px;
+        background: linear-gradient(
+            160deg,
+            color-mix(in srgb, var(--accent) 12%, var(--surface)) 0%,
+            var(--surface) 55%
+        );
+        border-radius: 0 0 32px 32px;
+        box-shadow:
+            0 1px 0 rgba(0, 0, 0, 0.04),
+            0 8px 24px rgba(0, 0, 0, 0.08),
+            0 20px 40px rgba(0, 0, 0, 0.04);
         z-index: 10;
+    }
+
+    /* декоративный свет */
+    .calendar-card::before {
+        content: "";
+        position: absolute;
+        width: 260px;
+        height: 260px;
+        right: -80px;
+        top: -120px;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--accent) 20%, transparent);
+        filter: blur(50px);
+        pointer-events: none;
+    }
+
+    /* второй свет снизу слева для глубины */
+    .calendar-card::after {
+        content: "";
+        position: absolute;
+        width: 160px;
+        height: 160px;
+        left: -40px;
+        bottom: -60px;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        filter: blur(40px);
+        pointer-events: none;
+    }
+
+    .week-calendar-section {
+        position: relative;
+        z-index: 1;
+    }
+
+    .prog-bar-section {
+        position: relative;
+        z-index: 1;
+    }
+
+    .calendar-card :global(button) {
+        position: relative;
+        z-index: 1;
     }
 
     /* ── SECTION HEADERS ─────────────────────────── */

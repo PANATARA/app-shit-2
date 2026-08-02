@@ -1,29 +1,21 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
+    import UserAvatar from "$ui/UserAvatar.svelte";
 
-    export let name = "Andrey";
-    export let avatar = "";
-    export let unread = false;
+    export let user: UserProfileStats;
     export let onNotificationClick = () => {};
-
-    // Фейковые данные — потом заменишь на реальные
-    export let level = 12;
-    export let xp = 340;
-    export let xpToNext = 500;
-
-    $: xpPercent = Math.round((xp / xpToNext) * 100);
+    export let unread = false;
+    export let loading = true;
 </script>
 
 <div class="container">
     <div class="top-row">
         <!-- User -->
         <div class="user">
-            <div class="avatar placeholder">
-                {name.charAt(0).toUpperCase()}
-            </div>
+            <UserAvatar {user} size={52} />
             <div class="user-info">
-                <span class="name">{name}</span>
-                <span class="level-badge">Lvl {level}</span>
+                <span class="name">{user.name}</span>
+                <span class="level-badge">Уровень {user.level}</span>
             </div>
         </div>
 
@@ -46,149 +38,250 @@
 
     <!-- XP Bar -->
     <div class="xp-row">
-        <div class="xp-bar-track">
-            <div class="xp-bar-fill" style="width: {xpPercent}%"></div>
+        <div class="xp-label">
+            <span>Опыт</span>
+            <span>{user.experience} / {user.exp_to_next_total} XP</span>
         </div>
-        <span class="xp-label">{xp} / {xpToNext} XP</span>
+
+        <div class="progress-track">
+            <div
+                class="progress-fill"
+                style="width: {user.progress_percent}%"
+            ></div>
+        </div>
     </div>
 </div>
 
 <style>
     .container {
-        background: var(--surface);
-        padding: 12px;
-        border-radius: 24px;
-        /*border: 1px so/lid var(--border);*/
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+        position: relative;
+        overflow: hidden;
+
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        position: sticky;
-        top: 0;
-        z-index: 10;
+        gap: 18px;
+
+        padding: 18px;
+
+        border-radius: 24px;
+
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--accent) 10%, var(--surface)),
+            var(--surface)
+        );
+
+        box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.08),
+            inset 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    .container::before {
+        content: "";
+
+        position: absolute;
+
+        right: -70px;
+        top: -70px;
+
+        width: 180px;
+        height: 180px;
+
+        border-radius: 50%;
+
+        background: color-mix(in srgb, var(--accent) 18%, transparent);
+
+        filter: blur(16px);
+
+        pointer-events: none;
     }
 
     .top-row {
         display: flex;
-        align-items: center;
         justify-content: space-between;
-        gap: 12px;
-        width: 100%;
+        align-items: center;
+        gap: 14px;
+
+        position: relative;
+        z-index: 1;
     }
 
     .user {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 14px;
+
         min-width: 0;
     }
 
     .user-info {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 6px;
+
         min-width: 0;
     }
 
-    .avatar {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        object-fit: cover;
-        flex-shrink: 0;
-    }
-
-    .placeholder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--accent-soft);
-        color: var(--accent);
-        font-size: 16px;
-        font-weight: 700;
-    }
-
     .name {
-        font-size: 16px;
-        font-weight: 700;
+        font-size: 18px;
+        font-weight: 800;
+
         color: var(--text-primary);
+
         overflow: hidden;
-        text-overflow: ellipsis;
         white-space: nowrap;
+        text-overflow: ellipsis;
     }
 
     .level-badge {
+        width: fit-content;
+
+        padding: 4px 10px;
+
+        border-radius: 999px;
+
+        background: color-mix(in srgb, var(--accent) 14%, transparent);
+
+        color: var(--accent);
+
         font-size: 11px;
         font-weight: 700;
-        color: var(--accent);
-        letter-spacing: 0.4px;
+
+        letter-spacing: 0.3px;
     }
 
-    /* ── XP BAR ──────────────────────────────────── */
-    .xp-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
+    /* Notification */
 
-    .xp-bar-track {
-        flex: 1;
-        height: 5px;
-        background: var(--accent-soft);
-        border-radius: 99px;
-        overflow: hidden;
-    }
-
-    .xp-bar-fill {
-        height: 100%;
-        background: var(--accent);
-        border-radius: 99px;
-        transition: width 0.4s ease;
-    }
-
-    .xp-label {
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--text-muted);
-        white-space: nowrap;
-        flex-shrink: 0;
-    }
-
-    /* ── NOTIFICATION ────────────────────────────── */
     .notification {
         position: relative;
-        width: 42px;
-        height: 42px;
+
+        width: 48px;
+        height: 48px;
+
+        border: none;
+        border-radius: 16px;
+
         display: flex;
         align-items: center;
         justify-content: center;
-        border: none;
-        border-radius: 50%;
-        background: var(--surface);
+
+        background: rgba(255, 255, 255, 0.06);
+
         color: var(--text-primary);
-        cursor: pointer;
+
+        backdrop-filter: blur(10px);
+
         transition:
-            transform 0.15s ease,
-            background 0.2s ease;
-        flex-shrink: 0;
+            transform 0.18s ease,
+            background 0.25s ease,
+            box-shadow 0.25s ease;
+    }
+
+    .notification:hover {
+        background: rgba(255, 255, 255, 0.1);
     }
 
     .notification:active {
         transform: scale(0.92);
     }
 
-    .notification:hover {
-        background: var(--surface-hover);
+    .notification.active {
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+    }
+
+    .notification :global(svg) {
+        width: 22px;
+        height: 22px;
     }
 
     .dot {
         position: absolute;
-        top: 8px;
-        right: 9px;
-        width: 8px;
-        height: 8px;
+
+        top: 10px;
+        right: 10px;
+
+        width: 9px;
+        height: 9px;
+
         border-radius: 50%;
-        background: var(--accent);
+
+        background: #ff5b5b;
+
         border: 2px solid var(--surface);
+
+        box-shadow: 0 0 10px rgba(255, 91, 91, 0.5);
+    }
+
+    /* XP */
+
+    .xp-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        position: relative;
+        z-index: 1;
+    }
+
+    .xp-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        font-size: 12px;
+        font-weight: 700;
+
+        color: var(--text-secondary);
+    }
+
+    .progress-track {
+        position: relative;
+
+        height: 10px;
+
+        overflow: hidden;
+
+        border-radius: 999px;
+
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .progress-fill {
+        position: relative;
+
+        height: 100%;
+
+        border-radius: inherit;
+
+        background: linear-gradient(90deg, #ffb84d, #ffd36b);
+
+        transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .progress-fill::after {
+        content: "";
+
+        position: absolute;
+
+        inset: 0;
+
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.45),
+            transparent
+        );
+
+        animation: shimmer 2.4s linear infinite;
+    }
+
+    @keyframes shimmer {
+        from {
+            transform: translateX(-100%);
+        }
+
+        to {
+            transform: translateX(200%);
+        }
     }
 </style>
