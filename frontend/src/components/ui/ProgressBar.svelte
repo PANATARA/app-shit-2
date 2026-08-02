@@ -7,24 +7,27 @@
     export let value;
 </script>
 
-<div class="progress-info">
-    <span class="progress-title">{value}</span>
+<!-- Добавлена корневая обертка с вашим классом -->
+<div class="progress-section">
+    <div class="progress-info">
+        <span class="progress-title">{value}</span>
+        {#if totalCount > 0}
+            <span class="progress-ratio"
+                >{completedCount} из {totalCount} выполнено</span
+            >
+        {:else}
+            <span class="progress-ratio">Задач нет</span>
+        {/if}
+    </div>
     {#if totalCount > 0}
-        <span class="progress-ratio"
-            >{completedCount} из {totalCount} выполнено</span
-        >
-    {:else}
-        <span class="progress-ratio">Задач нет</span>
+        <div class="progress-bar-bg" transition:fade={{ duration: 300 }}>
+            <div
+                class="progress-bar-fill"
+                style="width: {progressPercentage}%"
+            ></div>
+        </div>
     {/if}
 </div>
-{#if totalCount > 0}
-    <div class="progress-bar-bg" transition:fade={{ duration: 300 }}>
-        <div
-            class="progress-bar-fill"
-            style="width: {progressPercentage}%"
-        ></div>
-    </div>
-{/if}
 
 <style>
     .progress-section {

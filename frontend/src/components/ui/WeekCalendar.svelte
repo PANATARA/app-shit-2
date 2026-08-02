@@ -110,7 +110,7 @@
         {/if} -->
     </div>
     <div class="header">
-        <div class="week-label">{weekLabels[currentWeek]}</div>
+        <!-- <div class="week-label">{weekLabels[currentWeek]}</div> -->
         <div class="dots">
             {#each weeks as _, i}
                 <div class="dot" class:active={i === currentWeek}></div>
@@ -123,8 +123,9 @@
     .header {
         display: flex;
         align-items: center;
-        justify-content: space-between;
         padding: 0 2px;
+        /*background-color: coral;*/
+        justify-content: center;
     }
 
     .dots {

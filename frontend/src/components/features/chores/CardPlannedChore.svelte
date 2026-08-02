@@ -89,9 +89,8 @@
     align-items: center;
     gap: 16px;
     padding: 16px;
-    border-radius: 20px;
+    border-radius: 30px;
     background: var(--surface);
-    border: 1px solid var(--border);
     transition:
       background-color 0.25s ease,
       border-color 0.25s ease,
@@ -105,6 +104,7 @@
     backface-visibility: hidden;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.08);
   }
 
   .card.card-done {

@@ -6,6 +6,7 @@
     import FamilyCard from "$features/stats/FamilyCard.svelte";
     import UserProfileCard from "$features/common/UserProfileCard.svelte";
     import { swr } from "$lib/swr";
+    import UserNotificationButton from "$features/stats/CompactUserProfile.svelte";
 
     // ─── Data fetching ───────────────────────────────────────────────────────────
     const profile = swr("profile", getProfile);
@@ -27,6 +28,13 @@
 
 <div class="screen">
     <!-- FAMILY CARD -->
+
+    <UserNotificationButton
+        name="Andrey"
+        avatar="/avatars/me.png"
+        unread={true}
+        onNotificationClick={() => console.log("notifications")}
+    />
 
     <Block padding={10}>
         <UserProfileCard user={meUser} {loading} />

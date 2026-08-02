@@ -20,6 +20,7 @@
     import WeekCalendar from "$ui/WeekCalendar.svelte";
 
     import type { PlannedChore } from "$types/index";
+    import { onDestroy, onMount } from "svelte";
 
     // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -101,120 +102,130 @@
         totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 </script>
 
-<div class="screen">
-    <!-- Calendar Widget -->
-    <div class="calendar-card">
-        <WeekCalendar {selectedDate} on:change={handleDateChange} />
-    </div>
+<!-- Calendar Widget -->
 
+<div class="page">
     <!-- Progress Bar Header -->
-    <ProgressBar
-        {totalCount}
-        {completedCount}
-        {progressPercentage}
-        value={getFriendlyDate(selectedDate)}
-    />
-
-    <ButtonPrimaryGlow
-        on:click={() => (modalOpen = true)}
-        label={"Добавить задачу"}
-        fullWidth
-    />
-
-    <!-- MAIN LIST CONTROLLER -->
-    {#if loading}
-        <CardPlannedChoreSkeleton count={3} />
-    {:else if totalCount === 0}
-        <!-- Absolute Zero Empty State -->
-        <div class="empty-state perfect-empty" in:fade={{ duration: 200 }}>
-            <div class="empty-icon-large">🏕️</div>
-            <h3>Планы отсутствуют</h3>
-            <p>
-                На этот день пока не запланировано никаких домашних дел.
-                Добавьте задачу с помощью кнопки ниже!
-            </p>
-        </div>
-    {:else}
-        <!-- ACTIVE CHORES -->
-        <div class="section">
-            <div class="section-header">
-                <h2>АКТИВНЫЕ</h2>
-                <span class="section-count">{activePlannedChores.length}</span>
-            </div>
-
-            <div class="list">
-                {#if activePlannedChores.length === 0}
-                    <div class="empty-state clean-success">
-                        <div class="empty-icon">🎉</div>
-                        <h3>Все дела сделаны!</h3>
-                        <p>
-                            Отличная работа! Все запланированные задачи на
-                            сегодня успешно завершены.
-                        </p>
-                    </div>
-                {:else}
-                    {#each activePlannedChores as chore (chore.id)}
-                        <CardPlannedChore
-                            item={chore}
-                            onToggle={toggleChore}
-                            on:click={() => {
-                                selectedPlannedChore = chore;
-                                detailModalOpen = true;
-                            }}
-                        />
-                    {/each}
-                {/if}
-            </div>
+    <div class="calendar-card">
+        <div class="week-calendar-section">
+            <WeekCalendar {selectedDate} on:change={handleDateChange} />
         </div>
 
-        <!-- COMPLETED CHORES -->
-        {#if completedPlannedChores.length > 0}
+        <div class="prog-bar-section">
+            <ProgressBar
+                {totalCount}
+                {completedCount}
+                {progressPercentage}
+                value={getFriendlyDate(selectedDate)}
+            />
+        </div>
+
+        <ButtonPrimaryGlow
+            on:click={() => (modalOpen = true)}
+            label={"Добавить задачу"}
+            fullWidth
+        />
+    </div>
+    <div class="screen">
+        <!-- MAIN LIST CONTROLLER -->
+        {#if loading}
+            <CardPlannedChoreSkeleton count={3} />
+        {:else if totalCount === 0}
+            <!-- Absolute Zero Empty State -->
+            <div class="empty-state perfect-empty" in:fade={{ duration: 200 }}>
+                <div class="empty-icon-large">🏕️</div>
+                <h3>Планы отсутствуют</h3>
+                <p>
+                    На этот день пока не запланировано никаких домашних дел.
+                    Добавьте задачу с помощью кнопки ниже!
+                </p>
+            </div>
+        {:else}
+            <!-- ACTIVE CHORES -->
             <div class="section">
                 <div class="section-header">
-                    <h2>ВЫПОЛНЕННЫЕ</h2>
-                    <span class="section-count completed-count-badge">
-                        {completedPlannedChores.length}
-                    </span>
+                    <h2>АКТИВНЫЕ</h2>
+                    <span class="section-count"
+                        >{activePlannedChores.length}</span
+                    >
                 </div>
 
                 <div class="list">
-                    {#each completedPlannedChores as plannedChore (plannedChore.id)}
-                        <CardPlannedChore
-                            item={plannedChore}
-                            onToggle={toggleChore}
-                            on:click={() => {
-                                selectedPlannedChore = plannedChore;
-                                detailModalOpen = true;
-                            }}
-                        />
-                    {/each}
+                    {#if activePlannedChores.length === 0}
+                        <div class="empty-state clean-success">
+                            <div class="empty-icon">🎉</div>
+                            <h3>Все дела сделаны!</h3>
+                            <p>
+                                Отличная работа! Все запланированные задачи на
+                                сегодня успешно завершены.
+                            </p>
+                        </div>
+                    {:else}
+                        {#each activePlannedChores as chore (chore.id)}
+                            <CardPlannedChore
+                                item={chore}
+                                onToggle={toggleChore}
+                                on:click={() => {
+                                    selectedPlannedChore = chore;
+                                    detailModalOpen = true;
+                                }}
+                            />
+                        {/each}
+                    {/if}
                 </div>
             </div>
-        {/if}
-    {/if}
 
-    {#if modalOpen}
-        <CreatePlannedChore
-            on:close={() => (modalOpen = false)}
-            on:add={() => {
-                modalOpen = false;
-                chores.revalidate();
-            }}
-        />
-    {:else if detailModalOpen && selectedPlannedChore}
-        <DetailPlannedChoreModal
-            plannedChore={selectedPlannedChore}
-            on:close={() => (detailModalOpen = false)}
-            on:deleted={(e) => {
-                plannedChores = plannedChores.filter((c) => c.id !== e.detail);
-            }}
-            on:updated={(e) => {
-                plannedChores = plannedChores.map((c) =>
-                    c.id === e.detail.id ? e.detail : c,
-                );
-            }}
-        />
-    {/if}
+            <!-- COMPLETED CHORES -->
+            {#if completedPlannedChores.length > 0}
+                <div class="section">
+                    <div class="section-header">
+                        <h2>ВЫПОЛНЕННЫЕ</h2>
+                        <span class="section-count completed-count-badge">
+                            {completedPlannedChores.length}
+                        </span>
+                    </div>
+
+                    <div class="list">
+                        {#each completedPlannedChores as plannedChore (plannedChore.id)}
+                            <CardPlannedChore
+                                item={plannedChore}
+                                onToggle={toggleChore}
+                                on:click={() => {
+                                    selectedPlannedChore = plannedChore;
+                                    detailModalOpen = true;
+                                }}
+                            />
+                        {/each}
+                    </div>
+                </div>
+            {/if}
+        {/if}
+
+        {#if modalOpen}
+            <CreatePlannedChore
+                on:close={() => (modalOpen = false)}
+                on:add={() => {
+                    modalOpen = false;
+                    chores.revalidate();
+                }}
+            />
+        {:else if detailModalOpen && selectedPlannedChore}
+            <DetailPlannedChoreModal
+                plannedChore={selectedPlannedChore}
+                on:close={() => (detailModalOpen = false)}
+                on:deleted={(e) => {
+                    plannedChores = plannedChores.filter(
+                        (c) => c.id !== e.detail,
+                    );
+                }}
+                on:updated={(e) => {
+                    plannedChores = plannedChores.map((c) =>
+                        c.id === e.detail.id ? e.detail : c,
+                    );
+                }}
+            />
+        {/if}
+    </div>
 </div>
 
 <style>
@@ -232,9 +243,15 @@
     .calendar-card {
         background: var(--surface);
         padding: 12px;
-        border-radius: 24px;
-        border: 1px solid var(--border);
+        border-radius: 0 0 24px 24px;
+        /*border: 1px so/lid var(--border);*/
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
     }
 
     /* ── SECTION HEADERS ─────────────────────────── */
