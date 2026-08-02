@@ -1,6 +1,7 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
     import UserAvatar from "$ui/UserAvatar.svelte";
+    import UserProfileSkeleton from "$skeletons/CompactUserProfile.svelte";
 
     export let user: UserProfileStats;
     export let onNotificationClick = () => {};
@@ -8,6 +9,9 @@
     export let loading = true;
 </script>
 
+{#if loading}
+    <UserProfileSkeleton/>
+{:else}
 <div class="container">
     <div class="top-row">
         <!-- User -->
@@ -51,6 +55,7 @@
         </div>
     </div>
 </div>
+{/if}
 
 <style>
     .container {

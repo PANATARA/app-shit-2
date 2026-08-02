@@ -31,6 +31,7 @@
 
     <UserNotificationButton
         user={meUser}
+        {loading}
         unread={true}
         onNotificationClick={() => console.log("notifications")}
     />
