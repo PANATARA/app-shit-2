@@ -18,6 +18,7 @@
     import FamilyMembersSkeleton from "$skeletons/FamilyMembersSkeleton.svelte";
     import ProfileSkeleton from "$skeletons/ProfileSkeleton.svelte";
     import { swr } from "$lib/swr";
+    import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
 
     const dispatch = createEventDispatcher();
     // ─── STATE MACHINE ─────────────────────────────
@@ -213,19 +214,6 @@
         </Block>
     {:else}
         <Block>
-            <div class="row clickable">
-                <UserAvatar user={familyProfile} size={30} />
-
-                <div class="row-text">
-                    <div class="row-title">{familyProfile?.name}</div>
-                    <div class="row-sub">
-                        {familyMembers?.members?.length ?? 0} участников
-                    </div>
-                </div>
-            </div>
-
-            <div class="divider" />
-
             {#each familyMembers?.members ?? [] as member (member.id)}
                 <div
                     class="row clickable"
@@ -269,7 +257,7 @@
     <Block>
         <button
             class="btn-row clickable"
-            on:click={() => (choreModalOpen = true)}
+            on:click={() => activeTab.set("choreListScreen")}
         >
             <div class="row-icon">
                 <Icon
@@ -412,9 +400,7 @@
         </div>
     </Block>
 
-    {#if choreModalOpen}
-        <ChoreEditorModal on:close={() => (choreModalOpen = false)} />
-    {:else if inviteModalOpen}
+    {#if inviteModalOpen}
         <InviteModal on:close={() => (inviteModalOpen = false)} />
     {:else if languageModalOpen}
         <LangModal on:close={() => (languageModalOpen = false)} />

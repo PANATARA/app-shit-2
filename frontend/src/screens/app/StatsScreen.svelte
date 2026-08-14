@@ -3,10 +3,10 @@
     import { getFamilyStats, getFamilyLeader } from "$api/family";
     import { getProfile } from "$api/me";
     import LeadersCard from "$features/stats/LeadersCard.svelte";
+    import CompactUserProfile from "$features/stats/CompactUserProfile.svelte";
     import FamilyCard from "$features/stats/FamilyCard.svelte";
-    import UserProfileCard from "$features/stats/UserStatsCard.svelte";
+    import UserStatsCard from "$features/stats/UserStatsCard.svelte";
     import { swr } from "$lib/swr";
-    import UserNotificationButton from "$features/stats/CompactUserProfile.svelte";
 
     // ─── Data fetching ───────────────────────────────────────────────────────────
     const profile = swr("profile", getProfile);
@@ -29,14 +29,14 @@
 <div class="screen">
     <!-- FAMILY CARD -->
 
-    <UserNotificationButton
+    <CompactUserProfile
         user={meUser}
         {loading}
         unread={true}
         onNotificationClick={() => console.log("notifications")}
     />
 
-    <UserProfileCard user={meUser} {loading} />
+    <UserStatsCard user={meUser} {loading} />
 
     <LeadersCard {weekLeaders} {loading} />
 </div>

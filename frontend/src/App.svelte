@@ -14,19 +14,18 @@
 
     import UserProfileModal from "$features/common/UserProfileModal.svelte";
     import { profileModal, closeProfile } from "$lib/settings";
+    import { activeTab } from "$lib/navigation";
+    import StepOne from "$screens/tabs/PlannedChoreCreate/StepOne.svelte";
+    import StepTwo from "./screens/tabs/PlannedChoreCreate/StepTwo.svelte";
+    import PlannedChoreDetail from "$screens/tabs/PlannedChoreDetail.svelte";
+    import ChoreListScreen from "$screens/tabs/FamilyChores/ChoreListScreen.svelte";
+    import ChoreDetailScreen from "$screens/tabs/FamilyChores/ChoreDetailScreen.svelte";
+    import ChoreEditScreen from "$screens/tabs/FamilyChores/ChoreEditScreen.svelte";
+    import ChoreTemplatesScreen from "$screens/tabs/FamilyChores/ChoreTemplatesScreen.svelte";
 
     let isAuthed = false;
     let isInFamily = false;
     let checkingAuth = true;
-
-    const screenTitle: Record<string, string> = {
-        statsScreen: "Обзор",
-        boardScreen: "Домашние дела",
-        settingsScreen: "Настройки",
-        debugScreen: "Debug",
-    };
-
-    let activeTab = "statsScreen";
 
     onMount(async () => {
         if ($isLoggedInStore) {
@@ -66,6 +65,12 @@
     function handleFamilySuccess() {
         isInFamily = true;
     }
+
+    let contentEl: HTMLElement;
+
+    $: if ($activeTab && contentEl) {
+        contentEl.scrollTop = 0;
+    }
 </script>
 
 <main>
@@ -81,19 +86,29 @@
     {:else if !isInFamily}
         <FamilyEntryScreen on:success={handleFamilySuccess} />
     {:else}
-        <!-- <header class="top-bar">
-      <h1>{screenTitle[activeTab]}</h1>
-    </header> -->
-
-        <div class="content">
-            {#if activeTab === "statsScreen"}
+        <div class="content" bind:this={contentEl}>
+            {#if $activeTab === "statsScreen"}
                 <StatsScreen />
-            {:else if activeTab === "boardScreen"}
+            {:else if $activeTab === "boardScreen"}
                 <BoardScreen />
-            {:else if activeTab === "settingsScreen"}
+            {:else if $activeTab === "settingsScreen"}
                 <ProfileSettingsScreen />
-            {:else if activeTab === "debugScreen"}
+            {:else if $activeTab === "debugScreen"}
                 <DebugScreen />
+            {:else if $activeTab === "createPlannedChoreStepOne"}
+                <StepOne />
+            {:else if $activeTab === "createPlannedChoreStepTwo"}
+                <StepTwo />
+            {:else if $activeTab === "DetailPlannedChore"}
+                <PlannedChoreDetail />
+            {:else if $activeTab === "choreListScreen"}
+                <ChoreListScreen />
+            {:else if $activeTab === "choreDetailScreen"}
+                <ChoreDetailScreen />
+            {:else if $activeTab === "choreEditScreen"}
+                <ChoreEditScreen />
+            {:else if $activeTab === "choreTemplatesScreen"}
+                <ChoreTemplatesScreen />
             {/if}
         </div>
 
@@ -101,8 +116,8 @@
             <nav class="bottom-nav">
                 <button
                     class="nav-item"
-                    class:active={activeTab === "statsScreen"}
-                    on:click={() => (activeTab = "statsScreen")}
+                    class:active={$activeTab === "statsScreen"}
+                    on:click={() => activeTab.set("statsScreen")}
                     aria-label="Главная"
                 >
                     <div class="nav-icon">
@@ -117,8 +132,8 @@
 
                 <button
                     class="nav-item"
-                    class:active={activeTab === "boardScreen"}
-                    on:click={() => (activeTab = "boardScreen")}
+                    class:active={$activeTab === "boardScreen"}
+                    on:click={() => activeTab.set("boardScreen")}
                     aria-label="Доска"
                 >
                     <div class="nav-icon">
@@ -133,8 +148,8 @@
 
                 <button
                     class="nav-item"
-                    class:active={activeTab === "debugScreen"}
-                    on:click={() => (activeTab = "debugScreen")}
+                    class:active={$activeTab === "debugScreen"}
+                    on:click={() => activeTab.set("debugScreen")}
                     aria-label="Карта"
                 >
                     <div class="nav-icon">
@@ -149,8 +164,8 @@
 
                 <button
                     class="nav-item"
-                    class:active={activeTab === "settingsScreen"}
-                    on:click={() => (activeTab = "settingsScreen")}
+                    class:active={$activeTab === "settingsScreen"}
+                    on:click={() => activeTab.set("settingsScreen")}
                     aria-label="Настройки"
                 >
                     <div class="nav-icon">

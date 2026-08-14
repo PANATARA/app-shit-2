@@ -7,6 +7,8 @@
     import CustButton from "$ui/button.svelte";
     import UserProfileCard from "$features/common/UserProfileCard.svelte";
     import { swr } from "$lib/swr";
+    import CompactUserProfile from "$features/stats/CompactUserProfile.svelte";
+    import UserStatsCard from "$features/stats/UserStatsCard.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -49,7 +51,14 @@
 
 <BottomSheet title="" on:close={close} flyY={999} flyDuration={320}>
     <div class="content">
-        <UserProfileCard {user} {loading} />
+        <CompactUserProfile
+            {user}
+            {loading}
+            unread={true}
+            onNotificationClick={() => console.log("notifications")}
+        />
+
+        <UserStatsCard {user} {loading} />
 
         {#if $userSession.isFamilyAdmin && $userSession.userId != userId}
             <div class="actions-card">

@@ -7,7 +7,7 @@
     export let loading = true;
 </script>
 
-<!-- <div class="content"> -->
+<div class="content">
     {#if loading}
         <UserProfileSkeleton />
     {:else}
@@ -50,7 +50,7 @@
             </div>
         </div>
     {/if}
-<!-- </div> -->
+</div>
 
 <style>
     .content {

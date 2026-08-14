@@ -1,10 +1,13 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
     import UserAvatar from "$ui/UserAvatar.svelte";
+    import ProgressBar from "$ui/ProgressBar.svelte";
+    import type { UserProfileStats } from "$types/index";
     import UserProfileSkeleton from "$skeletons/CompactUserProfile.svelte";
 
     export let user: UserProfileStats;
     export let onNotificationClick = () => {};
+    export let showNotificationButton = false;
     export let unread = false;
     export let loading = true;
 </script>
@@ -24,36 +27,32 @@
             </div>
 
             <!-- Notification -->
-            <button
-                class="notification"
-                class:active={unread}
-                on:click={onNotificationClick}
-            >
-                <Icon
-                    icon="material-symbols:notifications-rounded"
-                    width="22"
-                    height="22"
-                />
-                {#if unread}
-                    <span class="dot"></span>
-                {/if}
-            </button>
+            {#if showNotificationButton}
+                <button
+                    class="notification"
+                    class:active={unread}
+                    on:click={onNotificationClick}
+                >
+                    <Icon
+                        icon="material-symbols:notifications-rounded"
+                        width="22"
+                        height="22"
+                    />
+                    {#if unread}
+                        <span class="dot"></span>
+                    {/if}
+                </button>
+            {/if}
         </div>
 
         <!-- XP Bar -->
-        <div class="xp-row">
-            <div class="xp-label">
-                <span>Опыт</span>
-                <span>{user.experience} / {user.exp_to_next_total} XP</span>
-            </div>
-
-            <div class="progress-track">
-                <div
-                    class="progress-fill"
-                    style="width: {user.progress_percent}%"
-                ></div>
-            </div>
-        </div>
+        <ProgressBar
+            title="Опыт"
+            subtitle={`${user.experience} / ${user.exp_to_next_total} XP`}
+            value={user.experience}
+            max={user.exp_to_next_total}
+            gradient="linear-gradient(90deg,#ffb84d,#ffd36b)"
+        />
     </div>
 {/if}
 
@@ -215,68 +214,5 @@
         border: 2px solid var(--surface);
 
         box-shadow: 0 0 10px rgba(255, 91, 91, 0.5);
-    }
-
-    /* XP */
-
-    .xp-row {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-
-        position: relative;
-        z-index: 1;
-    }
-
-    .xp-label {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        font-size: 12px;
-        font-weight: 700;
-
-        color: var(--text-secondary);
-    }
-
-    .progress-track {
-        position: relative;
-        height: 10px;
-        overflow: hidden;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.06);
-    }
-
-    /* убрать ::after с progress-fill */
-    .progress-fill {
-        position: relative;
-        height: 100%;
-        border-radius: inherit;
-        background: linear-gradient(90deg, #ffb84d, #ffd36b);
-        transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .progress-track::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-            90deg,
-            transparent 0%,
-            rgba(255, 255, 255, 0.3) 50%,
-            transparent 100%
-        );
-        animation: shimmer 2.4s linear infinite;
-        pointer-events: none;
-        z-index: 1;
-    }
-
-    @keyframes shimmer {
-        from {
-            transform: translateX(-100%);
-        }
-        to {
-            transform: translateX(100%);
-        }
     }
 </style>

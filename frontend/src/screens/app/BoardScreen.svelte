@@ -10,23 +10,18 @@
     import { formatDateKey, getFriendlyDate } from "$lib/utils";
 
     import CardPlannedChore from "$features/chores/CardPlannedChore.svelte";
-    import CreatePlannedChore from "$features/chores/CreatePlannedChore.svelte";
-    import DetailPlannedChoreModal from "$features/chores/DetailPlannedChoreModal.svelte";
-
     import CardPlannedChoreSkeleton from "$skeletons/CardPlannedChoreSkeleton.svelte";
 
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
     import ProgressBar from "$ui/ProgressBar.svelte";
     import WeekCalendar from "$ui/WeekCalendar.svelte";
+    import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
 
     import type { PlannedChore } from "$types/index";
 
     // ─── State ───────────────────────────────────────────────────────────────────
 
-    let modalOpen = false;
-    let detailModalOpen = false;
     let selectedDate = new Date();
-    let selectedPlannedChore: PlannedChore | null = null;
     let optimisticChores: PlannedChore[] | null = null;
 
     $: dateKey = formatDateKey(selectedDate);
@@ -99,6 +94,13 @@
 
     $: progressPercentage =
         totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+    function openDetailScreen(plannedChore: PlannedChore) {
+        detailPlannedChoreParams.set({
+            plannedChore,
+        });
+        activeTab.set("DetailPlannedChore");
+    }
 </script>
 
 <!-- Calendar Widget -->
@@ -120,7 +122,7 @@
         </div>
 
         <ButtonPrimaryGlow
-            on:click={() => (modalOpen = true)}
+            on:click={() => activeTab.set("createPlannedChoreStepOne")}
             label={"Добавить задачу"}
             fullWidth
         />
@@ -165,8 +167,7 @@
                                 item={chore}
                                 onToggle={toggleChore}
                                 on:click={() => {
-                                    selectedPlannedChore = chore;
-                                    detailModalOpen = true;
+                                    openDetailScreen(chore);
                                 }}
                             />
                         {/each}
@@ -190,39 +191,13 @@
                                 item={plannedChore}
                                 onToggle={toggleChore}
                                 on:click={() => {
-                                    selectedPlannedChore = plannedChore;
-                                    detailModalOpen = true;
+                                    openDetailScreen(plannedChore);
                                 }}
                             />
                         {/each}
                     </div>
                 </div>
             {/if}
-        {/if}
-
-        {#if modalOpen}
-            <CreatePlannedChore
-                on:close={() => (modalOpen = false)}
-                on:add={() => {
-                    modalOpen = false;
-                    chores.revalidate();
-                }}
-            />
-        {:else if detailModalOpen && selectedPlannedChore}
-            <DetailPlannedChoreModal
-                plannedChore={selectedPlannedChore}
-                on:close={() => (detailModalOpen = false)}
-                on:deleted={(e) => {
-                    plannedChores = plannedChores.filter(
-                        (c) => c.id !== e.detail,
-                    );
-                }}
-                on:updated={(e) => {
-                    plannedChores = plannedChores.map((c) =>
-                        c.id === e.detail.id ? e.detail : c,
-                    );
-                }}
-            />
         {/if}
     </div>
 </div>
