@@ -1,90 +1,114 @@
 <script lang="ts">
-  import Icon from "@iconify/svelte";
-  import { createEventDispatcher } from "svelte";
-  import ChoreIcon from "$ui/ChoreIcon.svelte";
+    import ChoreIcon from "$ui/ChoreIcon.svelte";
+    import type { Chore } from "$types/index";
 
-  export let chore;
-
-  const dispatch = createEventDispatcher();
-
-  function handleClick() {
-    dispatch("click", chore);
-  }
+    export let chore: Chore;
+    export let onClick: (chore: Chore) => void;
 </script>
 
-<button class="chore-item" on:click={handleClick}>
-  <ChoreIcon {chore} size={42}/>
-  <div class="chore-info">
-    <span class="chore-name">{chore.name}</span>
-    {#if chore.description}
-      <span class="chore-desc">{chore.description}</span>
-    {/if}
-  </div>
-  <span class="chore-valuation">🪙 {chore.valuation}</span>
-  <svg
-    class="chore-arrow"
-    width="16"
-    height="16"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    stroke-width="2"
-  >
-    <path d="M9 18l6-6-6-6" />
-  </svg>
+<button class="chore-item" onclick={() => onClick?.(chore)}>
+    <ChoreIcon {chore} size={42} />
+
+    <div class="chore-info">
+        <span class="chore-name">{chore.name}</span>
+        {#if chore.description}
+            <span class="chore-desc">{chore.description}</span>
+        {/if}
+    </div>
+
+    <span class="chore-valuation">🪙 {chore.valuation}</span>
+
+    <svg
+        class="arrow"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+    >
+        <path d="M9 18l6-6-6-6" />
+    </svg>
 </button>
 
 <style>
-  .chore-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    background: var(--bg-card);
-    border: none;
-    border-radius: 14px;
-    color: var(--text-primary);
-    font-size: 15px;
-    font-family: inherit;
-    cursor: pointer;
-    text-align: left;
-    transition: opacity 0.1s;
-  }
+    .chore-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
 
-  .chore-item:active {
-    opacity: 0.7;
-  }
+        width: 100%;
 
-  .chore-info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
+        padding: 12px 14px;
 
-  .chore-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
+        border: none;
+        border-radius: 20px;
 
-  .chore-desc {
-    font-size: 12px;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+        background: var(--surface);
+        box-shadow:
+            0 1px 0 rgba(0, 0, 0, 0.04),
+            0 4px 12px rgba(0, 0, 0, 0.05);
 
-  .chore-valuation {
-    font-size: 12px;
-    color: var(--text-muted);
-    flex-shrink: 0;
-  }
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 15px;
+        text-align: left;
 
-  .chore-arrow {
-    color: var(--text-muted);
-    flex-shrink: 0;
-  }
+        cursor: pointer;
+
+        transition:
+            transform 0.15s ease,
+            opacity 0.15s ease;
+    }
+
+    .chore-item:active {
+        transform: scale(0.98);
+        opacity: 0.8;
+    }
+
+    .chore-info {
+        flex: 1;
+        min-width: 0;
+
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .chore-name {
+        font-size: 15px;
+        font-weight: 700;
+
+        color: var(--text-primary);
+
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .chore-desc {
+        font-size: 12px;
+        font-weight: 500;
+
+        color: var(--text-muted);
+
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .chore-valuation {
+        flex-shrink: 0;
+
+        font-size: 13px;
+        font-weight: 700;
+
+        color: var(--text-muted);
+    }
+
+    .arrow {
+        flex-shrink: 0;
+        color: var(--text-muted);
+        opacity: 0.5;
+    }
 </style>

@@ -1,4 +1,4 @@
-import { apiFetch } from './client.js';
+import { apiFetch } from "./client.js";
 
 // ==========================================
 // 1. CHORES (ЗАДАЧИ)
@@ -10,8 +10,8 @@ import { apiFetch } from './client.js';
  * @returns {Promise<any>}
  */
 export async function getChores(limit) {
-    const params = limit !== undefined ? { limit } : undefined;
-    return apiFetch('/api/chores', { params });
+  const params = limit !== undefined ? { limit } : undefined;
+  return apiFetch("/api/chores", { params });
 }
 
 /**
@@ -20,10 +20,10 @@ export async function getChores(limit) {
  * @returns {Promise<any>}
  */
 export async function createChore(choreData) {
-    return apiFetch('/api/chores', {
-        method: 'POST',
-        body: choreData
-    });
+  return apiFetch("/api/chores", {
+    method: "POST",
+    body: choreData,
+  });
 }
 
 /**
@@ -32,9 +32,9 @@ export async function createChore(choreData) {
  * @returns {Promise<any>}
  */
 export async function deleteChore(choreId) {
-    return apiFetch(`/api/chores/${choreId}`, {
-        method: 'DELETE'
-    });
+  return apiFetch(`/api/chores/${choreId}`, {
+    method: "DELETE",
+  });
 }
 
 /**
@@ -44,14 +44,14 @@ export async function deleteChore(choreId) {
  * @returns {Promise<any>}
  */
 export async function updateChore(choreId, choreData) {
-    return apiFetch(`/api/chores/${choreId}`, {
-        method: 'PATCH',
-        body: choreData
-    });
+  return apiFetch(`/api/chores/${choreId}`, {
+    method: "PATCH",
+    body: choreData,
+  });
 }
 
 export async function getDefaultChores() {
-    return apiFetch(`/api/chores/default`);
+  return apiFetch(`/api/chores/default`);
 }
 
 /**
@@ -59,10 +59,10 @@ export async function getDefaultChores() {
  * @returns {Promise<any>}
  */
 export async function createChoresFromDefault(data) {
-    return apiFetch('/api/chores/from-defaults/', {
-        method: 'POST',
-        body: data
-    });
+  return apiFetch("/api/chores/from-defaults/", {
+    method: "POST",
+    body: data,
+  });
 }
 
 // ==========================================
@@ -76,10 +76,10 @@ export async function createChoresFromDefault(data) {
  * @returns {Promise<any>}
  */
 export async function createPlannedChore(choreId, completionData) {
-    return apiFetch(`/api/chores/${choreId}/planned`, {
-        method: 'POST',
-        body: completionData
-    });
+  return apiFetch(`/api/chores/${choreId}/planned`, {
+    method: "POST",
+    body: completionData,
+  });
 }
 
 /**
@@ -88,9 +88,9 @@ export async function createPlannedChore(choreId, completionData) {
  * @returns {Promise<any>}
  */
 export async function getPlannedChore(filters = {}) {
-    return apiFetch('/api/chores/planned', {
-        params: filters
-    });
+  return apiFetch("/api/chores/planned", {
+    params: filters,
+  });
 }
 
 /**
@@ -99,9 +99,9 @@ export async function getPlannedChore(filters = {}) {
  * @returns {Promise<any>}
  */
 export async function completePlannedChore(plannedChoreID) {
-    return apiFetch(`/api/chores/planned/${plannedChoreID}/complete`, {
-        method: 'PATCH',
-    });
+  return apiFetch(`/api/chores/planned/${plannedChoreID}/complete`, {
+    method: "PATCH",
+  });
 }
 
 /**
@@ -110,15 +110,18 @@ export async function completePlannedChore(plannedChoreID) {
  * @returns {Promise<any>}
  */
 export async function unCompletePlannedChore(plannedChoreID) {
-    return apiFetch(`/api/chores/planned/${plannedChoreID}/uncomplete`, {
-        method: 'PATCH',
-    });
+  return apiFetch(`/api/chores/planned/${plannedChoreID}/uncomplete`, {
+    method: "PATCH",
+  });
 }
 
 export async function deletePlannedChore(id) {
-    return apiFetch(`/api/chores/planned/${id}`, { method: "DELETE" });
+  return apiFetch(`/api/chores/planned/${id}`, { method: "DELETE" });
 }
 
 export async function reschedulePlannedChore(id, data) {
-    return apiFetch(`/api/chores/planned/${id}/reschedule`, { method: "PATCH", body: data });
+  return apiFetch(`/api/chores/planned/${id}/reschedule`, {
+    method: "PATCH",
+    body: data,
+  });
 }

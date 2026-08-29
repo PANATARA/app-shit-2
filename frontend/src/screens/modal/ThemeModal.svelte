@@ -1,14 +1,15 @@
 <script lang="ts">
+    import BottomSheet from "$ui/BottomSheet.svelte";
     import Icon from "@iconify/svelte";
     import { theme } from "$lib/settings.js";
     import { createEventDispatcher } from "svelte";
     import { get } from "svelte/store";
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
-    import { BottomSheet } from "svelte-bottom-sheet";
-
     const dispatch = createEventDispatcher();
 
-    export let isOpen = false;
+    function close() {
+        dispatch("close");
+    }
 
     let currentTheme = get(theme) || "warm";
     let selectedTheme = currentTheme;
@@ -52,13 +53,6 @@
         },
     ];
 
-    $: isSheetOpen = isOpen;
-
-    function handleClose() {
-        isOpen = false;
-        dispatch("close");
-    }
-
     function selectTheme(id: string) {
         selectedTheme = id;
     }
@@ -66,72 +60,67 @@
     function applyTheme() {
         currentTheme = selectedTheme;
         theme.set(selectedTheme);
-        isOpen = false;
-        dispatch("close");
+
+        close();
     }
 </script>
 
 <BottomSheet
-    bind:isSheetOpen
-    settings={{ maxHeight: 0.85 }}
-    onclose={handleClose}
+    title="Тема приложения"
+    on:close={close}
+    flyY={999}
+    flyDuration={320}
 >
-    <BottomSheet.Overlay>
-        <BottomSheet.Sheet>
-            <BottomSheet.Handle />
-            <BottomSheet.Content style="padding: 0">
-                <div class="container">
-                    <p class="intro">
-                        Выберите цветовую тему приложения. Изменения применяются сразу.
-                    </p>
-                    <div class="themes">
-                        {#each themes as t}
-                            <button
-                                class="theme-card"
-                                class:selected={t.id === selectedTheme}
-                                on:click={() => selectTheme(t.id)}
-                            >
-                                <div class="left">
-                                    <div class="preview">
-                                        {#each t.colors as color}
-                                            <span
-                                                class="color"
-                                                style={`background:${color}`}
-                                            ></span>
-                                        {/each}
-                                    </div>
-                                    <div class="text">
-                                        <div class="title">{t.name}</div>
-                                        <div class="subtitle">{t.description}</div>
-                                    </div>
-                                </div>
-                                <div class="selection">
-                                    {#if t.id === selectedTheme}
-                                        <div class="active">
-                                            <Icon
-                                                icon="material-symbols:check-rounded"
-                                                width="16"
-                                            />
-                                        </div>
-                                    {:else}
-                                        <div class="inactive"></div>
-                                    {/if}
-                                </div>
-                            </button>
-                        {/each}
+    <div class="container">
+        <p class="intro">
+            Выберите цветовую тему приложения. Изменения применяются сразу.
+        </p>
+
+        <div class="themes">
+            {#each themes as t}
+                <button
+                    class="theme-card"
+                    class:selected={t.id === selectedTheme}
+                    on:click={() => selectTheme(t.id)}
+                >
+                    <div class="left">
+                        <div class="preview">
+                            {#each t.colors as color}
+                                <span
+                                    class="color"
+                                    style={`background:${color}`}
+                                ></span>
+                            {/each}
+                        </div>
+                        <div class="text">
+                            <div class="title">{t.name}</div>
+                            <div class="subtitle">{t.description}</div>
+                        </div>
                     </div>
-                </div>
-                <div class="actions">
-                    <ButtonPrimaryGlow
-                        on:click={applyTheme}
-                        label={"Применить"}
-                        disabled={selectedTheme === currentTheme}
-                        fullWidth
-                    />
-                </div>
-            </BottomSheet.Content>
-        </BottomSheet.Sheet>
-    </BottomSheet.Overlay>
+                    <div class="selection">
+                        {#if t.id === selectedTheme}
+                            <div class="active">
+                                <Icon
+                                    icon="material-symbols:check-rounded"
+                                    width="16"
+                                />
+                            </div>
+                        {:else}
+                            <div class="inactive"></div>
+                        {/if}
+                    </div>
+                </button>
+            {/each}
+        </div>
+    </div>
+    <div class="actions">
+        <ButtonPrimaryGlow
+            on:click={applyTheme}
+            label={"Применить"}
+            disabled={selectedTheme === currentTheme}
+            fullWidth
+        />
+    </div>
 </BottomSheet>
 
 <style>
@@ -250,7 +239,7 @@
         border-radius: 50%;
     }
     .actions {
-        margin-bottom: 100px;
-        padding: 5px;
+        /*margin-top: 20px;*/
+        padding: 10px;
     }
 </style>

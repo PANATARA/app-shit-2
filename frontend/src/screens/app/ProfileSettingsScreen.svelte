@@ -6,11 +6,10 @@
     import Block from "$ui/block.svelte";
     import CustButton from "$ui/button.svelte";
     import Icon from "@iconify/svelte";
-    import AvatarConstructor from "$features/settings/AvatarConstructor.svelte";
-    import ChoreEditorModal from "@/components/features/settings/ChoreEditorModal.svelte";
-    import InviteModal from "$features/settings/InviteModal.svelte";
-    import LangModal from "$features/settings/LangModal.svelte";
-    import ThemeModal from "$features/settings/ThemeModal.svelte";
+    import AvatarConstructor from "$features/settings/AvatarBuilder.svelte";
+    import InviteModal from "$screens/modal/InviteModal.svelte";
+    import LangModal from "$screens/modal/LangModal.svelte";
+    import ThemeModal from "$screens/modal/ThemeModal.svelte";
     import { showDays, theme, language, openProfile } from "$lib/settings.js";
     import { userSession } from "$api/client";
     import { clearTokens } from "$api/client";
@@ -18,7 +17,7 @@
     import FamilyMembersSkeleton from "$skeletons/FamilyMembersSkeleton.svelte";
     import ProfileSkeleton from "$skeletons/ProfileSkeleton.svelte";
     import { swr } from "$lib/swr";
-    import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
+    import { activeTab } from "$lib/navigation";
 
     const dispatch = createEventDispatcher();
     // ─── STATE MACHINE ─────────────────────────────
@@ -148,14 +147,9 @@
                         initialIcon={editAvatar.icon}
                         initialIconColor={editAvatar.icon_color}
                         initialBg={editAvatar.icon_bg}
-                        on:change={(e) => {
-                            const { icon, icon_color, icon_bg } = e.detail;
-
-                            editAvatar = {
-                                icon,
-                                icon_color,
-                                icon_bg,
-                            };
+                        onchange={(e) => {
+                            const { icon, icon_color, icon_bg } = e; // не e.detail
+                            editAvatar = { icon, icon_color, icon_bg };
                         }}
                         on:cancel={() => (isEditing = false)}
                     />

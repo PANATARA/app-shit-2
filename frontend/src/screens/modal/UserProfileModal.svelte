@@ -5,10 +5,9 @@
     import { kickFamilyMember, changeFamilyAdmin } from "$api/family";
     import { userSession } from "$api/client";
     import CustButton from "$ui/button.svelte";
-    import UserProfileCard from "$features/common/UserProfileCard.svelte";
     import { swr } from "$lib/swr";
-    import CompactUserProfile from "$features/stats/CompactUserProfile.svelte";
-    import UserStatsCard from "$features/stats/UserStatsCard.svelte";
+    import CompactUserProfile from "$features/users/UserInfoCard.svelte";
+    import UserStatsCard from "$features/users/UserStatsCard.svelte";
 
     const dispatch = createEventDispatcher();
 

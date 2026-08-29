@@ -30,11 +30,15 @@
     }
 
     function selectChore(chore: ChoreItem) {
-        createPlannedChoreParams.set({
-            chore,
-        });
+        createPlannedChoreParams.set({ chore, isQuickTask: false });
         activeTab.set("createPlannedChoreStepTwo");
     }
+
+    function selectQuickTask() {
+        createPlannedChoreParams.set({ chore: null, isQuickTask: true });
+        activeTab.set("createPlannedChoreStepTwo");
+    }
+
     // ─── Search & filtering ───────────────────────────────────────────────────
     $: normalizedQuery = searchQuery.trim().toLowerCase();
 
@@ -52,11 +56,7 @@
 <div class="page">
     <header class="page-header">
         <Backbtn label="Назад" on:click={handleBack} />
-
-        <h1>
-            {"Запланировать задачу"}
-        </h1>
-
+        <h1>Запланировать задачу</h1>
         <div class="header-spacer"></div>
     </header>
 
@@ -65,6 +65,49 @@
     {#if loading}
         <CardPlannedChoreSkeleton count={3} />
     {:else}
+        <!-- Быстрая задача — показываем только если нет поискового запроса -->
+        {#if !normalizedQuery}
+            <div class="section">
+                <button class="quick-task-item" on:click={selectQuickTask}>
+                    <div class="quick-task-icon">
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                    </div>
+                    <div class="quick-task-info">
+                        <span class="quick-task-name">Быстрая задача</span>
+                        <span class="quick-task-desc"
+                            >Без категории и шаблона</span
+                        >
+                    </div>
+                    <svg
+                        class="chore-arrow"
+                        width="16"
+                        height="16"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path d="M9 18l6-6-6-6" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="divider">
+                <span class="divider-label">или выберите из шаблонов</span>
+            </div>
+        {/if}
+
         {#if showCreateNew}
             <button
                 class="create-new-item"
@@ -78,10 +121,7 @@
         {#if filteredChores.length > 0}
             <div class="chore-list">
                 {#each filteredChores as chore (chore.id)}
-                    <ChoreListItem
-                        {chore}
-                        on:click={() => selectChore(chore)}
-                    />
+                    <ChoreListItem {chore} onClick={selectChore} />
                 {/each}
             </div>
         {:else if !showCreateNew}
@@ -95,56 +135,119 @@
 <style>
     .page {
         min-height: 100dvh;
-
         display: flex;
         flex-direction: column;
-
         background: var(--bg);
-
         padding-top: env(safe-area-inset-top);
     }
 
     .page-header {
         height: 56px;
-
         display: flex;
         align-items: center;
         justify-content: space-between;
-
         padding: 0 0px;
-
         flex-shrink: 0;
     }
 
     .page-header h1 {
         position: absolute;
-
         left: 50%;
         transform: translateX(-50%);
-
         margin: 0;
-
         font-size: 17px;
         font-weight: 700;
-
         white-space: nowrap;
     }
 
     .header-spacer {
         width: 80px;
     }
-    /* ── STEP 1 ───────────────────────────────────── */
-    .state-msg {
+
+    /* ── Быстрая задача ───────────────────────────────── */
+
+    .section {
+        padding: 0 16px;
+        margin-bottom: 4px;
+    }
+
+    .quick-task-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 12px 14px;
+        background: var(--bg-card);
+        border: none;
+        border-radius: 14px;
+        color: var(--text-primary);
+        font-size: 15px;
+        font-family: inherit;
+        cursor: pointer;
+        text-align: left;
+        transition: opacity 0.1s;
+    }
+
+    .quick-task-item:active {
+        opacity: 0.7;
+    }
+
+    .quick-task-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 40px 16px;
+        background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+        color: var(--accent);
+        flex-shrink: 0;
     }
 
-    .state-text {
+    .quick-task-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .quick-task-name {
         font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .quick-task-desc {
+        font-size: 12px;
         color: var(--text-muted);
     }
+
+    /* ── Разделитель ──────────────────────────────────── */
+
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border, rgba(0, 0, 0, 0.08));
+    }
+
+    .divider-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* ── Создать новую ────────────────────────────────── */
 
     .create-new-item {
         display: flex;
@@ -190,10 +293,24 @@
         flex-shrink: 0;
     }
 
+    /* ── Список шаблонов ──────────────────────────────── */
+
     .chore-list {
         display: flex;
         flex-direction: column;
         gap: 8px;
         padding: 0 16px;
+    }
+
+    .state-msg {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+    }
+
+    .state-text {
+        font-size: 14px;
+        color: var(--text-muted);
     }
 </style>

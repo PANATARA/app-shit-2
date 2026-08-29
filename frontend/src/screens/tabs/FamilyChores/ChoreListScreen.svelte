@@ -85,7 +85,7 @@
             <div class="section-label">Дела моего семейного круга</div>
             <div class="chore-list">
                 {#each filteredChores as chore (chore.id)}
-                    <ChoreListItem {chore} on:click={() => openDetail(chore)} />
+                    <ChoreListItem {chore} onClick={(c) => openDetail(c)} />
                 {/each}
             </div>
         </AsyncStateView>

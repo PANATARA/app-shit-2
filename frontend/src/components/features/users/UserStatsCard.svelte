@@ -7,50 +7,65 @@
     export let loading = true;
 </script>
 
-<div class="content">
-    {#if loading}
-        <UserProfileSkeleton />
-    {:else}
-        <!-- Hero -->
-        <div class="hero-stat">
-            <div class="hero-glow"></div>
+<!-- <div class="content"> -->
+{#if loading}
+    <UserProfileSkeleton />
+{:else}
+    <!-- Hero -->
+    <div class="hero-stat">
+        <div class="hero-glow"></div>
 
-            <div class="hero-left">
-                <div>
-                    <div class="hero-value">{user.total_completed}</div>
-                    <div class="hero-label">домашних дел ты выполнил за всё время</div>
+        <div class="hero-left">
+            <div>
+                <div class="hero-value">{user.total_completed}</div>
+                <div class="hero-label">
+                    домашних дел ты выполнил за всё время
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Grid -->
-        <div class="stats-grid">
-            <div class="mini-card">
-                <div class="mini-icon bolt">
-                    <Icon icon="material-symbols:bolt-rounded" width="20" height="20" />
-                </div>
-                <div class="mini-value">{user.week_completed}</div>
-                <div class="mini-label">За неделю</div>
+    <!-- Grid -->
+    <div class="stats-grid">
+        <div class="mini-card">
+            <div class="mini-icon bolt">
+                <Icon
+                    icon="material-symbols:bolt-rounded"
+                    width="20"
+                    height="20"
+                />
             </div>
-
-            <div class="mini-card">
-                <div class="mini-icon fire">
-                    <Icon icon="material-symbols:local-fire-department-rounded" width="20" height="20" />
-                </div>
-                <div class="mini-value">{user.streak}</div>
-                <div class="mini-label">Дней подряд</div>
-            </div>
-
-            <div class="mini-card">
-                <div class="mini-icon magic">
-                    <Icon icon="material-symbols:auto-awesome-rounded" width="20" height="20" />
-                </div>
-                <div class="mini-value">{user.experience}</div>
-                <div class="mini-label">Твой опыт</div>
-            </div>
+            <div class="mini-value">{user.week_completed}</div>
+            <div class="mini-label">За неделю</div>
         </div>
-    {/if}
-</div>
+
+        <div class="mini-card">
+            <div class="mini-icon fire">
+                <Icon
+                    icon="material-symbols:local-fire-department-rounded"
+                    width="20"
+                    height="20"
+                />
+            </div>
+            <div class="mini-value">{user.streak}</div>
+            <div class="mini-label">Дней подряд</div>
+        </div>
+
+        <div class="mini-card">
+            <div class="mini-icon magic">
+                <Icon
+                    icon="material-symbols:auto-awesome-rounded"
+                    width="20"
+                    height="20"
+                />
+            </div>
+            <div class="mini-value">{user.experience}</div>
+            <div class="mini-label">Твой опыт</div>
+        </div>
+    </div>
+{/if}
+
+<!-- </div> -->
 
 <style>
     .content {

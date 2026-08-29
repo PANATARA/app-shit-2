@@ -13,12 +13,35 @@ export type Tab =
   | "choreListScreen"
   | "choreDetailScreen"
   | "choreEditScreen"
-  | "choreTemplatesScreen";
+  | "choreTemplatesScreen"
+  | "onboardingWelcome"
+  | "onboardingChoose"
+  | "onboardingCreateStep1"
+  | "onboardingCreateStep2"
+  | "onboardingJoin"
+  | "eventCreate";
 
 export const activeTab = writable<Tab>("statsScreen");
 
+export const onboardingParams = writable<{
+  familyForm: {
+    name: string;
+    icon: string;
+    icon_color: string;
+    icon_bg: string;
+  };
+}>({
+  familyForm: {
+    name: "",
+    icon: "material-symbols:family-group",
+    icon_color: "linear-gradient(135deg, #5ee7df 0%, #b490ca 100%)",
+    icon_bg: "linear-gradient(135deg, #413a34 0%, #2b2622 100%)",
+  },
+});
+
 export const createPlannedChoreParams = writable<{
   chore?: ChoreItem;
+  isQuickTask?: boolean;
 }>({});
 
 export const detailPlannedChoreParams = writable<{

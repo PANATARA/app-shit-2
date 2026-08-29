@@ -1,13 +1,11 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
     import UserAvatar from "$ui/UserAvatar.svelte";
-    import ProgressBar from "$ui/ProgressBar.svelte";
-    import type { UserProfileStats } from "$types/index";
     import UserProfileSkeleton from "$skeletons/CompactUserProfile.svelte";
+    import ProgressBar from "$ui/ProgressBar.svelte";
 
     export let user: UserProfileStats;
     export let onNotificationClick = () => {};
-    export let showNotificationButton = false;
     export let unread = false;
     export let loading = true;
 </script>
@@ -25,34 +23,17 @@
                     <span class="level-badge">Уровень {user.level}</span>
                 </div>
             </div>
-
-            <!-- Notification -->
-            {#if showNotificationButton}
-                <button
-                    class="notification"
-                    class:active={unread}
-                    on:click={onNotificationClick}
-                >
-                    <Icon
-                        icon="material-symbols:notifications-rounded"
-                        width="22"
-                        height="22"
-                    />
-                    {#if unread}
-                        <span class="dot"></span>
-                    {/if}
-                </button>
-            {/if}
         </div>
 
         <!-- XP Bar -->
-        <ProgressBar
-            title="Опыт"
-            subtitle={`${user.experience} / ${user.exp_to_next_total} XP`}
-            value={user.experience}
-            max={user.exp_to_next_total}
-            gradient="linear-gradient(90deg,#ffb84d,#ffd36b)"
-        />
+        <div class="xp-row">
+            <ProgressBar
+                percent={user.progress_percent}
+                label="Опыт"
+                sublabel="{user.experience} / {user.exp_to_next_total} XP"
+                shimmer={true}
+            />
+        </div>
     </div>
 {/if}
 
@@ -154,65 +135,9 @@
         letter-spacing: 0.3px;
     }
 
-    /* Notification */
+    /* XP */
 
-    .notification {
-        position: relative;
-
-        width: 48px;
-        height: 48px;
-
-        border: none;
-        border-radius: 16px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        background: rgba(255, 255, 255, 0.06);
-
-        color: var(--text-primary);
-
-        backdrop-filter: blur(10px);
-
-        transition:
-            transform 0.18s ease,
-            background 0.25s ease,
-            box-shadow 0.25s ease;
-    }
-
-    .notification:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-
-    .notification:active {
-        transform: scale(0.92);
-    }
-
-    .notification.active {
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
-    }
-
-    .notification :global(svg) {
-        width: 22px;
-        height: 22px;
-    }
-
-    .dot {
-        position: absolute;
-
-        top: 10px;
-        right: 10px;
-
-        width: 9px;
-        height: 9px;
-
-        border-radius: 50%;
-
-        background: #ff5b5b;
-
-        border: 2px solid var(--surface);
-
-        box-shadow: 0 0 10px rgba(255, 91, 91, 0.5);
+    .xp-row {
+        z-index: 1;
     }
 </style>

@@ -1,81 +1,87 @@
+<!-- ProgressBar.svelte -->
 <script lang="ts">
-    import { fade } from "svelte/transition";
-
-    export let totalCount;
-    export let completedCount;
-    export let progressPercentage;
-    export let value;
+    export let percent: number;
+    export let label: string = "";
+    export let sublabel: string = "";
+    export let shimmer: boolean = true;
 </script>
 
-<!-- Добавлена корневая обертка с вашим классом -->
-<div class="progress-section">
+{#if label || sublabel}
     <div class="progress-info">
-        <span class="progress-title">{value}</span>
-        {#if totalCount > 0}
-            <span class="progress-ratio"
-                >{completedCount} из {totalCount} выполнено</span
-            >
-        {:else}
-            <span class="progress-ratio">Задач нет</span>
+        {#if label}<span class="progress-label">{label}</span>{/if}
+        {#if sublabel}<span class="progress-sublabel">{sublabel}</span>{/if}
+    </div>
+{/if}
+
+<div class="progress-track">
+    <div class="progress-fill" style="transform: scaleX({percent / 100})">
+        {#if shimmer}
+            <div class="progress-shimmer"></div>
         {/if}
     </div>
-    {#if totalCount > 0}
-        <div class="progress-bar-bg" transition:fade={{ duration: 300 }}>
-            <div
-                class="progress-bar-fill"
-                style="width: {progressPercentage}%"
-            ></div>
-        </div>
-    {/if}
 </div>
 
 <style>
-    .progress-section {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 4px;
-    }
-
     .progress-info {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 8px;
     }
 
-    .progress-title {
-        font-size: 20px;
-        font-weight: 800;
+    .progress-label {
+        font-size: 14px;
+        font-weight: 700;
         color: var(--text-primary);
-        text-transform: capitalize;
     }
 
-    .progress-ratio {
-        font-size: 13px;
+    .progress-sublabel {
+        font-size: 12px;
         font-weight: 600;
         color: var(--text-secondary);
-        background: var(--surface);
-        padding: 4px 10px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
     }
 
-    .progress-bar-bg {
-        height: 8px;
+    .progress-track {
+        position: relative;
+        height: 10px;
+        border-radius: 999px;
         background: var(--surface-alt);
-        border-radius: 4px;
         overflow: hidden;
-        border: 1px solid var(--border);
     }
 
-    .progress-bar-fill {
-        height: 100%;
+    .progress-fill {
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
         background: linear-gradient(
             90deg,
             var(--accent) 0%,
             var(--success) 100%
         );
-        border-radius: 4px;
-        transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transform-origin: left center;
+        transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+        will-change: transform;
+        overflow: hidden;
+    }
+
+    .progress-shimmer {
+        position: absolute;
+        inset: 0;
+        /* Узкий, чёткий блик — как на iOS */
+        background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.0) 30%,
+            rgba(255, 255, 255, 0.45) 50%,
+            rgba(255, 255, 255, 0.0) 70%,
+            transparent 100%
+        );
+        animation: shimmer 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        will-change: transform;
+    }
+
+    @keyframes shimmer {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
     }
 </style>

@@ -7,7 +7,8 @@
     import ChoreIcon from "$ui/ChoreIcon.svelte";
     import Backbtn from "$ui/backbtn.svelte";
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
-    import CustomTextarea from "@/components/ui/CustomTextarea.svelte";
+    import CustomTextarea from "$ui/CustomTextarea.svelte";
+    import AvatarBuilder from "$features/settings/AvatarBuilder.svelte";
     import { swr } from "$lib/swr";
     const dispatch = createEventDispatcher();
     import { createPlannedChoreParams, activeTab } from "$lib/navigation";
@@ -28,9 +29,22 @@
     // ─── State ───────────────────────────────────────────────────────────────
 
     $: selectedChore = $createPlannedChoreParams.chore;
+    $: isQuickTask = $createPlannedChoreParams.isQuickTask;
+
     let comment = "";
     let dueDate = new Date().toISOString().split("T")[0];
     let assignedTo: string | null = null;
+
+    // Быстрая задача
+    let quickTaskName = "";
+    let quickTaskValuation = 5;
+    let quickTaskAvatar = {
+        icon: "material-symbols:bolt-rounded",
+        icon_color: "#ffffff",
+        icon_bg: "linear-gradient(135deg, #F59E0B 0%, #F97316 100%)",
+    };
+
+    const VALUATION_OPTIONS = [1, 2, 3, 5, 8, 10, 15, 20];
 
     let repeat: RepeatConfig = {
         frequency_type: "none",
@@ -46,7 +60,6 @@
     const members = swr("family-members", getFamilyMembers);
 
     $: familyMembers = $members.data ?? [];
-
     $: loading = $members.loading;
     $: error = $members.error;
 
@@ -61,7 +74,7 @@
     }
 
     async function add() {
-        if (!selectedChore) return;
+        if (!isQuickTask && !selectedChore) return;
 
         const payload = {
             message: comment || "",
@@ -70,7 +83,25 @@
         };
 
         try {
-            await createPlannedChore(selectedChore.id, payload);
+            if (isQuickTask) {
+                // TODO: вызов API для быстрой задачи
+                // await createQuickPlannedChore({
+                //     name: quickTaskName,
+                //     valuation: quickTaskValuation,
+                //     icon: quickTaskAvatar.icon,
+                //     icon_color: quickTaskAvatar.icon_color,
+                //     icon_bg: quickTaskAvatar.icon_bg,
+                //     ...payload,
+                // });
+                console.log("quick task", {
+                    quickTaskName,
+                    quickTaskValuation,
+                    quickTaskAvatar,
+                    ...payload,
+                });
+            } else {
+                await createPlannedChore(selectedChore!.id, payload);
+            }
             dispatch("add");
             activeTab.set("boardScreen");
         } catch (e) {
@@ -82,21 +113,61 @@
 <div class="page">
     <header class="page-header">
         <Backbtn label="Назад" on:click={handleBack} />
-
-        <h1>
-            {selectedChore?.name}
-        </h1>
-
+        <h1>{isQuickTask ? "Быстрая задача" : selectedChore?.name}</h1>
         <div class="header-spacer"></div>
     </header>
 
-    <div class="selected-header">
-        <div class="chore-icon-wrap">
-            <ChoreIcon chore={selectedChore} size={68} />
+    <!-- Шапка: иконка шаблона или конструктор аватара -->
+    {#if isQuickTask}
+        <div class="quick-header">
+            <div class="section">
+                <AvatarBuilder
+                    initialIcon={quickTaskAvatar.icon}
+                    initialIconColor={quickTaskAvatar.icon_color}
+                    initialBg={quickTaskAvatar.icon_bg}
+                    onchange={(v) => (quickTaskAvatar = v)}
+                />
+            </div>
         </div>
-    </div>
+    {:else}
+        <div class="selected-header">
+            <div class="chore-icon-wrap">
+                <ChoreIcon chore={selectedChore} size={68} />
+            </div>
+        </div>
+    {/if}
 
     <div class="detail-form">
+        <!-- Название (только для быстрой задачи) -->
+        {#if isQuickTask}
+            <div class="section">
+                <div class="section-label">Название</div>
+                <input
+                    class="field-input"
+                    type="text"
+                    placeholder="Что нужно сделать..."
+                    bind:value={quickTaskName}
+                    maxlength={100}
+                />
+            </div>
+
+            <!-- Награда -->
+            <div class="section">
+                <div class="section-label">Награда</div>
+                <div class="valuation-row">
+                    {#each VALUATION_OPTIONS as v}
+                        <button
+                            class="val-btn"
+                            class:val-active={quickTaskValuation === v}
+                            on:click={() => (quickTaskValuation = v)}
+                        >
+                            🪙 {v}
+                        </button>
+                    {/each}
+                </div>
+            </div>
+        {/if}
+
         <!-- Кому назначить -->
         <div class="section">
             <div class="section-label">Кому назначить</div>
@@ -132,26 +203,25 @@
             </div>
         </div>
 
-        <!-- Комментарий + Дата в одной секции -->
+        <!-- Комментарий + Дата -->
         <div class="section">
             <div class="section-label">Детали</div>
-
             <CustomTextarea
                 bind:value={comment}
                 placeholder="Комментарий..."
                 maxlength={500}
                 rows={2}
             />
-
             <div class="divider" />
-
             <input class="field-input" type="date" bind:value={dueDate} />
         </div>
 
         <!-- Повтор -->
-        <div class="section">
-            <RepeatSelector bind:value={repeat} />
-        </div>
+        {#if !isQuickTask}
+            <div class="section">
+                <RepeatSelector bind:value={repeat} />
+            </div>
+        {/if}
     </div>
 
     <div class="add-btn">
@@ -162,45 +232,36 @@
 <style>
     .page {
         min-height: 100dvh;
-
         display: flex;
         flex-direction: column;
-
         background: var(--bg);
-
         padding-top: env(safe-area-inset-top);
     }
 
     .page-header {
         height: 56px;
-
         display: flex;
         align-items: center;
         justify-content: space-between;
-
         padding: 0 0px;
-
         flex-shrink: 0;
     }
 
     .page-header h1 {
         position: absolute;
-
         left: 50%;
         transform: translateX(-50%);
-
         margin: 0;
-
         font-size: 17px;
         font-weight: 700;
-
         white-space: nowrap;
     }
 
     .header-spacer {
         width: 80px;
     }
-    /* ── STEP 2 HEADER ────────────────────────────── */
+
+    /* ── Шапка шаблона ────────────────────────────── */
     .selected-header {
         display: flex;
         justify-content: center;
@@ -237,7 +298,42 @@
         }
     }
 
-    /* ── FORM ─────────────────────────────────────── */
+    /* ── Шапка быстрой задачи ─────────────────────── */
+    .quick-header {
+        padding: 0 8px 4px;
+    }
+
+    /* ── Награда ──────────────────────────────────── */
+    .valuation-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .val-btn {
+        padding: 7px 14px;
+        border-radius: 20px;
+        border: 1.5px solid var(--border);
+        background: none;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: inherit;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .val-btn:active {
+        transform: scale(0.94);
+    }
+
+    .val-active {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    /* ── Форма ────────────────────────────────────── */
     .detail-form {
         display: flex;
         flex-direction: column;
@@ -271,7 +367,7 @@
         margin: 0 -4px;
     }
 
-    /* ── USERS ────────────────────────────────────── */
+    /* ── Пользователи ─────────────────────────────── */
     .users-row {
         display: flex;
         gap: 12px;
@@ -327,7 +423,7 @@
         color: var(--accent);
     }
 
-    /* ── DATE INPUT ───────────────────────────────── */
+    /* ── Поля ввода ───────────────────────────────── */
     .field-input {
         width: 100%;
         box-sizing: border-box;
@@ -353,7 +449,7 @@
         cursor: pointer;
     }
 
-    /* ── ADD BUTTON ───────────────────────────────── */
+    /* ── Кнопка ───────────────────────────────────── */
     .add-btn {
         position: sticky;
         bottom: 0;

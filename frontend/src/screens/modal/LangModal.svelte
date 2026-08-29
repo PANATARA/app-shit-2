@@ -1,12 +1,9 @@
 <script lang="ts">
+    import BottomSheet from "$ui/BottomSheet.svelte";
     import Icon from "@iconify/svelte";
     import { language as langStore } from "$lib/settings.js";
     import { createEventDispatcher } from "svelte";
-    import { BottomSheet } from "svelte-bottom-sheet";
-
     const dispatch = createEventDispatcher();
-
-    export let isOpen = false;
 
     const languages = [
         {
@@ -23,90 +20,80 @@
         },
     ];
 
-    $: isSheetOpen = isOpen;
-
-    function handleClose() {
-        isOpen = false;
-        dispatch("close");
-    }
-
     function selectLanguage(code: string) {
         langStore.set(code);
-        isOpen = false;
+        close();
+    }
+
+    function close() {
         dispatch("close");
     }
 </script>
 
 <BottomSheet
-    bind:isSheetOpen
-    settings={{ maxHeight: 0.55}}
-    onclose={handleClose}
+    title={$langStore === "ru" ? "Сменить язык" : "Change Language"}
+    on:close={close}
+    flyY={999}
+    flyDuration={320}
 >
-    <BottomSheet.Overlay>
-        <BottomSheet.Sheet>
-            <BottomSheet.Handle />
-            <BottomSheet.Content style="padding: 0">
-                <div class="lang-container">
-                    <p class="intro-text">
-                        {#if $langStore === "ru"}
-                            Выберите язык интерфейса приложения. Изменения
-                            применятся мгновенно.
-                        {:else}
-                            Choose your preferred interface language. Changes
-                            will apply instantly.
-                        {/if}
-                    </p>
-                    <div class="languages-list">
-                        {#each languages as language}
-                            <button
-                                class="lang-card"
-                                class:selected={language.code === $langStore}
-                                on:click={() => selectLanguage(language.code)}
+    <div class="lang-container">
+        <p class="intro-text">
+            {#if $langStore === "ru"}
+                Выберите язык интерфейса приложения. Изменения применятся
+                мгновенно.
+            {:else}
+                Choose your preferred interface language. Changes will apply
+                instantly.
+            {/if}
+        </p>
+
+        <div class="languages-list">
+            {#each languages as language}
+                <button
+                    class="lang-card"
+                    class:selected={language.code === $langStore}
+                    on:click={() => selectLanguage(language.code)}
+                >
+                    <div class="card-left">
+                        <div class="flag-badge">
+                            <span class="flag-emoji">{language.flag}</span>
+                        </div>
+
+                        <div class="text-block">
+                            <span class="lang-title">{language.nativeName}</span
                             >
-                                <div class="card-left">
-                                    <div class="flag-badge">
-                                        <span class="flag-emoji"
-                                            >{language.flag}</span
-                                        >
-                                    </div>
-                                    <div class="text-block">
-                                        <span class="lang-title"
-                                            >{language.nativeName}</span
-                                        >
-                                        {#if language.code !== $langStore}
-                                            <span class="lang-subtitle">
-                                                {#if $langStore === "ru"}
-                                                    {language.code === "ru"
-                                                        ? "Русский"
-                                                        : "Английский"}
-                                                {:else}
-                                                    {language.englishName}
-                                                {/if}
-                                            </span>
-                                        {/if}
-                                    </div>
-                                </div>
-                                <div class="selection-indicator">
-                                    {#if language.code === $langStore}
-                                        <div class="indicator-active">
-                                            <Icon
-                                                icon="material-symbols:check-rounded"
-                                                width="16"
-                                                height="16"
-                                                class="check-icon"
-                                            />
-                                        </div>
+                            {#if language.code !== $langStore}
+                                <span class="lang-subtitle">
+                                    {#if $langStore === "ru"}
+                                        {language.code === "ru"
+                                            ? "Русский"
+                                            : "Английский"}
                                     {:else}
-                                        <div class="indicator-inactive"></div>
+                                        {language.englishName}
                                     {/if}
-                                </div>
-                            </button>
-                        {/each}
+                                </span>
+                            {/if}
+                        </div>
                     </div>
-                </div>
-            </BottomSheet.Content>
-        </BottomSheet.Sheet>
-    </BottomSheet.Overlay>
+
+                    <div class="selection-indicator">
+                        {#if language.code === $langStore}
+                            <div class="indicator-active">
+                                <Icon
+                                    icon="material-symbols:check-rounded"
+                                    width="16"
+                                    height="16"
+                                    class="check-icon"
+                                />
+                            </div>
+                        {:else}
+                            <div class="indicator-inactive"></div>
+                        {/if}
+                    </div>
+                </button>
+            {/each}
+        </div>
+    </div>
 </BottomSheet>
 
 <style>

@@ -1,11 +1,10 @@
 <script lang="ts">
-    import Block from "$ui/block.svelte";
     import { getFamilyStats, getFamilyLeader } from "$api/family";
     import { getProfile } from "$api/me";
-    import LeadersCard from "$features/stats/LeadersCard.svelte";
-    import CompactUserProfile from "$features/stats/CompactUserProfile.svelte";
-    import FamilyCard from "$features/stats/FamilyCard.svelte";
-    import UserStatsCard from "$features/stats/UserStatsCard.svelte";
+    import LeadersCard from "$features/family/LeadersCard.svelte";
+    import EventsCard from "$features/family/EventsCard.svelte";
+    import CompactUserProfile from "$features/users/UserInfoCard.svelte";
+    import UserStatsCard from "$features/users/UserStatsCard.svelte";
     import { swr } from "$lib/swr";
 
     // ─── Data fetching ───────────────────────────────────────────────────────────
@@ -16,14 +15,45 @@
     // реактивные алиасы
     $: meUser = $profile.data;
     $: weekLeaders = $leaders.data;
-    $: familyProfile = $stats.data;
 
     // loading = true только пока нет ни кэша ни ответа
     $: loading = $profile.loading || $leaders.loading || $stats.loading;
 
-    // тихая фоновая перезагрузка — можно показать спиннер в углу
-    $: revalidating =
-        $profile.revalidating || $leaders.revalidating || $stats.revalidating;
+    const mockEvents = [
+        {
+            id: "1",
+            name: "Аквапарк",
+            description: "Едем всей семьёй, не забыть полотенца",
+            icon: "material-symbols:pool-rounded",
+            icon_color: "#0ea5e9",
+            icon_bg: "linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)",
+            date: new Date(Date.now() + 2 * 86400000)
+                .toISOString()
+                .split("T")[0],
+        },
+        {
+            id: "2",
+            name: "День рождения Мамы",
+            description: "Торт и подарок — не забыть!",
+            icon: "material-symbols:cake-rounded",
+            icon_color: "#f472b6",
+            icon_bg: "linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)",
+            date: new Date(Date.now() + 6 * 86400000)
+                .toISOString()
+                .split("T")[0],
+        },
+        {
+            id: "3",
+            name: "Поход в лес",
+            description: "Берём палатки, выезд в 7 утра",
+            icon: "material-symbols:forest-rounded",
+            icon_color: "#22c55e",
+            icon_bg: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
+            date: new Date(Date.now() + 19 * 86400000)
+                .toISOString()
+                .split("T")[0],
+        },
+    ];
 </script>
 
 <div class="screen">
@@ -37,8 +67,12 @@
     />
 
     <UserStatsCard user={meUser} {loading} />
-
     <LeadersCard {weekLeaders} {loading} />
+    <EventsCard
+        {loading}
+        events={mockEvents}
+        onAddClick={() => console.log("открыть форму создания события")}
+    />
 </div>
 
 <style>

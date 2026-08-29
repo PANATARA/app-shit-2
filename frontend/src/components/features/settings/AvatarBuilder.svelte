@@ -1,16 +1,37 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
-    import { createEventDispatcher } from "svelte";
 
-    export let initialIcon = "material-symbols:person-rounded";
-    export let initialIconColor = "#ffffff";
-    export let initialBg = "linear-gradient(135deg, #e8856a 0%, #c17a45 100%)";
+    // ─── Props ────────────────────────────────────────────────────────────────
 
-    let selectedIcon = initialIcon;
-    let selectedIconColor = initialIconColor;
-    let selectedBg = initialBg;
+    interface Props {
+        initialIcon?: string;
+        initialIconColor?: string;
+        initialBg?: string;
+        allowIcon?: boolean;
+        allowIconColor?: boolean;
+        allowBg?: boolean;
+        iconCategories?: string[];
+        onchange?: (value: {
+            icon: string;
+            icon_color: string;
+            icon_bg: string;
+        }) => void;
+    }
 
-    const iconCategories = [
+    let {
+        initialIcon = "material-symbols:person-rounded",
+        initialIconColor = "#ffffff",
+        initialBg = "linear-gradient(135deg, #e8856a 0%, #c17a45 100%)",
+        allowIcon = true,
+        allowIconColor = true,
+        allowBg = true,
+        iconCategories = undefined,
+        onchange,
+    }: Props = $props();
+
+    // ─── All data ─────────────────────────────────────────────────────────────
+
+    const ALL_ICON_CATEGORIES = [
         {
             label: "Питомцы",
             icons: [
@@ -141,7 +162,7 @@
         },
     ];
 
-    const iconColors = [
+    const ALL_ICON_COLORS = [
         "#FFFFFF",
         "#F5E9DA",
         "#FFD166",
@@ -160,7 +181,7 @@
         "#FBBF24",
     ];
 
-    const bgOptions = [
+    const ALL_BG_OPTIONS = [
         "linear-gradient(135deg, #F97316 0%, #FB7185 100%)",
         "linear-gradient(135deg, #F59E0B 0%, #F97316 100%)",
         "linear-gradient(135deg, #FB7185 0%, #F43F5E 100%)",
@@ -185,15 +206,69 @@
         "#F97316",
     ];
 
-    let activeTab: "icon" | "iconColor" | "bg" = "icon";
-    let activeCategoryIndex = 0;
-    const dispatch = createEventDispatcher();
+    const TAB_LABELS = {
+        icon: "Иконка",
+        iconColor: "Цвет",
+        bg: "Фон",
+    } as const;
 
-    $: dispatch("change", {
-        icon: selectedIcon,
-        icon_color: selectedIconColor,
-        icon_bg: selectedBg,
+    // ─── State ────────────────────────────────────────────────────────────────
+
+    let selectedIcon = $state(initialIcon);
+    let selectedIconColor = $state(initialIconColor);
+    let selectedBg = $state(initialBg);
+    let activeCategoryIndex = $state(0);
+
+    // ─── Derived ──────────────────────────────────────────────────────────────
+
+    const filteredCategories = $derived(
+        iconCategories
+            ? ALL_ICON_CATEGORIES.filter((c) =>
+                  iconCategories!.includes(c.label),
+              )
+            : ALL_ICON_CATEGORIES,
+    );
+
+    const availableTabs = $derived(
+        (
+            [
+                allowIcon && "icon",
+                allowIconColor && "iconColor",
+                allowBg && "bg",
+            ] as const
+        ).filter(Boolean) as Array<"icon" | "iconColor" | "bg">,
+    );
+
+    let activeTab = $state<"icon" | "iconColor" | "bg">("icon");
+
+    // Синхронизируем activeTab с availableTabs
+    $effect(() => {
+        if (!availableTabs.includes(activeTab)) {
+            activeTab = availableTabs[0];
+        }
     });
+
+    // Безопасный индекс категории
+    const safeIndex = $derived(
+        activeCategoryIndex < filteredCategories.length
+            ? activeCategoryIndex
+            : 0,
+    );
+
+    const currentIcons = $derived(filteredCategories[safeIndex]?.icons ?? []);
+
+    // Эмитим изменения наружу
+    $effect(() => {
+        onchange?.({
+            icon: selectedIcon,
+            icon_color: selectedIconColor,
+            icon_bg: selectedBg,
+        });
+    });
+
+    function isLightColor(color: string) {
+        return ["#FFFFFF", "#F5E9DA", "#FFD166"].includes(color);
+    }
 </script>
 
 <div class="constructor">
@@ -209,49 +284,43 @@
         </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="tabs">
-        <button
-            class="tab"
-            class:tab-active={activeTab === "icon"}
-            on:click={() => (activeTab = "icon")}
-        >
-            Иконка
-        </button>
-        <button
-            class="tab"
-            class:tab-active={activeTab === "iconColor"}
-            on:click={() => (activeTab = "iconColor")}
-        >
-            Цвет
-        </button>
-        <button
-            class="tab"
-            class:tab-active={activeTab === "bg"}
-            on:click={() => (activeTab = "bg")}
-        >
-            Фон
-        </button>
-    </div>
+    <!-- Tabs — только если вкладок больше одной -->
+    {#if availableTabs.length > 1}
+        <div class="tabs">
+            {#each availableTabs as tab}
+                <button
+                    class="tab"
+                    class:tab-active={activeTab === tab}
+                    onclick={() => (activeTab = tab)}
+                >
+                    {TAB_LABELS[tab]}
+                </button>
+            {/each}
+        </div>
+    {/if}
 
     <!-- Icon picker -->
     {#if activeTab === "icon"}
-        <div class="category-scroll">
-            {#each iconCategories as cat, i}
-                <button
-                    class="category-btn"
-                    class:category-active={activeCategoryIndex === i}
-                    on:click={() => (activeCategoryIndex = i)}
-                    >{cat.label}</button
-                >
-            {/each}
-        </div>
+        {#if filteredCategories.length > 1}
+            <div class="category-scroll">
+                {#each filteredCategories as cat, i}
+                    <button
+                        class="category-btn"
+                        class:category-active={activeCategoryIndex === i}
+                        onclick={() => (activeCategoryIndex = i)}
+                    >
+                        {cat.label}
+                    </button>
+                {/each}
+            </div>
+        {/if}
+
         <div class="icon-grid">
-            {#each iconCategories[activeCategoryIndex].icons as icon}
+            {#each currentIcons as icon}
                 <button
                     class="icon-cell"
                     class:icon-cell-active={selectedIcon === icon}
-                    on:click={() => (selectedIcon = icon)}
+                    onclick={() => (selectedIcon = icon)}
                 >
                     <Icon
                         {icon}
@@ -266,38 +335,34 @@
         </div>
     {:else if activeTab === "iconColor"}
         <div class="color-grid">
-            {#each iconColors as color}
+            {#each ALL_ICON_COLORS as color}
                 <button
                     class="color-cell"
                     class:color-cell-active={selectedIconColor === color}
                     style="background: {color}; {color === '#FFFFFF'
-                        ? 'border: 1.5px solid rgba(255,255,255,0.2)'
+                        ? 'border: 1.5px solid rgba(0,0,0,0.12)'
                         : ''}"
-                    on:click={() => (selectedIconColor = color)}
+                    onclick={() => (selectedIconColor = color)}
                 >
                     {#if selectedIconColor === color}
                         <Icon
                             icon="material-symbols:check-rounded"
                             width="16"
                             height="16"
-                            color={color === "#FFFFFF" ||
-                            color === "#F5E9DA" ||
-                            color === "#FFD166"
-                                ? "#333"
-                                : "#fff"}
+                            color={isLightColor(color) ? "#333" : "#fff"}
                         />
                     {/if}
                 </button>
             {/each}
         </div>
-    {:else}
+    {:else if activeTab === "bg"}
         <div class="bg-grid">
-            {#each bgOptions as bg}
+            {#each ALL_BG_OPTIONS as bg}
                 <button
                     class="bg-cell"
                     class:bg-cell-active={selectedBg === bg}
                     style="background: {bg}"
-                    on:click={() => (selectedBg = bg)}
+                    onclick={() => (selectedBg = bg)}
                 >
                     {#if selectedBg === bg}
                         <Icon
@@ -325,6 +390,7 @@
         justify-content: center;
         padding: 4px 0 16px;
     }
+
     .preview-avatar {
         width: 90px;
         height: 90px;
@@ -336,7 +402,6 @@
         transition: all 0.2s;
     }
 
-    /* ── Tabs ── */
     .tabs {
         display: flex;
         background: var(--surface-alt);
@@ -346,6 +411,7 @@
         width: 100%;
         box-sizing: border-box;
     }
+
     .tab {
         flex: 1;
         min-width: 0;
@@ -363,12 +429,12 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+
     .tab-active {
         background: var(--surface);
         color: var(--accent);
     }
 
-    /* ── Category scroll ── */
     .category-scroll {
         display: flex;
         gap: 6px;
@@ -376,6 +442,7 @@
         scrollbar-width: none;
         padding: 0 0 10px 0;
     }
+
     .category-scroll::-webkit-scrollbar {
         display: none;
     }
@@ -394,13 +461,13 @@
         transition: all 0.15s;
         white-space: nowrap;
     }
+
     .category-active {
         background: var(--accent-soft);
         border-color: var(--accent);
         color: var(--accent);
     }
 
-    /* ── Icon grid ── */
     .icon-grid {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
@@ -408,6 +475,7 @@
         width: 100%;
         box-sizing: border-box;
     }
+
     .icon-cell {
         aspect-ratio: 1;
         border-radius: 12px;
@@ -422,15 +490,16 @@
         min-width: 0;
         overflow: hidden;
     }
+
     .icon-cell:active {
         opacity: 0.7;
     }
+
     .icon-cell-active {
         border-color: var(--accent);
         background: var(--accent-soft);
     }
 
-    /* ── Color grid ── */
     .color-grid {
         display: grid;
         grid-template-columns: repeat(8, 1fr);
@@ -438,6 +507,7 @@
         width: 100%;
         box-sizing: border-box;
     }
+
     .color-cell {
         aspect-ratio: 1;
         border-radius: 10px;
@@ -450,15 +520,16 @@
         transition: transform 0.15s;
         min-width: 0;
     }
+
     .color-cell:active {
         transform: scale(0.9);
     }
+
     .color-cell-active {
         border-color: var(--text-primary);
         transform: scale(1.1);
     }
 
-    /* ── Background grid ── */
     .bg-grid {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
@@ -466,6 +537,7 @@
         width: 100%;
         box-sizing: border-box;
     }
+
     .bg-cell {
         aspect-ratio: 1;
         border-radius: 12px;
@@ -478,9 +550,11 @@
         transition: transform 0.15s;
         min-width: 0;
     }
+
     .bg-cell:active {
         transform: scale(0.9);
     }
+
     .bg-cell-active {
         border-color: var(--text-primary);
         transform: scale(1.05);

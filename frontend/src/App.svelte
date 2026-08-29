@@ -6,13 +6,12 @@
     import DebugScreen from "$screens/debug/DebugScreen.svelte";
 
     import AuthScreen from "$screens/onBoarding/AuthScreen.svelte";
-    import FamilyEntryScreen from "$screens/onBoarding/FamilyEntryScreen.svelte";
 
     import Icon from "@iconify/svelte";
     import { isLoggedInStore, clearTokens } from "$api/client.js";
     import { getProfile } from "$api/me.js";
 
-    import UserProfileModal from "$features/common/UserProfileModal.svelte";
+    import UserProfileModal from "$screens/modal/UserProfileModal.svelte";
     import { profileModal, closeProfile } from "$lib/settings";
     import { activeTab } from "$lib/navigation";
     import StepOne from "$screens/tabs/PlannedChoreCreate/StepOne.svelte";
@@ -23,6 +22,13 @@
     import ChoreEditScreen from "$screens/tabs/FamilyChores/ChoreEditScreen.svelte";
     import ChoreTemplatesScreen from "$screens/tabs/FamilyChores/ChoreTemplatesScreen.svelte";
 
+    import OnboardingWelcomeScreen from "$screens/onBoarding/OnboardingWelcomeScreen.svelte";
+    import OnboardingChooseScreen from "$screens/onBoarding/OnboardingChooseScreen.svelte";
+    import OnboardingCreateStep1Screen from "$screens/onBoarding/OnboardingCreateStep1Screen.svelte";
+    import OnboardingCreateStep2Screen from "$screens/onBoarding/OnboardingCreateStep2Screen.svelte";
+    import OnboardingJoinScreen from "$screens/onBoarding/OnboardingJoinScreen.svelte";
+    import EventCreateScreen from "./screens/tabs/EventCreate.svelte";
+
     let isAuthed = false;
     let isInFamily = false;
     let checkingAuth = true;
@@ -30,19 +36,22 @@
     onMount(async () => {
         if ($isLoggedInStore) {
             await checkProfile();
+        } else {
+            checkingAuth = false;
+            return;
         }
         checkingAuth = false;
     });
 
     async function checkProfile() {
         try {
-            console.log("calling getProfile...");
             const profile = await getProfile();
-            console.log("profile:", profile);
             isAuthed = true;
             isInFamily = !!profile.is_family_member;
+            if (!isInFamily) {
+                activeTab.set("onboardingWelcome"); // ← стартуем онбординг
+            }
         } catch (err) {
-            console.warn("checkProfile failed:", err);
             clearTokens();
             isAuthed = false;
             isInFamily = false;
@@ -84,7 +93,19 @@
     {:else if !isAuthed}
         <AuthScreen on:auth={handleAuth} />
     {:else if !isInFamily}
-        <FamilyEntryScreen on:success={handleFamilySuccess} />
+        {#if $activeTab === "onboardingWelcome"}
+            <OnboardingWelcomeScreen />
+        {:else if $activeTab === "onboardingChoose"}
+            <OnboardingChooseScreen />
+        {:else if $activeTab === "onboardingCreateStep1"}
+            <OnboardingCreateStep1Screen />
+        {:else if $activeTab === "onboardingCreateStep2"}
+            <OnboardingCreateStep2Screen onSuccess={handleFamilySuccess} />
+        {:else if $activeTab === "onboardingJoin"}
+            <OnboardingJoinScreen onSuccess={handleFamilySuccess} />
+        {:else}
+            <OnboardingWelcomeScreen />
+        {/if}
     {:else}
         <div class="content" bind:this={contentEl}>
             {#if $activeTab === "statsScreen"}
@@ -109,6 +130,10 @@
                 <ChoreEditScreen />
             {:else if $activeTab === "choreTemplatesScreen"}
                 <ChoreTemplatesScreen />
+            {:else if $activeTab === "welcomeScreen"}
+                <WelcomeScreen />
+            {:else if $activeTab === "eventCreate"}
+                <EventCreateScreen />
             {/if}
         </div>
 
@@ -149,7 +174,7 @@
                 <button
                     class="nav-item"
                     class:active={$activeTab === "debugScreen"}
-                    on:click={() => activeTab.set("debugScreen")}
+                    on:click={() => activeTab.set("welcomeScreen")}
                     aria-label="Карта"
                 >
                     <div class="nav-icon">

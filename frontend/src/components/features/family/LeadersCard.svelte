@@ -4,9 +4,11 @@
     import { userSession } from "$api/client";
     import LeaderCardSkeleton from "$skeletons/LeaderCardSkeleton.svelte";
     import { openProfile } from "$lib/settings";
+    import { getCurrentWeekRange } from "$lib/utils";
 
     export let loading = true;
     export let weekLeaders: WeeklyLeadersResponse | null = null;
+    const weekRange = getCurrentWeekRange();
 </script>
 
 {#if loading}
@@ -15,38 +17,46 @@
     <div class="leader-card">
         <div class="lb-head">
             <span class="lb-title">Лидеры недели</span>
-            <span class="lb-subtitle">13–19 июл</span>
+            <span class="lb-subtitle">{weekRange}</span>
         </div>
 
-        <div class="leader-list">
-            {#each weekLeaders.leaders as leader, i}
-                <button
-                    class="leader-row"
-                    class:rank-1={i === 0}
-                    class:rank-2={i === 1}
-                    class:rank-3={i === 2}
-                    class:is-me={leader.member.id === $userSession.userId}
-                    on:click={() => openProfile(leader.member.id)}
-                >
-                    <span class="rank rank-{i + 1}">{i + 1}</span>
-                    <UserAvatar user={leader.member} size={40} />
-                    <div class="leader-info">
-                        <div class="name">
-                            {leader.member.name}
-                            {#if leader.member.id === $userSession.userId}<span
-                                    class="you-tag">Вы</span
-                                >{/if}
+        {#if !weekLeaders?.leaders?.length}
+            <div class="empty-state">
+                <span class="empty-icon">🏆</span>
+                <span class="empty-text">Пока никто не выполнил задачи</span>
+                <span class="empty-sub">Будь первым на этой неделе</span>
+            </div>
+        {:else}
+            <div class="leader-list">
+                {#each weekLeaders.leaders as leader, i}
+                    <button
+                        class="leader-row"
+                        class:rank-1={i === 0}
+                        class:rank-2={i === 1}
+                        class:rank-3={i === 2}
+                        class:is-me={leader.member.id === $userSession.userId}
+                        on:click={() => openProfile(leader.member.id)}
+                    >
+                        <span class="rank rank-{i + 1}">{i + 1}</span>
+                        <UserAvatar user={leader.member} size={40} />
+                        <div class="leader-info">
+                            <div class="name">
+                                {leader.member.name}
+                                {#if leader.member.id === $userSession.userId}
+                                    <span class="you-tag">Вы</span>
+                                {/if}
+                            </div>
                         </div>
-                    </div>
-                    <div class="score-wrap">
-                        <div class="score" class:score-gold={i === 0}>
-                            {leader.chore_completion_count}
+                        <div class="score-wrap">
+                            <div class="score" class:score-gold={i === 0}>
+                                {leader.chore_completion_count}
+                            </div>
+                            <div class="score-label">задач</div>
                         </div>
-                        <div class="score-label">задач</div>
-                    </div>
-                </button>
-            {/each}
-        </div>
+                    </button>
+                {/each}
+            </div>
+        {/if}
     </div>
 {/if}
 
@@ -59,18 +69,16 @@
 
         border-radius: 24px;
 
-        background:
-            linear-gradient(
-                180deg,
-                color-mix(in srgb, var(--accent) 10%, var(--surface)),
-                var(--surface)
-            );
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--accent) 10%, var(--surface)),
+            var(--surface)
+        );
 
         box-shadow:
-            0 10px 30px rgba(0,0,0,.08),
-            inset 0 1px rgba(255,255,255,.04);
+            0 10px 30px rgba(0, 0, 0, 0.08),
+            inset 0 1px rgba(255, 255, 255, 0.04);
     }
-
 
     .leader-card::before {
         content: "";
@@ -85,14 +93,12 @@
 
         border-radius: 50%;
 
-        background:
-            color-mix(in srgb, var(--accent) 20%, transparent);
+        background: color-mix(in srgb, var(--accent) 20%, transparent);
 
         filter: blur(20px);
 
         pointer-events: none;
     }
-
 
     /* HEADER */
 
@@ -107,32 +113,28 @@
         margin-bottom: 16px;
     }
 
-
     .lb-title {
         font-size: 13px;
         font-weight: 800;
 
-        letter-spacing: .8px;
+        letter-spacing: 0.8px;
         text-transform: uppercase;
 
         color: var(--text-primary);
     }
-
 
     .lb-subtitle {
         padding: 5px 10px;
 
         border-radius: 999px;
 
-        background:
-            rgba(255,255,255,.06);
+        background: rgba(255, 255, 255, 0.06);
 
         font-size: 11px;
         font-weight: 600;
 
         color: var(--text-muted);
     }
-
 
     /* LIST */
 
@@ -145,7 +147,6 @@
 
         gap: 10px;
     }
-
 
     .leader-row {
         position: relative;
@@ -163,68 +164,50 @@
 
         border-radius: 20px;
 
-        background:
-            rgba(255,255,255,.035);
+        background: rgba(255, 255, 255, 0.035);
 
         transition:
-            transform .18s ease,
-            background .2s ease,
-            box-shadow .2s ease;
+            transform 0.18s ease,
+            background 0.2s ease,
+            box-shadow 0.2s ease;
     }
-
 
     .leader-row:active {
-        transform: scale(.97);
+        transform: scale(0.97);
     }
-
 
     /* CURRENT USER */
 
     .leader-row.is-me {
-        background:
-            color-mix(in srgb, var(--accent) 12%, transparent);
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
 
-        box-shadow:
-            0 0 0 1px
-            color-mix(in srgb, var(--accent) 25%, transparent);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
     }
-
-
 
     /* TOP THREE */
 
     .leader-row.rank-1 {
+        background: linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--accent) 20%, transparent),
+            rgba(255, 255, 255, 0.04)
+        );
 
-        background:
-            linear-gradient(
-                135deg,
-                color-mix(in srgb, var(--accent) 20%, transparent),
-                rgba(255,255,255,.04)
-            );
-
-        box-shadow:
-            0 8px 24px
+        box-shadow: 0 8px 24px
             color-mix(in srgb, var(--accent) 18%, transparent);
     }
 
-
     .leader-row.rank-2 {
-        background:
-            rgba(255,255,255,.055);
+        background: rgba(255, 255, 255, 0.055);
     }
-
 
     .leader-row.rank-3 {
-        background:
-            rgba(255,255,255,.045);
+        background: rgba(255, 255, 255, 0.045);
     }
-
-
 
     /* RANK MEDALS */
 
     .rank {
-
         display: flex;
         align-items: center;
         justify-content: center;
@@ -236,8 +219,7 @@
 
         border-radius: 50%;
 
-        background:
-            rgba(255,255,255,.06);
+        background: rgba(255, 255, 255, 0.06);
 
         font-size: 13px;
         font-weight: 900;
@@ -245,41 +227,25 @@
         color: var(--text-muted);
     }
 
-
     .rank-1 {
-
-        background:
-            linear-gradient(
-                135deg,
-                #ffd76a,
-                #ffb52e
-            );
+        background: linear-gradient(135deg, #ffd76a, #ffb52e);
 
         color: #6b4300;
 
-        box-shadow:
-            0 5px 15px rgba(255,190,50,.35);
+        box-shadow: 0 5px 15px rgba(255, 190, 50, 0.35);
     }
-
 
     .rank-2 {
-        background:
-            rgba(200,200,200,.18);
+        background: rgba(200, 200, 200, 0.18);
 
-        color:
-            var(--text-primary);
+        color: var(--text-primary);
     }
-
 
     .rank-3 {
-        background:
-            rgba(205,130,70,.18);
+        background: rgba(205, 130, 70, 0.18);
 
-        color:
-            #d88c50;
+        color: #d88c50;
     }
-
-
 
     /* USER */
 
@@ -289,82 +255,97 @@
         min-width: 0;
     }
 
-
     .name {
+        display: flex;
+        align-items: center;
 
-        display:flex;
-        align-items:center;
+        gap: 7px;
 
-        gap:7px;
+        font-size: 15px;
 
-        font-size:15px;
+        font-weight: 800;
 
-        font-weight:800;
+        color: var(--text-primary);
 
-        color:var(--text-primary);
-
-        overflow:hidden;
+        overflow: hidden;
     }
-
 
     .you-tag {
+        padding: 3px 8px;
 
-        padding:3px 8px;
+        border-radius: 999px;
 
-        border-radius:999px;
+        background: color-mix(in srgb, var(--accent) 18%, transparent);
 
-        background:
-            color-mix(in srgb,var(--accent) 18%,transparent);
+        color: var(--accent);
 
-        color:var(--accent);
+        font-size: 10px;
 
-        font-size:10px;
-
-        font-weight:700;
+        font-weight: 700;
     }
-
-
 
     /* SCORE */
 
-
     .score-wrap {
+        display: flex;
+        flex-direction: column;
 
-        display:flex;
-        flex-direction:column;
-
-        align-items:flex-end;
-
+        align-items: flex-end;
     }
-
 
     .score {
+        font-size: 22px;
 
-        font-size:22px;
+        line-height: 1;
 
-        line-height:1;
+        font-weight: 900;
 
-        font-weight:900;
-
-        color:var(--text-primary);
+        color: var(--text-primary);
     }
-
 
     .score-gold {
-
-        color:var(--accent);
-
+        color: var(--accent);
     }
 
-
     .score-label {
+        margin-top: 3px;
 
-        margin-top:3px;
+        font-size: 10px;
 
-        font-size:10px;
+        font-weight: 600;
 
-        font-weight:600;
+        color: var(--text-muted);
+    }
 
-        color:var(--text-muted);
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        padding: 24px 16px;
+
+        gap: 6px;
+    }
+
+    .empty-icon {
+        font-size: 36px;
+
+        margin-bottom: 4px;
+
+        filter: grayscale(0.3);
+    }
+
+    .empty-text {
+        font-size: 14px;
+        font-weight: 700;
+
+        color: var(--text-primary);
+    }
+
+    .empty-sub {
+        font-size: 12px;
+        font-weight: 500;
+
+        color: var(--text-muted);
     }
 </style>

@@ -114,16 +114,16 @@
 
         <div class="prog-bar-section">
             <ProgressBar
-                {totalCount}
-                {completedCount}
-                {progressPercentage}
-                value={getFriendlyDate(selectedDate)}
+                percent={progressPercentage}
+                label={getFriendlyDate(selectedDate)}
+                sublabel="{completedCount}/{totalCount} задач"
+                shimmer={true}
             />
         </div>
 
         <ButtonPrimaryGlow
             on:click={() => activeTab.set("createPlannedChoreStepOne")}
-            label={"Добавить задачу"}
+            label={"Запланировать задачу"}
             fullWidth
         />
     </div>
@@ -166,9 +166,7 @@
                             <CardPlannedChore
                                 item={chore}
                                 onToggle={toggleChore}
-                                on:click={() => {
-                                    openDetailScreen(chore);
-                                }}
+                                onClick={() => openDetailScreen(chore)}
                             />
                         {/each}
                     {/if}
@@ -275,6 +273,7 @@
     .prog-bar-section {
         position: relative;
         z-index: 1;
+        padding-bottom: 10px;
     }
 
     .calendar-card :global(button) {

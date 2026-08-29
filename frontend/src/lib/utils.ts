@@ -22,3 +22,22 @@ export function getFriendlyDate(date: Date): string {
     month: "long",
   });
 }
+
+export function getCurrentWeekRange(): string {
+  const now = new Date();
+  const day = now.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diffToMonday);
+
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const fmt = (d: Date) =>
+    d
+      .toLocaleDateString("ru-RU", { day: "numeric", month: "short" })
+      .replace(".", "");
+
+  return `${fmt(monday)} – ${fmt(sunday)}`;
+}

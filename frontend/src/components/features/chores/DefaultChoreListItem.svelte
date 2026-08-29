@@ -1,116 +1,125 @@
 <script lang="ts">
-  import Icon from "@iconify/svelte";
-  import ChoreIcon from "$ui/ChoreIcon.svelte";
+    import Icon from "@iconify/svelte";
+    import ChoreIcon from "$ui/ChoreIcon.svelte";
+    import type { Chore } from "$types/index";
 
-  export let chore;
-  export let onAdd: () => void;
-
-  function handleAdd(event: MouseEvent) {
-    event.stopPropagation();
-    onAdd();
-  }
+    export let chore: Chore;
+    export let onAdd: () => void;
 </script>
 
 <div class="chore-wrapper">
-  <div class="chore-item">
-    <ChoreIcon {chore} size={42} />
+    <div class="chore-item">
+        <ChoreIcon {chore} size={42} />
 
-    <div class="chore-info">
-      <span class="chore-name">{chore.name}</span>
+        <div class="chore-info">
+            <span class="chore-name">{chore.name}</span>
+            {#if chore.description}
+                <span class="chore-desc">{chore.description}</span>
+            {/if}
+        </div>
 
-      {#if chore.description}
-        <span class="chore-desc">{chore.description}</span>
-      {/if}
+        <span class="chore-valuation">🪙 {chore.valuation}</span>
     </div>
 
-    <span class="chore-valuation">
-      🪙 {chore.valuation}
-    </span>
-  </div>
-
-  <button class="add-button" on:click={handleAdd}>
-    <Icon
-      icon="material-symbols:add-rounded"
-      width="24"
-      height="24"
-    />
-  </button>
+    <button
+        class="add-button"
+        on:click|stopPropagation={onAdd}
+        aria-label="Добавить задачу"
+    >
+        <Icon icon="material-symbols:add-rounded" width={24} height={24} />
+    </button>
 </div>
 
 <style>
-  .chore-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+    .chore-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-  .chore-item {
-    flex: 1;
-    min-width: 0;
+    .chore-item {
+        flex: 1;
+        min-width: 0;
 
-    display: flex;
-    align-items: center;
-    gap: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
 
-    padding: 12px 14px;
-    background: var(--bg-card);
-    border-radius: 14px;
-  }
+        padding: 12px 14px;
 
-  .chore-info {
-    flex: 1;
-    min-width: 0;
+        border-radius: 20px;
 
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
+        background: var(--surface);
+        box-shadow:
+            0 1px 0 rgba(0, 0, 0, 0.04),
+            0 4px 12px rgba(0, 0, 0, 0.05);
+    }
 
-  .chore-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
+    .chore-info {
+        flex: 1;
+        min-width: 0;
 
-  .chore-desc {
-    font-size: 12px;
-    color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
 
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+    .chore-name {
+        font-size: 15px;
+        font-weight: 700;
 
-  .chore-valuation {
-    flex-shrink: 0;
+        color: var(--text-primary);
 
-    font-size: 12px;
-    color: var(--text-muted);
-  }
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
-  .add-button {
-    width: 42px;
-    height: 42px;
+    .chore-desc {
+        font-size: 12px;
+        font-weight: 500;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+        color: var(--text-muted);
 
-    border: none;
-    border-radius: 50%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
-    background: var(--accent);
-    color: white;
+    .chore-valuation {
+        flex-shrink: 0;
 
-    cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
 
-    transition:
-      transform 0.15s ease,
-      opacity 0.15s ease;
-  }
+        color: var(--text-muted);
+    }
 
-  .add-button:active {
-    transform: scale(0.9);
-    opacity: 0.7;
-  }
+    .add-button {
+        width: 42px;
+        height: 42px;
+
+        flex-shrink: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border: none;
+        border-radius: 50%;
+
+        background: var(--accent);
+        color: white;
+
+        cursor: pointer;
+
+        transition:
+            transform 0.15s ease,
+            opacity 0.15s ease;
+    }
+
+    .add-button:active {
+        transform: scale(0.9);
+        opacity: 0.7;
+    }
 </style>

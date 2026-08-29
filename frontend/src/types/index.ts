@@ -113,3 +113,13 @@ export interface FamilyLeader {
 export interface WeeklyLeadersResponse {
   leaders: FamilyLeader[];
 }
+
+export interface FamilyEvent {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string; // iconify id, напр. "material-symbols:pool"
+  icon_color: string;
+  icon_bg: string; // css цвет фона
+  date: string; // ISO "2026-08-28"
+}
