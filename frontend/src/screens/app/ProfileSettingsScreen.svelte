@@ -1,18 +1,18 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount } from "svelte";
+    import { createEventDispatcher } from "svelte";
     import { getFamily, getFamilyMembers } from "$api/family";
     import { getProfile, updateProfile } from "$api/me";
     import UserAvatar from "$ui/UserAvatar.svelte";
     import Block from "$ui/block.svelte";
+    import Card from "$ui/Card.svelte";
     import CustButton from "$ui/button.svelte";
     import Icon from "@iconify/svelte";
-    import AvatarConstructor from "$features/settings/AvatarBuilder.svelte";
+    import AvatarBuilder from "$features/settings/AvatarBuilder.svelte";
     import InviteModal from "$screens/modal/InviteModal.svelte";
     import LangModal from "$screens/modal/LangModal.svelte";
     import ThemeModal from "$screens/modal/ThemeModal.svelte";
-    import { showDays, theme, language, openProfile } from "$lib/settings.js";
-    import { userSession } from "$api/client";
-    import { clearTokens } from "$api/client";
+    import { theme, language, openProfile } from "$lib/settings.js";
+    import { userSession, clearTokens } from "$api/client";
     import { logoutFromFamily } from "$api/family";
     import FamilyMembersSkeleton from "$skeletons/FamilyMembersSkeleton.svelte";
     import ProfileSkeleton from "$skeletons/ProfileSkeleton.svelte";
@@ -20,52 +20,34 @@
     import { activeTab } from "$lib/navigation";
 
     const dispatch = createEventDispatcher();
-    // ─── STATE MACHINE ─────────────────────────────
-    let loading = true;
-    let error = false;
 
-    // ─── MODALS STATE ───────────────────────────────
-    let choreModalOpen = false;
+    // ─── MODALS ────────────────────────────────────
     let inviteModalOpen = false;
-    let profileModalOpen = false;
     let languageModalOpen = false;
     let themeModalOpen = false;
 
-    // ─── EDIT STATE ───────────────────────────────
-
+    // ─── EDIT ──────────────────────────────────────
     let isEditing = false;
-
     let editName = "";
     let editSurname = "";
-    let editAvatar = {
-        icon: "",
-        icon_color: "",
-        icon_bg: "",
-    };
+    let editAvatar = { icon: "", icon_color: "", icon_bg: "" };
 
     const appVersion = "1.0.0";
 
-    // ─── LOAD DATA ────────────────────────────────
-
+    // ─── DATA ──────────────────────────────────────
     const profile = swr("profile", getProfile);
     const family = swr("family", getFamily);
     const members = swr("family-members", getFamilyMembers);
 
     $: meUser = $profile.data;
-    $: familyProfile = $family.data;
-    $: familyMembers = $members.data ?? [];
-
+    $: familyMembers = $members.data?.members ?? [];
     $: profileLoading = $profile.loading;
     $: familyLoading = $family.loading || $members.loading;
+    $: fullName = meUser ? `${meUser.name} ${meUser.surname}`.trim() : "";
 
-    $: profileError = $profile.error;
-    $: familyError = $family.error || $members.error;
-
-    // ─── EDIT LOGIC ───────────────────────────────
-
+    // ─── EDIT LOGIC ────────────────────────────────
     function openEdit() {
         if (!meUser) return;
-
         editName = meUser.name;
         editSurname = meUser.surname;
         editAvatar = {
@@ -77,130 +59,87 @@
     }
 
     function cancelEdit() {
-        if (!meUser) return;
-
-        editName = meUser.name;
         isEditing = false;
     }
 
     async function saveEdit() {
         if (!meUser) return;
-
-        console.log(editAvatar.icon);
-        console.log(editAvatar.icon_color);
-        console.log(editAvatar.icon_bg);
-
         meUser = await updateProfile({
             name: editName,
             surname: editSurname,
-            icon: editAvatar.icon,
-            icon_color: editAvatar.icon_color,
-            icon_bg: editAvatar.icon_bg,
+            ...editAvatar,
         });
-
         isEditing = false;
     }
 
     async function handleLeaveFamily() {
-        const confirmed = confirm(
-            "Вы действительно хотите выйти из семейного круга?",
-        );
-
-        if (!confirmed) return;
-
+        if (!confirm("Вы действительно хотите выйти из семейного круга?")) return;
         try {
             await logoutFromFamily();
-
-            // сообщаем родителю, что семья покинута
             dispatch("family-left");
         } catch (e) {
-            console.error("Ошибка выхода из семьи:", e);
+            console.error(e);
         }
     }
 
     function handleLogout() {
-        const confirmed = confirm("Вы действительно хотите выйти из аккаунта?");
-
-        if (!confirmed) return;
-
+        if (!confirm("Вы действительно хотите выйти из аккаунта?")) return;
         clearTokens();
-
-        // можно отправить событие наверх
         dispatch("logout");
     }
-
-    // ─── DERIVED ───────────────────────────────────
-
-    $: fullName = meUser ? `${meUser.name} ${meUser.surname}` : "";
 </script>
 
 <div class="screen">
+
+    <!-- ПРОФИЛЬ -->
     {#if profileLoading}
-        <Block>
+        <Card glowDirection="top-right">
             <ProfileSkeleton />
-        </Block>
+        </Card>
+    {:else if isEditing}
+        <Card glowDirection="top-left">
+            <div class="edit-avatar-wrap">
+                <AvatarBuilder
+                    initialIcon={editAvatar.icon}
+                    initialIconColor={editAvatar.icon_color}
+                    initialBg={editAvatar.icon_bg}
+                    onchange={(v) => (editAvatar = v)}
+                    allowIconColor={false}
+                    iconCategories={["Питомцы"]}
+                />
+            </div>
+            <div class="edit-fields">
+                <div class="field">
+                    <label class="field-label">Имя</label>
+                    <input class="field-input" bind:value={editName} />
+                </div>
+                <div class="field">
+                    <label class="field-label">Фамилия</label>
+                    <input class="field-input" bind:value={editSurname} />
+                </div>
+            </div>
+            <div class="edit-actions">
+                <button class="btn-cancel" onclick={cancelEdit}>Отмена</button>
+                <button class="btn-save" onclick={saveEdit}>Сохранить</button>
+            </div>
+        </Card>
     {:else}
-        {#if isEditing}
-            <Block padding={10}>
-                <div class="edit-avatar-wrap">
-                    <AvatarConstructor
-                        initialIcon={editAvatar.icon}
-                        initialIconColor={editAvatar.icon_color}
-                        initialBg={editAvatar.icon_bg}
-                        onchange={(e) => {
-                            const { icon, icon_color, icon_bg } = e; // не e.detail
-                            editAvatar = { icon, icon_color, icon_bg };
-                        }}
-                        on:cancel={() => (isEditing = false)}
-                    />
+        <Card glowDirection="top-right">
+            <div class="profile-header">
+                <div class="avatar-wrap">
+                    <UserAvatar user={meUser} size={100} />
+                    <button class="edit-icon-btn" onclick={openEdit}>
+                        <Icon icon="material-symbols:edit-square" width={18} height={18} color="white" />
+                    </button>
                 </div>
-
-                <div class="edit-fields">
-                    <div class="field">
-                        <label class="field-label">Имя</label>
-                        <input class="field-input" bind:value={editName} />
-                    </div>
-
-                    <div class="field">
-                        <label class="field-label">Фамилия</label>
-                        <input class="field-input" bind:value={editSurname} />
-                    </div>
-                </div>
-
-                <div class="edit-actions">
-                    <button class="btn-cancel" on:click={cancelEdit}
-                        >Отмена</button
-                    >
-                    <button class="btn-save" on:click={saveEdit}
-                        >Сохранить</button
-                    >
-                </div>
-            </Block>
-        {:else}
-            <Block padding={10}>
-                <div class="profile-header">
-                    <div class="avatar-wrap">
-                        <UserAvatar user={meUser} size={100} />
-                        <button class="edit-icon-btn" on:click={openEdit}>
-                            <Icon
-                                icon="material-symbols:edit-square"
-                                width="18"
-                                height="18"
-                                color="white"
-                            />
-                        </button>
-                    </div>
-                </div>
-
                 <div class="profile-info">
                     <div class="profile-name">{fullName}</div>
                 </div>
-            </Block>
-        {/if}
+            </div>
+        </Card>
     {/if}
 
-    <!-- ───────── FAMILY ───────── -->
-
+    <!-- УЧАСТНИКИ СЕМЬИ -->
     <div class="section-label">Участники семейного круга</div>
     {#if familyLoading}
         <Block>
@@ -208,13 +147,9 @@
         </Block>
     {:else}
         <Block>
-            {#each familyMembers?.members ?? [] as member (member.id)}
-                <div
-                    class="row clickable"
-                    on:click={() => openProfile(member.id)}
-                >
+            {#each familyMembers as member (member.id)}
+                <div class="row clickable" onclick={() => openProfile(member.id)}>
                     <UserAvatar user={member} size={30} />
-
                     <div class="row-text">
                         <div class="row-title">
                             {member.name}
@@ -223,114 +158,50 @@
                             {/if}
                         </div>
                     </div>
-
                     <span class="arrow">›</span>
                 </div>
             {/each}
 
-            <div
-                class="row clickable invite-row"
-                on:click={() => (inviteModalOpen = true)}
-            >
+            <div class="row clickable invite-row" onclick={() => (inviteModalOpen = true)}>
                 <div class="invite-icon">+</div>
-
                 <div class="row-text">
-                    <div class="row-title invite-title">
-                        Пригласить участника
-                    </div>
+                    <div class="row-title invite-title">Пригласить участника</div>
                 </div>
-
                 <span class="arrow invite-arrow">›</span>
             </div>
         </Block>
     {/if}
 
-    <!-- ───────── FAMILY SETTINGS ───────── -->
+    <!-- НАСТРОЙКИ СЕМЬИ -->
     <div class="section-label">Настройки семейного круга</div>
-
     <Block>
-        <button
-            class="btn-row clickable"
-            on:click={() => activeTab.set("choreListScreen")}
-        >
+        <button class="btn-row" onclick={() => activeTab.set("choreListScreen")}>
             <div class="row-icon">
-                <Icon
-                    icon="material-symbols:format-list-bulleted-rounded"
-                    width="24"
-                    height="24"
-                />
+                <Icon icon="material-symbols:format-list-bulleted-rounded" width={24} height={24} />
             </div>
-
             <div class="row-text">
                 <div class="row-title">Домашние дела</div>
             </div>
             <span class="arrow">›</span>
         </button>
-
-        {#if $userSession.isFamilyAdmin}
-            <button class="btn-row clickable">
-                <div class="row-icon">
-                    <Icon
-                        icon="material-symbols:admin-panel-settings-rounded"
-                        width="24"
-                        height="24"
-                    />
-                </div>
-
-                <div class="row-text">
-                    <div class="row-title">Разрешения участников</div>
-                </div>
-                <span class="arrow">›</span>
-            </button>
-
-            <button class="btn-row clickable">
-                <div class="row-icon">
-                    <Icon
-                        icon="material-symbols:edit-rounded"
-                        width="24"
-                        height="24"
-                    />
-                </div>
-
-                <div class="row-text">
-                    <div class="row-title">Название и иконка</div>
-                </div>
-                <span class="arrow">›</span>
-            </button>
-        {/if}
     </Block>
 
-    <!-- ───────── SETTINGS ───────── -->
+    <!-- НАСТРОЙКИ -->
     <div class="section-label">Настройки</div>
-
     <Block>
-        <button
-            class="btn-row clickable"
-            on:click={() => {
-                languageModalOpen = true;
-            }}
-        >
+        <button class="btn-row" onclick={() => (languageModalOpen = true)}>
             <div class="row-icon">
-                <Icon icon="material-symbols:language" width="24" height="24" />
+                <Icon icon="material-symbols:language" width={24} height={24} />
             </div>
-
             <div class="row-text"><div class="row-title">Язык</div></div>
-            <div class="row-right">
-                {$language === "ru" ? "Русский" : "English"}
-            </div>
+            <div class="row-right">{$language === "ru" ? "Русский" : "English"}</div>
             <span class="arrow">›</span>
         </button>
 
-        <button
-            class="btn-row clickable"
-            on:click={() => {
-                themeModalOpen = true;
-            }}
-        >
+        <button class="btn-row" onclick={() => (themeModalOpen = true)}>
             <div class="row-icon">
-                <Icon icon="material-symbols:palette" width="24" height="24" />
+                <Icon icon="material-symbols:palette" width={24} height={24} />
             </div>
-
             <div class="row-text"><div class="row-title">Тема</div></div>
             <div class="row-right">{$theme}</div>
             <span class="arrow">›</span>
@@ -338,98 +209,40 @@
 
         <div class="row">
             <div class="row-icon">
-                <Icon
-                    icon="material-symbols:calendar-month-rounded"
-                    width="24"
-                    height="24"
-                />
+                <Icon icon="material-symbols:info-rounded" width={24} height={24} />
             </div>
-
-            <div class="row-text">
-                <div class="row-title">Дни недели на тепловой карте</div>
-            </div>
-            <label class="tog">
-                <input type="checkbox" bind:checked={$showDays} />
-                <span class="tog-track"><span class="tog-thumb"></span></span>
-            </label>
-        </div>
-
-        <div class="row">
-            <div class="row-icon">
-                <svg
-                    width="18"
-                    height="18"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 6v6l4 2" />
-                </svg>
-            </div>
-
             <div class="row-text"><div class="row-title">Версия</div></div>
             <div class="row-right">{appVersion}</div>
         </div>
     </Block>
 
-    <!-- ───────── ACCOUNT ───────── -->
-
+    <!-- АККАУНТ -->
     <div class="section-label">Аккаунт</div>
-
     <Block padding={10}>
         <div class="danger-rows">
-            <CustButton
-                label="Выйти из семейного круга"
-                variant="danger"
-                onClick={handleLeaveFamily}
-            />
-
-            <CustButton
-                label="Выйти из аккаунта"
-                variant="danger"
-                onClick={handleLogout}
-            />
+            <CustButton label="Выйти из семейного круга" variant="danger" onClick={handleLeaveFamily} />
+            <CustButton label="Выйти из аккаунта" variant="danger" onClick={handleLogout} />
         </div>
     </Block>
 
-    {#if inviteModalOpen}
-        <InviteModal on:close={() => (inviteModalOpen = false)} />
-    {:else if languageModalOpen}
-        <LangModal on:close={() => (languageModalOpen = false)} />
-    {:else if themeModalOpen}
-        <ThemeModal on:close={() => (themeModalOpen = false)} />
-    {/if}
 </div>
 
+{#if inviteModalOpen}
+    <InviteModal on:close={() => (inviteModalOpen = false)} />
+{:else if languageModalOpen}
+    <LangModal on:close={() => (languageModalOpen = false)} />
+{:else if themeModalOpen}
+    <ThemeModal on:close={() => (themeModalOpen = false)} />
+{/if}
+
 <style>
-    .btn-row {
-        width: 100%;
-        display: flex;
-        align-items: center;
-
-        background: transparent;
-        border: none;
-
-        text-align: left;
-        cursor: pointer;
-        gap: 12px;
-        padding: 12px 14px;
-    }
-
-    .btn-row:focus {
-        outline: none;
-    }
-
-    .btn-row:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
-    }
     .screen {
-        background: var(--bg, #2a2318);
+        background: var(--bg);
         min-height: 100vh;
         padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
         font-family: system-ui, sans-serif;
     }
 
@@ -438,19 +251,17 @@
         font-weight: 600;
         letter-spacing: 0.8px;
         text-transform: uppercase;
-        color: var(--text-muted, rgba(255, 255, 255, 0.35));
-        margin: 16px 16px 6px;
+        color: var(--text-muted);
+        margin: 12px 16px 4px;
     }
 
-    /* ── Profile card ────────────────────────────── */
+    /* PROFILE */
 
     .profile-header {
-        position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        margin-bottom: 14px;
+        gap: 12px;
     }
 
     .avatar-wrap {
@@ -465,20 +276,17 @@
         width: 30px;
         height: 30px;
         border-radius: 9px;
-        background: var(--accent, #e8a87c);
-        /* border: 2.5px solid var(--bg-card, #332a1e); */
+        background: var(--accent);
         border: none;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         padding: 0;
-        transition: transform 0.2s;
+        transition: transform 0.2s ease;
     }
 
-    .edit-icon-btn:active {
-        transform: scale(0.9);
-    }
+    .edit-icon-btn:active { transform: scale(0.9); }
 
     .profile-info {
         display: flex;
@@ -490,112 +298,10 @@
     .profile-name {
         font-size: 22px;
         font-weight: 800;
-        color: var(--text-primary, #fff);
-        margin-bottom: 2px;
+        color: var(--text-primary);
     }
 
-    /* ── Row ────────────────────────────── */
-    .row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 14px;
-    }
-
-    .clickable {
-        cursor: pointer;
-        transition: opacity 0.15s;
-    }
-
-    .clickable:active {
-        opacity: 0.65;
-    }
-
-    .row-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
-        background: var(--bg, #2a2318);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--accent, #e8a87c);
-        flex-shrink: 0;
-    }
-
-    .row-icon.muted {
-        color: rgba(255, 255, 255, 0.4);
-    }
-
-    .row-text {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .row-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--text-primary, #fff);
-    }
-
-    .row-sub {
-        font-size: 12px;
-        color: var(--text-muted, rgba(255, 255, 255, 0.4));
-        margin-top: 1px;
-    }
-
-    .row-right {
-        font-size: 13px;
-        color: var(--text-muted, rgba(255, 255, 255, 0.4));
-        flex-shrink: 0;
-    }
-
-    .arrow {
-        font-size: 18px;
-        color: rgba(255, 255, 255, 0.2);
-        flex-shrink: 0;
-    }
-
-    .you-badge {
-        color: rgba(255, 255, 255, 0.35);
-        font-weight: 400;
-    }
-
-    /* ── Invite row ────────────────────────────── */
-    .invite-row {
-        /* background: rgba(232, 168, 124, 0.08); */
-        /* border-radius: 22px; */
-    }
-
-    .invite-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
-        background: rgba(232, 168, 124, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        font-weight: 600;
-        color: var(--accent, #e8a87c);
-        flex-shrink: 0;
-    }
-
-    .invite-title {
-        color: var(--accent, #e8a87c) !important;
-    }
-
-    .invite-arrow {
-        color: var(--accent, #e8a87c) !important;
-        opacity: 0.6;
-    }
-
-    /* ── Divider ────────────────────────────── */
-    .divider {
-        height: 0.5px;
-        background: rgba(255, 255, 255, 0.06);
-        margin: 0 14px;
-    }
+    /* EDIT */
 
     .edit-avatar-wrap {
         display: flex;
@@ -608,7 +314,6 @@
         display: flex;
         flex-direction: column;
         gap: 14px;
-        padding: 0 4px;
     }
 
     .field {
@@ -619,119 +324,159 @@
 
     .field-label {
         font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.6px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
         text-transform: uppercase;
-        color: var(--text-muted, rgba(255, 255, 255, 0.35));
+        color: var(--text-muted);
     }
 
     .field-input {
-        background: var(--bg, #2a2318);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
+        background: var(--surface-alt);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
         padding: 11px 14px;
-        color: var(--text-primary, #fff);
+        color: var(--text-primary);
         font-size: 15px;
         font-family: inherit;
         outline: none;
         width: 100%;
         box-sizing: border-box;
-        transition: border-color 0.15s;
+        transition: border-color 0.15s ease;
     }
 
-    .field-input:focus {
-        border-color: var(--accent, #e8a87c);
-    }
-
-    .field-input::placeholder {
-        color: rgba(255, 255, 255, 0.25);
-    }
+    .field-input:focus { border-color: var(--accent); }
 
     .edit-actions {
         display: flex;
         gap: 10px;
-        margin-top: 20px;
+        margin-top: 8px;
     }
 
     .btn-cancel {
         flex: 1;
         padding: 13px;
-        background: var(--bg, #2a2318);
+        background: var(--surface-alt);
         border: none;
-        border-radius: 14px;
-        color: rgba(255, 255, 255, 0.5);
+        border-radius: 20px;
+        color: var(--text-muted);
         font-size: 15px;
         font-weight: 600;
         font-family: inherit;
         cursor: pointer;
-        transition: opacity 0.15s;
+        transition: opacity 0.15s ease;
     }
 
-    .btn-cancel:active {
-        opacity: 0.7;
-    }
+    .btn-cancel:active { opacity: 0.7; }
 
     .btn-save {
         flex: 2;
         padding: 13px;
-        background: var(--accent, #e8a87c);
+        background: var(--accent);
         border: none;
-        border-radius: 14px;
+        border-radius: 20px;
         color: #2a1800;
         font-size: 15px;
         font-weight: 700;
         font-family: inherit;
         cursor: pointer;
-        transition: opacity 0.15s;
+        transition: opacity 0.15s ease;
     }
 
-    .btn-save:active {
-        opacity: 0.8;
-    }
-    /* Toggle */
-    .tog {
-        position: relative;
-        display: inline-flex;
+    .btn-save:active { opacity: 0.8; }
+
+    /* ROWS */
+
+    .btn-row {
+        width: 100%;
+        display: flex;
         align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        background: transparent;
+        border: none;
+        text-align: left;
         cursor: pointer;
+    }
+
+    .btn-row:focus { outline: none; }
+    .btn-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+    }
+
+    .clickable {
+        cursor: pointer;
+        transition: opacity 0.15s ease;
+    }
+
+    .clickable:active { opacity: 0.65; }
+
+    .row-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: var(--surface-alt);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent);
         flex-shrink: 0;
     }
-    .tog input {
-        position: absolute;
-        opacity: 0;
-        width: 0;
-        height: 0;
+
+    .row-text {
+        flex: 1;
+        min-width: 0;
     }
-    .tog-track {
-        width: 42px;
-        height: 24px;
-        background: var(--accent-container);
-        border-radius: 12px;
-        position: relative;
-        transition: background 0.22s;
-        display: block;
+
+    .row-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
     }
-    .tog input:checked + .tog-track {
-        background: var(--accent);
+
+    .row-right {
+        font-size: 13px;
+        color: var(--text-muted);
+        flex-shrink: 0;
     }
-    .tog-thumb {
-        position: absolute;
-        top: 3px;
-        left: 3px;
-        width: 18px;
-        height: 18px;
-        background: #fff;
-        border-radius: 50%;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-        transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-        display: block;
+
+    .arrow {
+        font-size: 18px;
+        color: var(--text-muted);
+        opacity: 0.4;
+        flex-shrink: 0;
     }
-    .tog input:checked + .tog-track .tog-thumb {
-        transform: translateX(18px);
+
+    .you-badge {
+        color: var(--text-muted);
+        font-weight: 400;
     }
-    .danger-title {
-        color: rgb(244, 60, 60);
+
+    /* INVITE */
+
+    .invite-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: color-mix(in srgb, var(--accent) 15%, transparent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--accent);
+        flex-shrink: 0;
     }
+
+    .invite-title { color: var(--accent) !important; }
+    .invite-arrow { color: var(--accent) !important; opacity: 0.6; }
+
+    /* DANGER */
+
     .danger-rows {
         display: flex;
         flex-direction: column;

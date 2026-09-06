@@ -182,28 +182,68 @@
     ];
 
     const ALL_BG_OPTIONS = [
+        // ── Градиенты тёплые ──
         "linear-gradient(135deg, #F97316 0%, #FB7185 100%)",
         "linear-gradient(135deg, #F59E0B 0%, #F97316 100%)",
-        "linear-gradient(135deg, #FB7185 0%, #F43F5E 100%)",
         "linear-gradient(135deg, #FBBF24 0%, #FB923C 100%)",
+        "linear-gradient(135deg, #FB7185 0%, #F43F5E 100%)",
         "linear-gradient(135deg, #FCA5A5 0%, #F59E0B 100%)",
+        "linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%)",
+        "linear-gradient(135deg, #FDA4AF 0%, #F43F5E 100%)",
+        "linear-gradient(135deg, #FF8C42 0%, #FF3C38 100%)",
+        "linear-gradient(135deg, #FDBA74 0%, #FB7185 100%)",
+
+        // ── Градиенты холодные ──
         "linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%)",
         "linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)",
         "linear-gradient(135deg, #A5B4FC 0%, #6366F1 100%)",
         "linear-gradient(135deg, #67E8F9 0%, #22D3EE 100%)",
         "linear-gradient(135deg, #34D399 0%, #60A5FA 100%)",
+        "linear-gradient(135deg, #6EE7B7 0%, #3B82F6 100%)",
+        "linear-gradient(135deg, #C4B5FD 0%, #8B5CF6 100%)",
+        "linear-gradient(135deg, #A5F3FC 0%, #6366F1 100%)",
+        "linear-gradient(135deg, #5EEAD4 0%, #0EA5E9 100%)",
+
+        // ── Градиенты зелёные ──
+        "linear-gradient(135deg, #86EFAC 0%, #22C55E 100%)",
+        "linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)",
+        "linear-gradient(135deg, #BBF7D0 0%, #34D399 100%)",
+        "linear-gradient(135deg, #A7F3D0 0%, #059669 100%)",
+
+        // ── Градиенты тёмные ──
         "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)",
         "linear-gradient(135deg, #111827 0%, #374151 100%)",
         "linear-gradient(135deg, #1C1917 0%, #292524 100%)",
         "linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)",
+        "linear-gradient(135deg, #134E4A 0%, #0F172A 100%)",
+        "linear-gradient(135deg, #3B0764 0%, #1E1B4B 100%)",
+
+        // ── Базовые цвета ──
         "#F59E0B",
-        "#FB7185",
-        "#60A5FA",
-        "#34D399",
-        "#A78BFA",
-        "#F472B6",
-        "#38BDF8",
         "#F97316",
+        "#EF4444",
+        "#FB7185",
+        "#F472B6",
+        "#A78BFA",
+        "#8B5CF6",
+        "#6366F1",
+        "#60A5FA",
+        "#38BDF8",
+        "#22D3EE",
+        "#34D399",
+        "#4ADE80",
+        "#22C55E",
+        "#84CC16",
+        "#FACC15",
+        "#94A3B8",
+        "#64748B",
+        "#1E293B",
+        "#0F172A",
+        "#FFFFFF",
+        "#F8FAFC",
+        "#F1F5F9",
+        "#FEF9EE",
+        "#FFF7ED",
     ];
 
     const TAB_LABELS = {
@@ -541,7 +581,7 @@
     .bg-cell {
         aspect-ratio: 1;
         border-radius: 12px;
-        border: 2px solid transparent;
+        border: 1.5px solid rgba(0, 0, 0, 0.08);
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -549,6 +589,7 @@
         padding: 0;
         transition: transform 0.15s;
         min-width: 0;
+        outline: none;
     }
 
     .bg-cell:active {

@@ -3,7 +3,7 @@
     import { activeTab, onboardingParams } from "$lib/navigation";
     import { createFamily } from "$api/family";
 
-    import AvatarConstructor from "$features/settings/AvatarConstructor.svelte";
+    import AvatarConstructor from "$features/settings/AvatarBuilder.svelte";
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
     import BackButton from "$ui/backbtn.svelte";
     import Icon from "@iconify/svelte";

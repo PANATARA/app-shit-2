@@ -18,7 +18,6 @@
     import StepTwo from "./screens/tabs/PlannedChoreCreate/StepTwo.svelte";
     import PlannedChoreDetail from "$screens/tabs/PlannedChoreDetail.svelte";
     import ChoreListScreen from "$screens/tabs/FamilyChores/ChoreListScreen.svelte";
-    import ChoreDetailScreen from "$screens/tabs/FamilyChores/ChoreDetailScreen.svelte";
     import ChoreEditScreen from "$screens/tabs/FamilyChores/ChoreEditScreen.svelte";
     import ChoreTemplatesScreen from "$screens/tabs/FamilyChores/ChoreTemplatesScreen.svelte";
 
@@ -27,7 +26,8 @@
     import OnboardingCreateStep1Screen from "$screens/onBoarding/OnboardingCreateStep1Screen.svelte";
     import OnboardingCreateStep2Screen from "$screens/onBoarding/OnboardingCreateStep2Screen.svelte";
     import OnboardingJoinScreen from "$screens/onBoarding/OnboardingJoinScreen.svelte";
-    import EventCreateScreen from "./screens/tabs/EventCreate.svelte";
+    import EventCreateScreen from "$screens/tabs/EventCreate.svelte";
+    import ChoreCreateScreen from "$screens/tabs/FamilyChores/ChoreCreateScreen.svelte";
 
     let isAuthed = false;
     let isInFamily = false;
@@ -124,10 +124,10 @@
                 <PlannedChoreDetail />
             {:else if $activeTab === "choreListScreen"}
                 <ChoreListScreen />
-            {:else if $activeTab === "choreDetailScreen"}
-                <ChoreDetailScreen />
             {:else if $activeTab === "choreEditScreen"}
                 <ChoreEditScreen />
+            {:else if $activeTab === "choreCreateScreen"}
+                <ChoreCreateScreen />
             {:else if $activeTab === "choreTemplatesScreen"}
                 <ChoreTemplatesScreen />
             {:else if $activeTab === "welcomeScreen"}
@@ -211,77 +211,8 @@
 </main>
 
 <style>
-    /* ── CSS переменные: тёмная тема (default) ── */
-    :global(body.warm) {
-        /* Backgrounds */
-        --bg: #2b2622;
-        --surface: #35302b;
-        --surface-alt: #413a34;
-        --bg-bar: rgba(53, 48, 43);
-
-        /* Text */
-        --text: #f2ebe3;
-        --text-primary: #f2ebe3;
-        --text-secondary: #c0b3a6;
-        --text-muted: #8f8378;
-        --text-nav: #c0b3a6;
-
-        /* Brand */
-        --accent: #d58a72;
-        --accent-soft: #5a4037;
-
-        /* Success */
-        --success: #95b5a0;
-        --success-soft: #39473d;
-
-        /* UI */
-        --border: #494039;
-        --divider: #433b35;
-
-        /* Navigation */
-        --bg-nav: #35302b;
-        --nav-active-bg: rgba(213, 138, 114);
-        --nav-active-fg: #f2ebe3;
-        --shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.25);
-
-        /* Effects */
-        --shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-        --blur-effect: none;
-    }
-
-    /* ─── OCEAN ──────────────────────────────────────────────── */
-    :global(body.ocean) {
-        --bg: #0d1b2a;
-        --surface: #112236;
-        --surface-alt: #162d45;
-        --bg-bar: rgba(17, 34, 54, 0.9);
-
-        --text: #e0f0ff;
-        --text-primary: #e0f0ff;
-        --text-secondary: #93c5e8;
-        --text-muted: #5a8aaa;
-        --text-nav: #93c5e8;
-
-        --accent: #38bdf8;
-        --accent-soft: #0c2a3d;
-
-        --success: #34d399;
-        --success-soft: #0d2e24;
-
-        --border: #1a3a55;
-        --divider: #152f45;
-
-        --bg-nav: #112236;
-        --nav-active-bg: rgba(56, 189, 248, 0.2);
-        --nav-active-fg: #e0f0ff;
-        --shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.4);
-
-        --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        --blur-effect: none;
-    }
-
-    /* ─── LAVENDER ───────────────────────────────────────────── */
-    :global(body.lavender) {
+    /* ─── sunset ───────────────────────────────────────────── */
+    :global(body.sunset) {
         --bg: #fdf6ee;
         --surface: #fffcf8;
         --surface-alt: #fdeee4;
@@ -302,37 +233,6 @@
         --nav-active-fg: #2c1a0e;
         --shadow-nav: 0 10px 30px rgba(44, 26, 14, 0.08);
         --shadow: 0 8px 24px rgba(44, 26, 14, 0.08);
-        --blur-effect: none;
-    }
-
-    /* ─── MIDNIGHT ───────────────────────────────────────────── */
-    :global(body.midnight) {
-        --bg: #070b14;
-        --surface: #0d1526;
-        --surface-alt: #111d35;
-        --bg-bar: rgba(13, 21, 38, 0.9);
-
-        --text: #e8eeff;
-        --text-primary: #e8eeff;
-        --text-secondary: #8fa8d4;
-        --text-muted: #4a6090;
-        --text-nav: #8fa8d4;
-
-        --accent: #6366f1;
-        --accent-soft: #0f1435;
-
-        --success: #22d3ee;
-        --success-soft: #062030;
-
-        --border: #1a2a4a;
-        --divider: #111f3a;
-
-        --bg-nav: #0d1526;
-        --nav-active-bg: rgba(99, 102, 241, 0.2);
-        --nav-active-fg: #e8eeff;
-        --shadow-nav: 0 10px 30px rgba(0, 0, 0, 0.5);
-
-        --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
         --blur-effect: none;
     }
 
@@ -509,7 +409,10 @@
         font-weight: 600;
         color: var(--text-nav);
         letter-spacing: 0.2px;
-        transition: color 0.2s ease;
+        transition:
+            color 0.2s ease,
+            transform 0.2s ease,
+            font-weight 0.2s ease;
         line-height: 1;
     }
 
@@ -530,6 +433,10 @@
     .nav-item.active .nav-label {
         color: var(--accent);
         font-weight: 700;
+        transform: scale(1.05);
+        transition:
+            transform 0.2s ease,
+            color 0.2s ease;
     }
 
     @media (hover: hover) {

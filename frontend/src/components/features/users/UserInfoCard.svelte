@@ -3,6 +3,7 @@
     import UserAvatar from "$ui/UserAvatar.svelte";
     import UserProfileSkeleton from "$skeletons/CompactUserProfile.svelte";
     import ProgressBar from "$ui/ProgressBar.svelte";
+    import Card from "$ui/Card.svelte";
 
     export let user: UserProfileStats;
     export let onNotificationClick = () => {};
@@ -13,9 +14,8 @@
 {#if loading}
     <UserProfileSkeleton />
 {:else}
-    <div class="container">
+    <Card glowDirection="top-right">
         <div class="top-row">
-            <!-- User -->
             <div class="user">
                 <UserAvatar {user} size={52} />
                 <div class="user-info">
@@ -25,7 +25,6 @@
             </div>
         </div>
 
-        <!-- XP Bar -->
         <div class="xp-row">
             <ProgressBar
                 percent={user.progress_percent}
@@ -34,53 +33,10 @@
                 shimmer={true}
             />
         </div>
-    </div>
+    </Card>
 {/if}
 
 <style>
-    .container {
-        position: relative;
-        overflow: hidden;
-
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-
-        padding: 18px;
-
-        border-radius: 24px;
-
-        background: linear-gradient(
-            180deg,
-            color-mix(in srgb, var(--accent) 10%, var(--surface)),
-            var(--surface)
-        );
-
-        box-shadow:
-            0 10px 30px rgba(0, 0, 0, 0.08),
-            inset 0 1px rgba(255, 255, 255, 0.04);
-    }
-
-    .container::before {
-        content: "";
-
-        position: absolute;
-
-        right: -70px;
-        top: -70px;
-
-        width: 180px;
-        height: 180px;
-
-        border-radius: 50%;
-
-        background: color-mix(in srgb, var(--accent) 18%, transparent);
-
-        filter: blur(16px);
-
-        pointer-events: none;
-    }
-
     .top-row {
         display: flex;
         justify-content: space-between;

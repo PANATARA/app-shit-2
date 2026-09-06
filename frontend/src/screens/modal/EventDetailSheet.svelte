@@ -12,9 +12,7 @@
     let rescheduleMode = false;
     let newDate = event.date;
 
-    function close() {
-        dispatch("close");
-    }
+    function close() { dispatch("close"); }
 
     function handleDelete() {
         dispatch("delete", { id: event.id });
@@ -47,16 +45,18 @@
         if (diff === 0) return "сегодня";
         if (diff === 1) return "завтра";
         if (diff === 2) return "послезавтра";
-        if (diff > 0) return `через ${diff} дней`;
+        if (diff > 0)   return `через ${diff} дней`;
         return "уже прошло";
     }
 </script>
 
 <BottomSheet title="" on:close={close} flyY={999} flyDuration={320}>
     <div class="content">
+
+        <!-- HERO -->
         <div class="event-hero">
             <div class="hero-icon" style="background: {event.icon_bg}">
-                <Icon icon={event.icon} width={36} color={event.icon_color} />
+                <Icon icon={event.icon} width={32} color={event.icon_color} />
             </div>
             <div class="hero-info">
                 <span class="hero-name">{event.name}</span>
@@ -64,13 +64,10 @@
             </div>
         </div>
 
+        <!-- INFO -->
         <div class="info-card">
             <div class="info-row">
-                <Icon
-                    icon="material-symbols:calendar-clock-rounded"
-                    width={18}
-                    color="var(--accent)"
-                />
+                <Icon icon="material-symbols:calendar-clock-rounded" width={18} color="var(--accent)" />
                 <span class="info-label">Когда</span>
                 <span class="info-value">{getDaysLeft(event.date)}</span>
             </div>
@@ -78,11 +75,7 @@
                 <div class="divider" />
                 <div class="info-row info-row--col">
                     <div class="info-row-head">
-                        <Icon
-                            icon="material-symbols:notes-rounded"
-                            width={18}
-                            color="var(--accent)"
-                        />
+                        <Icon icon="material-symbols:notes-rounded" width={18} color="var(--accent)" />
                         <span class="info-label">Описание</span>
                     </div>
                     <span class="info-desc">{event.description}</span>
@@ -90,40 +83,27 @@
             {/if}
         </div>
 
+        <!-- ACTIONS -->
         {#if rescheduleMode}
             <div class="reschedule-card">
                 <span class="reschedule-label">Новая дата</span>
                 <input class="field-input" type="date" bind:value={newDate} />
                 <div class="reschedule-actions">
-                    <CustButton
-                        label="Сохранить"
-                        variant="primary"
-                        onClick={handleReschedule}
-                    />
+                    <CustButton label="Сохранить" variant="primary" onClick={handleReschedule} />
                     <CustButton
                         label="Отмена"
                         variant="secondary"
-                        onClick={() => {
-                            rescheduleMode = false;
-                            newDate = event.date;
-                        }}
+                        onClick={() => { rescheduleMode = false; newDate = event.date; }}
                     />
                 </div>
             </div>
         {:else}
             <div class="actions-card">
-                <CustButton
-                    label="Перенести дату"
-                    variant="secondary"
-                    onClick={() => (rescheduleMode = true)}
-                />
-                <CustButton
-                    label="Удалить событие"
-                    variant="danger"
-                    onClick={handleDelete}
-                />
+                <CustButton label="Перенести дату" variant="secondary" onClick={() => (rescheduleMode = true)} />
+                <CustButton label="Удалить событие" variant="danger" onClick={handleDelete} />
             </div>
         {/if}
+
     </div>
 </BottomSheet>
 
@@ -132,53 +112,83 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
-        padding: 4px 16px 8px;
+
+        /* безопасный отступ снизу для iPhone */
+        padding: 4px 16px max(16px, env(safe-area-inset-bottom));
+
+        /* не даём контенту вылезти за экран */
+        box-sizing: border-box;
+        width: 100%;
+        overflow: hidden;
     }
+
+    /* HERO */
 
     .event-hero {
         display: flex;
         align-items: center;
-        gap: 16px;
-        padding: 4px 0 8px;
+        gap: 14px;
+        padding: 4px 0 4px;
+
+        /* имя не вылезает за края */
+        min-width: 0;
     }
 
     .hero-icon {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 64px;
-        height: 64px;
+
+        width: 56px;
+        height: 56px;
+
         flex-shrink: 0;
-        border-radius: 20px;
+
+        border-radius: 18px;
     }
 
     .hero-info {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 5px;
+
         min-width: 0;
+        flex: 1;
     }
 
     .hero-name {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 800;
+
         color: var(--text-primary);
-        overflow: hidden;
+
+        /* обрезаем длинные названия */
         white-space: nowrap;
+        overflow: hidden;
         text-overflow: ellipsis;
     }
 
     .hero-date {
         font-size: 13px;
         font-weight: 500;
+
         color: var(--text-muted);
+
         text-transform: capitalize;
+
+        /* дата тоже не вылезает */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
+
+    /* INFO CARD */
 
     .info-card {
         border-radius: 20px;
         background: color-mix(in srgb, var(--accent) 6%, var(--surface));
         padding: 14px 16px;
+
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -220,6 +230,10 @@
         color: var(--text-primary);
         line-height: 1.5;
         padding-left: 26px;
+
+        /* многострочный текст не вылезает */
+        word-break: break-word;
+        overflow-wrap: break-word;
     }
 
     .divider {
@@ -255,6 +269,9 @@
         font-weight: 600;
         outline: none;
         box-sizing: border-box;
+
+        /* на iOS date input иногда выезжает */
+        max-width: 100%;
     }
 
     .field-input:focus {
@@ -273,6 +290,6 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
-        padding-bottom: 8px;
+        padding-bottom: 4px;
     }
 </style>

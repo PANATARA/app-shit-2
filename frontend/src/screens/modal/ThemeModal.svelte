@@ -5,62 +5,40 @@
     import { createEventDispatcher } from "svelte";
     import { get } from "svelte/store";
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
+
     const dispatch = createEventDispatcher();
 
     function close() {
         dispatch("close");
     }
 
-    let currentTheme = get(theme) || "warm";
+    let currentTheme = get(theme) || "sunset";
     let selectedTheme = currentTheme;
 
     const themes = [
         {
-            id: "warm",
-            name: "Тёплая",
-            description: "Уютные бежевые оттенки",
-            colors: ["#D58A72", "#F4E7DD", "#A85D49"],
-        },
-        {
-            id: "lavender",
-            name: "Лаванда",
-            description: "Мягкие фиолетовые оттенки",
-            colors: ["#9C6ADE", "#D1C4E9", "#6A1B9A"],
-        },
-        {
-            id: "midnight",
-            name: "Полночь",
-            description: "Глубокий синий с индиго акцентом",
-            colors: ["#070b14", "#6366f1", "#22d3ee"],
+            id: "sunset",
+            name: "Закат",
+            description: "Тёплые оттенки с терракотовым акцентом",
+            colors: ["#fdf6ee", "#e05c3a", "#5a9e6f"],
         },
         {
             id: "rose",
-            name: "rose",
-            description: "rose rose",
-            colors: ["#E0F2FE", "#C2185B", "#84cc16"],
-        },
-        {
-            id: "ocean",
-            name: "ocean",
-            description: "rose rose",
-            colors: ["#E0F2FE", "#C2185B", "#84cc16"],
+            name: "Роза",
+            description: "Голубой фон с розовым акцентом",
+            colors: ["#cce8f4", "#c2185b", "#0277bd"],
         },
         {
             id: "royal",
-            name: "royal",
-            description: "rose rose",
-            colors: ["#E0F2FE", "#C2185B", "#84cc16"],
+            name: "Королевская",
+            description: "Небесно-голубой с синим акцентом",
+            colors: ["#dff7ff", "#2457ff", "#0891b2"],
         },
     ];
-
-    function selectTheme(id: string) {
-        selectedTheme = id;
-    }
 
     function applyTheme() {
         currentTheme = selectedTheme;
         theme.set(selectedTheme);
-
         close();
     }
 </script>
@@ -72,24 +50,20 @@
     flyDuration={320}
 >
     <div class="container">
-        <p class="intro">
-            Выберите цветовую тему приложения. Изменения применяются сразу.
-        </p>
-
         <div class="themes">
             {#each themes as t}
                 <button
                     class="theme-card"
                     class:selected={t.id === selectedTheme}
-                    on:click={() => selectTheme(t.id)}
+                    onclick={() => (selectedTheme = t.id)}
                 >
                     <div class="left">
                         <div class="preview">
                             {#each t.colors as color}
                                 <span
                                     class="color"
-                                    style={`background:${color}`}
-                                ></span>
+                                    style="background: {color}"
+                                />
                             {/each}
                         </div>
                         <div class="text">
@@ -102,21 +76,22 @@
                             <div class="active">
                                 <Icon
                                     icon="material-symbols:check-rounded"
-                                    width="16"
+                                    width={16}
                                 />
                             </div>
                         {:else}
-                            <div class="inactive"></div>
+                            <div class="inactive" />
                         {/if}
                     </div>
                 </button>
             {/each}
         </div>
     </div>
+
     <div class="actions">
         <ButtonPrimaryGlow
             on:click={applyTheme}
-            label={"Применить"}
+            label="Применить"
             disabled={selectedTheme === currentTheme}
             fullWidth
         />
@@ -126,24 +101,12 @@
 <style>
     .container {
         padding: 4px 16px 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .intro {
-        margin: 0;
-        font-size: 13px;
-        color: var(--text-secondary);
-        opacity: 0.85;
-        line-height: 1.5;
-        padding: 0 4px;
     }
 
     .themes {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
     }
 
     .theme-card {
@@ -156,14 +119,18 @@
 
         background: var(--surface);
         border: 1.5px solid var(--border);
-        border-radius: 16px;
+        border-radius: 20px;
 
         cursor: pointer;
-        transition: 0.25s;
+
+        transition:
+            transform 0.15s ease,
+            border-color 0.2s ease,
+            background 0.2s ease;
     }
 
     .theme-card:active {
-        transform: scale(0.985);
+        transform: scale(0.98);
     }
 
     .theme-card.selected {
@@ -180,35 +147,39 @@
     .preview {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px;
 
         width: 56px;
-        height: 42px;
+        height: 40px;
         padding: 6px;
 
         background: var(--surface-alt);
         border: 1px solid var(--border);
         border-radius: 12px;
+
+        overflow: hidden;
     }
 
     .color {
         flex: 1;
         height: 100%;
-        border-radius: 6px;
+        border-radius: 5px;
     }
 
     .text {
         display: flex;
         flex-direction: column;
+        gap: 2px;
+        text-align: left;
     }
 
     .title {
         font-size: 15px;
-        font-weight: 600;
+        font-weight: 700;
+        color: var(--text-primary);
     }
 
     .subtitle {
-        margin-top: 2px;
         font-size: 12px;
         color: var(--text-muted);
     }
@@ -217,6 +188,7 @@
         width: 24px;
         display: flex;
         justify-content: center;
+        flex-shrink: 0;
     }
 
     .active {
@@ -238,8 +210,8 @@
         border: 2px solid var(--border);
         border-radius: 50%;
     }
+
     .actions {
-        /*margin-top: 20px;*/
-        padding: 10px;
+        padding: 0 16px 8px;
     }
 </style>

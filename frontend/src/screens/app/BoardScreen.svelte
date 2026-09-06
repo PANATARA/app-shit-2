@@ -1,105 +1,112 @@
 <script lang="ts">
     import { fade } from "svelte/transition";
-
     import {
         completePlannedChore,
         getPlannedChore,
         unCompletePlannedChore,
+        getQuickPlannedChores,
+        completeQuickPlannedChore,
+        uncompleteQuickPlannedChore,
     } from "$api/chores";
     import { swr } from "$lib/swr";
     import { formatDateKey, getFriendlyDate } from "$lib/utils";
-
     import CardPlannedChore from "$features/chores/CardPlannedChore.svelte";
     import CardPlannedChoreSkeleton from "$skeletons/CardPlannedChoreSkeleton.svelte";
-
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
     import ProgressBar from "$ui/ProgressBar.svelte";
     import WeekCalendar from "$ui/WeekCalendar.svelte";
     import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
-
-    import type { PlannedChore } from "$types/index";
+    import type { AnyPlannedChore, PlannedChore, QuickPlannedChore } from "$types/index";
 
     // ─── State ───────────────────────────────────────────────────────────────────
 
     let selectedDate = new Date();
-    let optimisticChores: PlannedChore[] | null = null;
+    let optimisticChores: AnyPlannedChore[] | null = null;
 
     $: dateKey = formatDateKey(selectedDate);
 
-    $: chores = swr(`planned-chores:${dateKey}`, () =>
-        getPlannedChore({ due_date: dateKey }),
-    );
-
-    // Optimistic данные перекрывают данные стора и сбрасываются при смене даты
+    // Сбрасываем оптимистичные данные при смене даты
     $: if (dateKey) optimisticChores = null;
 
-    $: plannedChores = optimisticChores ?? $chores.data ?? [];
-    $: loading = $chores.loading;
+    // ─── Data fetching ────────────────────────────────────────────────────────────
 
-    // ─── Event handlers ──────────────────────────────────────────────────────────
+    $: chores = swr<PlannedChore[]>(
+        `planned-chores:${dateKey}`,
+        () => getPlannedChore({ due_date: dateKey }),
+    );
+
+    $: quickChores = swr<QuickPlannedChore[]>(
+        `quick-planned-chores:${dateKey}`,
+        () => getQuickPlannedChores(dateKey, dateKey),
+    );
+
+    $: loading = $chores.loading || $quickChores.loading;
+
+    // ─── Merged & sorted chores ───────────────────────────────────────────────────
+
+    $: allChores = [
+        ...($chores.data ?? []).map(c => ({ ...c, is_quick: false as const })),
+        ...($quickChores.data ?? []).map(c => ({ ...c, is_quick: true as const })),
+    ].sort((a, b) => Number(a.is_quick) - Number(b.is_quick));
+
+    $: plannedChores = optimisticChores ?? allChores;
+
+    // ─── Derived state ────────────────────────────────────────────────────────────
+
+    $: activePlannedChores = plannedChores.filter(c => c.completed_by === null);
+    $: completedPlannedChores = plannedChores.filter(c => c.completed_by !== null);
+    $: totalCount = plannedChores.length;
+    $: completedCount = completedPlannedChores.length;
+    $: progressPercentage = totalCount > 0
+        ? Math.round((completedCount / totalCount) * 100)
+        : 0;
+
+    // ─── Handlers ────────────────────────────────────────────────────────────────
 
     function handleDateChange(event: CustomEvent<Date>) {
         selectedDate = event.detail;
     }
 
-    async function toggleChore(choreItem: PlannedChore) {
+    function openDetailScreen(plannedChore: PlannedChore) {
+        detailPlannedChoreParams.set({ plannedChore });
+        activeTab.set("DetailPlannedChore");
+    }
+
+    async function toggleChore(choreItem: AnyPlannedChore) {
         const previous = plannedChores;
         const isCompleted = choreItem.completed_by !== null;
 
-        // Optimistic update
-        optimisticChores = plannedChores.map((chore) =>
+        // Оптимистичное обновление
+        optimisticChores = plannedChores.map(chore =>
             chore.id === choreItem.id
-                ? {
-                      ...chore,
-                      completed_by: isCompleted ? null : chore.assigned_to,
-                  }
+                ? { ...chore, completed_by: isCompleted ? null : chore.assigned_to }
                 : chore,
         );
 
         try {
-            const updated = isCompleted
-                ? await unCompletePlannedChore(choreItem.id)
-                : await completePlannedChore(choreItem.id);
+            let updated: AnyPlannedChore;
 
-            optimisticChores = optimisticChores.map((chore) =>
-                chore.id === updated.id ? updated : chore,
-            );
+            if (choreItem.is_quick) {
+                const raw = isCompleted
+                    ? await uncompleteQuickPlannedChore(choreItem.id)
+                    : await completeQuickPlannedChore(choreItem.id);
+                updated = { ...raw, is_quick: true as const };
+                await quickChores.revalidate(); // Добавлен await
+            } else {
+                const raw = isCompleted
+                    ? await unCompletePlannedChore(choreItem.id)
+                    : await completePlannedChore(choreItem.id);
+                updated = { ...raw, is_quick: false as const };
+                await chores.revalidate(); // Добавлен await
+            }
 
-            // Обновляем кэш SWR свежими данными
-            chores.revalidate();
+            // Как только сервер вернул актуальные данные и SWR обновил кэш,
+            // сбрасываем ручной стейт, чтобы UI переключился на allChores
+            optimisticChores = null;
         } catch (e) {
             optimisticChores = previous;
             console.error(e);
         }
-    }
-
-    // ─── Derived state ───────────────────────────────────────────────────────────
-
-    $: currentDueDateStr = formatDateKey(selectedDate);
-
-    $: dateChores = plannedChores.filter(
-        (chore) => chore.due_date === currentDueDateStr,
-    );
-
-    $: activePlannedChores = dateChores.filter(
-        (chore) => chore.completed_by === null,
-    );
-
-    $: completedPlannedChores = dateChores.filter(
-        (chore) => chore.completed_by !== null,
-    );
-
-    $: totalCount = dateChores.length;
-    $: completedCount = completedPlannedChores.length;
-
-    $: progressPercentage =
-        totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-
-    function openDetailScreen(plannedChore: PlannedChore) {
-        detailPlannedChoreParams.set({
-            plannedChore,
-        });
-        activeTab.set("DetailPlannedChore");
     }
 </script>
 
@@ -188,9 +195,7 @@
                             <CardPlannedChore
                                 item={plannedChore}
                                 onToggle={toggleChore}
-                                on:click={() => {
-                                    openDetailScreen(plannedChore);
-                                }}
+                                onClick={() => openDetailScreen(plannedChore)}
                             />
                         {/each}
                     </div>

@@ -1,13 +1,18 @@
 <script lang="ts">
-    import type { PlannedChore } from "$types/index";
+    import type { AnyPlannedChore } from "$types/index";
     import ChoreIcon from "$ui/ChoreIcon.svelte";
+    import Icon from "@iconify/svelte";
     import UserAvatar from "$ui/UserAvatar.svelte";
 
-    export let item: PlannedChore;
-    export let onToggle: (item: PlannedChore) => void;
+    export let item: AnyPlannedChore;
+    export let onToggle: (item: AnyPlannedChore) => void;
     export let onClick: () => void;
 
     $: done = item.completed_by !== null;
+
+    // Абстрагируем разницу между типами
+    $: title = item.is_quick ? item.name : item.chore.name;
+    $: message = item.message;
 </script>
 
 <div
@@ -22,16 +27,23 @@
         <span class="glow" />
     {/if}
 
-    <ChoreIcon chore={item.chore} />
+    <!-- Иконка — разная для обычных и быстрых задач -->
+    {#if item.is_quick}
+        <div class="quick-icon" style="background: {item.icon_bg}">
+            <Icon icon={item.icon} width={24} color={item.icon_color} />
+        </div>
+    {:else}
+        <ChoreIcon chore={item.chore} size={44}/>
+    {/if}
 
     <div class="content">
         <div class="title" class:completed-text={done}>
-            {item.chore.name}
+            {title}
         </div>
 
-        {#if item.message}
+        {#if message}
             <div class="subtitle" class:completed-text={done}>
-                {item.message}
+                {message}
             </div>
         {/if}
 
@@ -52,7 +64,10 @@
         <button
             class="check"
             class:checked={done}
-            onclick={(e) => { e.stopPropagation(); onToggle?.(item); }}
+            onclick={(e) => {
+                e.stopPropagation();
+                onToggle?.(item);
+            }}
             aria-label={done
                 ? "Отметить как невыполненное"
                 : "Завершить задачу"}
@@ -239,6 +254,16 @@
 
     .check-icon {
         animation: checkAppear 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .quick-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        flex-shrink: 0;
     }
 
     @keyframes checkAppear {

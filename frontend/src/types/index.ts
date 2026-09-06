@@ -28,7 +28,7 @@ export interface UserProfile {
 export interface UserProfileStats extends UserProfile {
   total_completed: number;
   week_completed: number;
-  streak: number;
+  month_completed: number;
 }
 
 export interface FamilyProfile {
@@ -78,15 +78,34 @@ export interface ChoreItem {
   default_chore_id: number | null;
 }
 
-export interface PlannedChore {
-  id: string;
-  chore: ChoreItem;
-  completed_by: UserShort | null;
-  assigned_to: UserShort | null;
-  due_date: string;
-  status: string;
-  message: string;
+export interface QuickPlannedChore {
+    id: string;
+    name: string;
+    description: string | null;
+    icon: string;
+    icon_color: string;
+    icon_bg: string;
+    valuation: number;
+    completed_by: UserShort | null;
+    assigned_to: UserShort | null;
+    due_date: string;
+    message: string;
+    is_quick: true; // маркер чтобы различать типы
 }
+
+// PlannedChore тоже нужен маркер
+export interface PlannedChore {
+    id: string;
+    chore: ChoreItem;
+    completed_by: UserShort | null;
+    assigned_to: UserShort | null;
+    due_date: string;
+    status: string;
+    message: string;
+    is_quick?: false;
+}
+
+export type AnyPlannedChore = PlannedChore | QuickPlannedChore;
 
 export interface ChoreCompletionStat {
   chore_id: string;
@@ -122,4 +141,13 @@ export interface FamilyEvent {
   icon_color: string;
   icon_bg: string; // css цвет фона
   date: string; // ISO "2026-08-28"
+}
+
+export interface ChoreForm {
+  name: string;
+  description: string;
+  icon: string;
+  icon_color: string;
+  icon_bg: string;
+  valuation: number;
 }

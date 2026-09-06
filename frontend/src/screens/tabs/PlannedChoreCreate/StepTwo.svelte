@@ -1,7 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte";
     import RepeatSelector from "$features/chores/RepeatSelector.svelte";
-    import { createPlannedChore } from "$api/chores";
+    import { createPlannedChore, createQuickPlannedChore } from "$api/chores";
     import { getFamilyMembers } from "$api/family";
     import UserAvatar from "$ui/UserAvatar.svelte";
     import ChoreIcon from "$ui/ChoreIcon.svelte";
@@ -84,15 +84,14 @@
 
         try {
             if (isQuickTask) {
-                // TODO: вызов API для быстрой задачи
-                // await createQuickPlannedChore({
-                //     name: quickTaskName,
-                //     valuation: quickTaskValuation,
-                //     icon: quickTaskAvatar.icon,
-                //     icon_color: quickTaskAvatar.icon_color,
-                //     icon_bg: quickTaskAvatar.icon_bg,
-                //     ...payload,
-                // });
+                await createQuickPlannedChore({
+                    name: quickTaskName,
+                    valuation: quickTaskValuation,
+                    icon: quickTaskAvatar.icon,
+                    icon_color: quickTaskAvatar.icon_color,
+                    icon_bg: quickTaskAvatar.icon_bg,
+                    ...payload,
+                });
                 console.log("quick task", {
                     quickTaskName,
                     quickTaskValuation,

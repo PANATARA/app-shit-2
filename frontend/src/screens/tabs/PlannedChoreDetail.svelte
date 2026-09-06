@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { createEventDispatcher } from "svelte";
     import UserAvatar from "$ui/UserAvatar.svelte";
     import ChoreIcon from "$ui/ChoreIcon.svelte";
     import Icon from "@iconify/svelte";
@@ -10,8 +9,6 @@
         unCompletePlannedChore,
     } from "$api/chores";
     import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
-
-    const dispatch = createEventDispatcher();
 
     $: plannedChore = $detailPlannedChoreParams.plannedChore;
 
@@ -34,7 +31,6 @@
         loading = true;
         try {
             await deletePlannedChore(plannedChore.id);
-            dispatch("deleted", plannedChore.id);
             handleBack();
         } catch (e) {
             console.error(e);
@@ -49,7 +45,6 @@
             const updated = plannedChore.completed_by
                 ? await unCompletePlannedChore(plannedChore.id)
                 : await completePlannedChore(plannedChore.id);
-            dispatch("updated", updated);
             handleBack();
         } catch (e) {
             console.error(e);
@@ -62,10 +57,9 @@
         if (!newDate || newDate === plannedChore.due_date) return;
         loading = true;
         try {
-            const updated = await reschedulePlannedChore(plannedChore.id, {
+            await reschedulePlannedChore(plannedChore.id, {
                 reschedule_due_date: newDate,
             });
-            dispatch("updated", updated);
             handleBack();
         } catch (e) {
             console.error(e);

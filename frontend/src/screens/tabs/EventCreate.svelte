@@ -5,14 +5,15 @@
     import CustomTextarea from "$ui/CustomTextarea.svelte";
     import AvatarBuilder from "$features/settings/AvatarBuilder.svelte";
     import { activeTab } from "$lib/navigation";
+    import { createEvent } from "$api/family";
 
     const dispatch = createEventDispatcher();
 
-    // ─── State ───────────────────────────────────────────────────────────────
-
     let name = "";
     let description = "";
-    let date = new Date().toISOString().split("T")[0];
+
+    // Локальная дата без UTC-сдвига
+    let date = new Date().toLocaleDateString("en-CA");
 
     let avatar = {
         icon: "material-symbols:celebration-rounded",
@@ -20,11 +21,10 @@
         icon_bg: "linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)",
     };
 
-    // ─── Validation ──────────────────────────────────────────────────────────
+    let loading = false;
+    let errorMessage = "";
 
-    $: canSubmit = name.trim().length > 0 && date.length > 0;
-
-    // ─── Handlers ────────────────────────────────────────────────────────────
+    $: canSubmit = name.trim().length > 0 && date.length > 0 && !loading;
 
     function handleBack() {
         activeTab.set("statsScreen");
@@ -33,22 +33,28 @@
     async function handleAdd() {
         if (!canSubmit) return;
 
+        loading = true;
+        errorMessage = "";
+
         const payload = {
             name: name.trim(),
             description: description.trim() || null,
             icon: avatar.icon,
             icon_color: avatar.icon_color,
             icon_bg: avatar.icon_bg,
-            date,
+            date: `${date}T00:00:00`,
         };
 
         try {
-            // TODO: await createFamilyEvent(payload);
-            console.log("create event", payload);
+            await createEvent(payload);
+
             dispatch("add");
             activeTab.set("statsScreen");
-        } catch (e) {
-            console.error("Failed to create event:", e);
+        } catch (error) {
+            console.error("Failed to create event:", error);
+            errorMessage = "Не удалось создать событие";
+        } finally {
+            loading = false;
         }
     }
 </script>
@@ -74,6 +80,7 @@
     <div class="detail-form">
         <div class="section">
             <div class="section-label">Название</div>
+
             <input
                 class="field-input"
                 type="text"
@@ -85,21 +92,30 @@
 
         <div class="section">
             <div class="section-label">Детали</div>
+
             <CustomTextarea
                 bind:value={description}
                 placeholder="Описание события..."
                 maxlength={500}
                 rows={3}
             />
+
             <div class="divider" />
+
             <input class="field-input" type="date" bind:value={date} />
         </div>
+
+        {#if errorMessage}
+            <div class="error">
+                {errorMessage}
+            </div>
+        {/if}
     </div>
 
     <div class="add-btn">
         <ButtonPrimaryGlow
             on:click={handleAdd}
-            label="Добавить событие"
+            label={loading ? "Создание..." : "Добавить событие"}
             fullWidth
             disabled={!canSubmit}
         />
@@ -198,6 +214,16 @@
     .field-input[type="date"]::-webkit-calendar-picker-indicator {
         filter: invert(0.5);
         cursor: pointer;
+    }
+
+    .error {
+        padding: 12px 16px;
+        border-radius: 14px;
+        background: color-mix(in srgb, var(--error, #ef4444) 10%, transparent);
+        color: var(--error, #ef4444);
+        font-size: 13px;
+        font-weight: 600;
+        text-align: center;
     }
 
     .add-btn {

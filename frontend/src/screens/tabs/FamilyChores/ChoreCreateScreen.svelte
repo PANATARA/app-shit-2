@@ -1,34 +1,22 @@
 <script lang="ts">
-    import {
-        activeTab,
-        choreEditParams,
-        choreDetailParams,
-    } from "$lib/navigation";
-    import { updateChore, deleteChore } from "$api/chores";
+    import { activeTab } from "$lib/navigation";
+    import { createChore } from "$api/chores";
     import Icon from "@iconify/svelte";
     import AvatarBuilder from "$features/settings/AvatarBuilder.svelte";
-    import ChoreIcon from "$ui/ChoreIcon.svelte";
     import CustomInput from "$ui/CustomInput.svelte";
     import CustomTextarea from "$ui/CustomTextarea.svelte";
     import type { ChoreForm } from "$types/index";
 
-    const chore = $choreEditParams.chore;
-
     let saving = false;
-    let deleting = false;
 
     let form: ChoreForm = {
-        name: chore?.name ?? "",
-        description: chore?.description ?? "",
-        icon: chore?.icon ?? "material-symbols:home-rounded",
-        icon_color: chore?.icon_color ?? "#ffffff",
-        icon_bg:
-            chore?.icon_bg ??
-            "linear-gradient(135deg, #8a7f6e 0%, #6b5f50 100%)",
-        valuation: chore?.valuation ?? 10,
+        name: "",
+        description: "",
+        icon: "material-symbols:home-rounded",
+        icon_color: "#ffffff",
+        icon_bg: "linear-gradient(135deg, #8a7f6e 0%, #6b5f50 100%)",
+        valuation: 10,
     };
-
-    const isDefaultChore = !!chore?.default_chore_id;
 
     function updateAvatar(v: {
         icon: string;
@@ -41,42 +29,23 @@
             v.icon_bg === form.icon_bg
         )
             return;
-
         form = { ...form, ...v };
     }
 
     function handleCancel() {
-        activeTab.set("choreListScreen");
+        activeTab.set("choreTemplatesScreen");
     }
 
     async function handleSave() {
-        if (!chore || deleting) return;
-
+        if (!form.name.trim()) return;
         saving = true;
-
         try {
-            const updated = await updateChore(chore.id, form);
-
-            choreDetailParams.set({ chore: updated });
-        } catch (e) {
-            console.error(e);
-        } finally {
-            saving = false;
-        }
-    }
-
-    async function handleDelete() {
-        if (!chore || saving || deleting) return;
-
-        deleting = true;
-
-        try {
-            await deleteChore(chore.id);
+            await createChore(form);
             activeTab.set("choreListScreen");
         } catch (e) {
             console.error(e);
         } finally {
-            deleting = false;
+            saving = false;
         }
     }
 </script>
@@ -91,92 +60,56 @@
             />
             Назад
         </button>
-
-        <h1>Редактировать</h1>
-
-        <div class="header-spacer"></div>
+        <h1>Новое дело</h1>
+        <div class="header-spacer" />
     </header>
 
     <div class="page-content">
         <div class="form-fields">
-            {#if isDefaultChore}
-                <div class="avatar-wrapper">
-                    <ChoreIcon {chore} size={80} />
-                </div>
-            {:else}
-                <AvatarBuilder
-                    initialIcon={form.icon}
-                    initialIconColor={form.icon_color}
-                    initialBg={form.icon_bg}
-                    onchange={updateAvatar}
-                />
-            {/if}
+            <AvatarBuilder
+                initialIcon={form.icon}
+                initialIconColor={form.icon_color}
+                initialBg={form.icon_bg}
+                onchange={updateAvatar}
+            />
 
             <div class="field">
                 <label class="field-label">Название</label>
-
                 <CustomInput
                     bind:value={form.name}
                     placeholder="Например: Покормить кота"
-                    disabled={isDefaultChore || deleting}
                 />
             </div>
 
             <div class="field">
                 <label class="field-label">Описание</label>
-
                 <CustomTextarea
                     bind:value={form.description}
                     placeholder="Дополнительные детали..."
                     maxlength={500}
                     rows={3}
-                    disabled={deleting}
                 />
             </div>
 
             <div class="field">
                 <label class="field-label">Награда (монеты)</label>
-
                 <CustomInput
                     bind:value={form.valuation}
                     inputType="number"
                     min={0}
                     max={999}
-                    disabled={deleting}
                 />
             </div>
 
             <div class="form-actions">
-                <button
-                    class="btn-cancel"
-                    onclick={handleCancel}
-                    disabled={saving || deleting}
+                <button class="btn-cancel" onclick={handleCancel}>Отмена</button
                 >
-                    Отмена
-                </button>
-
                 <button
                     class="btn-save"
                     onclick={handleSave}
-                    disabled={saving || deleting}
+                    disabled={saving || !form.name.trim()}
                 >
-                    {saving ? "Сохранение..." : "Сохранить"}
-                </button>
-            </div>
-
-            <div class="danger-zone">
-                <button
-                    class="btn-delete"
-                    onclick={handleDelete}
-                    disabled={saving || deleting}
-                >
-                    <Icon
-                        icon="material-symbols:delete-rounded"
-                        width={18}
-                        height={18}
-                    />
-
-                    {deleting ? "Удаление..." : "Удалить дело"}
+                    {saving ? "Сохранение..." : "Создать"}
                 </button>
             </div>
         </div>
@@ -232,11 +165,6 @@
         opacity: 0.6;
     }
 
-    .back-btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-    }
-
     .header-spacer {
         width: 80px;
     }
@@ -252,13 +180,6 @@
         flex-direction: column;
         gap: 14px;
         padding: 0 16px;
-    }
-
-    .avatar-wrapper {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
     }
 
     .field {
@@ -281,16 +202,6 @@
         margin-top: 6px;
     }
 
-    .btn-cancel,
-    .btn-save,
-    .btn-delete {
-        font-family: inherit;
-        cursor: pointer;
-        transition:
-            transform 0.15s ease,
-            opacity 0.15s ease;
-    }
-
     .btn-cancel {
         flex: 1;
         padding: 13px;
@@ -300,9 +211,14 @@
         color: var(--text-muted);
         font-size: 15px;
         font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition:
+            transform 0.15s ease,
+            opacity 0.15s ease;
     }
 
-    .btn-cancel:active:not(:disabled) {
+    .btn-cancel:active {
         transform: scale(0.97);
         opacity: 0.7;
     }
@@ -316,6 +232,11 @@
         color: #2a1800;
         font-size: 15px;
         font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        transition:
+            transform 0.15s ease,
+            opacity 0.15s ease;
     }
 
     .btn-save:active:not(:disabled) {
@@ -323,36 +244,8 @@
         opacity: 0.8;
     }
 
-    .btn-delete {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 13px;
-        border-radius: 20px;
-        border: 1.5px solid #e87c5a;
-        background: rgba(232, 124, 90, 0.08);
-        color: #e87c5a;
-        font-size: 15px;
-        font-weight: 600;
-    }
-
-    .btn-delete:active:not(:disabled) {
-        transform: scale(0.97);
-        opacity: 0.7;
-    }
-
-    .btn-cancel:disabled,
-    .btn-save:disabled,
-    .btn-delete:disabled {
+    .btn-save:disabled {
         opacity: 0.4;
         cursor: not-allowed;
-    }
-
-    .danger-zone {
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid var(--border, rgba(128, 128, 128, 0.12));
     }
 </style>

@@ -1,9 +1,10 @@
 <script lang="ts">
     import ChoreIcon from "$ui/ChoreIcon.svelte";
-    import type { Chore } from "$types/index";
+    import type { ChoreItem } from "$types/index";
+    import Icon from "@iconify/svelte";
 
-    export let chore: Chore;
-    export let onClick: (chore: Chore) => void;
+    export let chore: ChoreItem;
+    export let onClick: (chore: ChoreItem) => void;
 </script>
 
 <button class="chore-item" onclick={() => onClick?.(chore)}>
@@ -16,7 +17,14 @@
         {/if}
     </div>
 
-    <span class="chore-valuation">🪙 {chore.valuation}</span>
+    <span class="chore-valuation">
+        <Icon
+            icon="material-symbols:auto-awesome-rounded"
+            width={16}
+            height={16}
+        />
+        {chore.valuation}
+    </span>
 
     <svg
         class="arrow"
@@ -99,11 +107,12 @@
 
     .chore-valuation {
         flex-shrink: 0;
-
+        display: flex;
+        align-items: center;
+        gap: 4px;
         font-size: 13px;
         font-weight: 700;
-
-        color: var(--text-muted);
+        color: var(--accent);
     }
 
     .arrow {

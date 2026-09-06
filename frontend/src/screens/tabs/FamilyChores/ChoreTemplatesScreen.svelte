@@ -1,29 +1,20 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import { activeTab, choreEditParams } from "$lib/navigation";
     import { getDefaultChores, createChoresFromDefault } from "$api/chores";
     import type { DefaultChore } from "$types/index";
     import Icon from "@iconify/svelte";
-    import AsyncStateView from "$ui/AsyncStateView.svelte";
     import DefaultChoreListItem from "$features/chores/DefaultChoreListItem.svelte";
+    import { swr } from "$lib/swr";
 
-    let defaultChores: DefaultChore[] = [];
-    let loading = true;
+    const defaultChoresStore = swr("default-chores", getDefaultChores);
+
+    $: defaultChores = $defaultChoresStore.data ?? [];
+    $: loading = $defaultChoresStore.loading;
+
     let saving = false;
 
-    onMount(async () => {
-        try {
-            defaultChores = (await getDefaultChores()) ?? [];
-        } catch (e) {
-            console.error(e);
-        } finally {
-            loading = false;
-        }
-    });
-
     function openCreateCustom() {
-        choreEditParams.set({ chore: undefined, fromTemplate: false });
-        activeTab.set("choreEditScreen");
+        activeTab.set("choreCreateScreen");
     }
 
     async function handleCreateFromDefault(def: DefaultChore) {
@@ -46,26 +37,35 @@
     <header class="page-header">
         <button
             class="back-btn"
-            on:click={() => activeTab.set("choreListScreen")}
+            onclick={() => activeTab.set("choreListScreen")}
         >
             <Icon
                 icon="material-symbols:arrow-back-ios-rounded"
-                width="18"
-                height="18"
+                width={18}
+                height={18}
             />
             Назад
         </button>
         <h1>Выбери шаблон</h1>
-        <div class="header-spacer"></div>
+        <div class="header-spacer" />
     </header>
 
     <div class="page-content">
-        <button class="create-new-item" on:click={openCreateCustom}>
+        <button class="create-new-item" onclick={openCreateCustom}>
             <span class="create-new-icon">✏️</span>
             <span>Создать своё дело</span>
         </button>
 
-        <AsyncStateView {loading} shimmerCount={7}>
+        {#if loading}
+            <div class="empty-state">
+                <span class="empty-sub">Загрузка...</span>
+            </div>
+        {:else if defaultChores.length === 0}
+            <div class="empty-state">
+                <span class="empty-icon">📋</span>
+                <span class="empty-text">Шаблонов нет</span>
+            </div>
+        {:else}
             <div class="section-label">Стандартные дела</div>
             <div class="chore-list">
                 {#each defaultChores as def (def.id)}
@@ -75,7 +75,7 @@
                     />
                 {/each}
             </div>
-        </AsyncStateView>
+        {/if}
     </div>
 </div>
 
@@ -127,6 +127,7 @@
     .back-btn:active {
         opacity: 0.6;
     }
+
     .header-spacer {
         width: 80px;
     }
@@ -142,22 +143,31 @@
         display: flex;
         align-items: center;
         gap: 12px;
+
         width: calc(100% - 32px);
+
         padding: 13px 14px;
+        margin: 0 16px 12px;
+
         background: var(--accent-soft);
         border: 1.5px dashed var(--accent);
-        border-radius: 14px;
+        border-radius: 20px;
+
         color: var(--accent);
         font-size: 15px;
         font-weight: 600;
         font-family: inherit;
-        cursor: pointer;
         text-align: left;
-        margin: 0 16px 12px;
-        transition: opacity 0.1s;
+
+        cursor: pointer;
+
+        transition:
+            transform 0.15s ease,
+            opacity 0.15s ease;
     }
 
     .create-new-item:active {
+        transform: scale(0.98);
         opacity: 0.7;
     }
 
@@ -169,10 +179,10 @@
 
     .section-label {
         font-size: 11px;
-        font-weight: 600;
+        font-weight: 700;
         color: var(--text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.6px;
+        letter-spacing: 0.8px;
         padding: 8px 16px 6px;
     }
 
@@ -181,5 +191,30 @@
         flex-direction: column;
         gap: 6px;
         padding: 0 16px;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 16px;
+        gap: 6px;
+    }
+
+    .empty-icon {
+        font-size: 36px;
+        margin-bottom: 4px;
+    }
+
+    .empty-text {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .empty-sub {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
     }
 </style>

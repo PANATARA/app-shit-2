@@ -1,5 +1,5 @@
 <script lang="ts">
-  import AvatarConstructor from "$features/settings/AvatarConstructor.svelte";
+  import AvatarConstructor from "$features/settings/AvatarBuilder.svelte";
   import ChoreIcon from "$ui/ChoreIcon.svelte";
   import CustomInput from "$ui/CustomInput.svelte";
   import CustomTextarea from "$ui/CustomTextarea.svelte";

@@ -1,9 +1,9 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
     import ChoreIcon from "$ui/ChoreIcon.svelte";
-    import type { Chore } from "$types/index";
+    import type { ChoreItem } from "$types/index";
 
-    export let chore: Chore;
+    export let chore: ChoreItem;
     export let onAdd: () => void;
 </script>
 

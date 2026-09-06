@@ -49,7 +49,7 @@ function createSettingsStore(key, defaultValue) {
 
 // Exports
 export const showDays = createSettingsStore("showDays", false);
-export const theme = createSettingsStore("theme", "warm");
+export const theme = createSettingsStore("theme", "sunset");
 export const language = createSettingsStore("lang", "ru");
 
 export const profileModal = writable(null);
@@ -66,7 +66,7 @@ export function closeProfile() {
 if (typeof document !== "undefined") {
   theme.subscribe((value) => {
     // список всех тем
-    const themes = ["lavender", "warm", "midnight", "rose", "royal", "ocean"];
+    const themes = ["sunset", "rose", "royal"];
     document.body.classList.remove(...themes);
     document.body.classList.add(value);
   });

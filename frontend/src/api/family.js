@@ -1,15 +1,15 @@
-import { apiFetch, getApiUrl } from './client.js';
+import { apiFetch, getApiUrl } from "./client.js";
 
 /**
  * Get information about the user's family
  * @returns {Promise<any>}
  */
 export async function getFamily() {
-    return apiFetch('/api/families');
+  return apiFetch("/api/families");
 }
 
 export async function getFamilyStats() {
-    return apiFetch('/api/families/stats');
+  return apiFetch("/api/families/stats");
 }
 
 /**
@@ -18,10 +18,10 @@ export async function getFamilyStats() {
  * @returns {Promise<any>}
  */
 export async function createFamily(familyData) {
-    return apiFetch('/api/families', {
-        method: 'POST',
-        body: familyData
-    });
+  return apiFetch("/api/families", {
+    method: "POST",
+    body: familyData,
+  });
 }
 
 /**
@@ -31,14 +31,14 @@ export async function createFamily(familyData) {
  * @returns {Promise<any>}
  */
 export async function uploadFamilyAvatar(file) {
-    const formData = new FormData();
-    formData.append('file', file);
+  const formData = new FormData();
+  formData.append("file", file);
 
-    return apiFetch('/api/families/avatar/file/', {
-        method: 'POST',
-        body: formData,
-        isMultipart: true
-    });
+  return apiFetch("/api/families/avatar/file/", {
+    method: "POST",
+    body: formData,
+    isMultipart: true,
+  });
 }
 
 /**
@@ -47,7 +47,7 @@ export async function uploadFamilyAvatar(file) {
  * @returns {Promise<Blob>}
  */
 export async function getFamilyAvatar() {
-    return apiFetch('/api/families/avatar');
+  return apiFetch("/api/families/avatar");
 }
 
 /**
@@ -55,7 +55,7 @@ export async function getFamilyAvatar() {
  * @returns {string}
  */
 export function getFamilyAvatarUrl() {
-    return getApiUrl('/api/families/avatar');
+  return getApiUrl("/api/families/avatar");
 }
 
 /**
@@ -63,7 +63,7 @@ export function getFamilyAvatarUrl() {
  * @returns {Promise<any>}
  */
 export async function getFamilyMembers() {
-    return apiFetch('/api/families/members');
+  return apiFetch("/api/families/members");
 }
 
 /**
@@ -71,7 +71,7 @@ export async function getFamilyMembers() {
  * @returns {Promise<any>}
  */
 export async function getFamilyLeader() {
-    return apiFetch('/api/families/members/leader');
+  return apiFetch("/api/families/members/leader");
 }
 
 /**
@@ -79,9 +79,9 @@ export async function getFamilyLeader() {
  * @returns {Promise<any>}
  */
 export async function logoutFromFamily() {
-    return apiFetch('/api/families/logout', {
-        method: 'PATCH'
-    });
+  return apiFetch("/api/families/logout", {
+    method: "PATCH",
+  });
 }
 
 /**
@@ -90,9 +90,9 @@ export async function logoutFromFamily() {
  * @returns {Promise<any>}
  */
 export async function kickFamilyMember(userId) {
-    return apiFetch(`/api/families/kick/${userId}`, {
-        method: 'DELETE'
-    });
+  return apiFetch(`/api/families/kick/${userId}`, {
+    method: "DELETE",
+  });
 }
 
 /**
@@ -101,9 +101,9 @@ export async function kickFamilyMember(userId) {
  * @returns {Promise<any>}
  */
 export async function changeFamilyAdmin(userId) {
-    return apiFetch(`/api/families/change_admin/${userId}`, {
-        method: 'PATCH'
-    });
+  return apiFetch(`/api/families/change_admin/${userId}`, {
+    method: "PATCH",
+  });
 }
 
 /**
@@ -112,9 +112,9 @@ export async function changeFamilyAdmin(userId) {
  * @returns {Promise<any>}
  */
 export async function generateInviteToken() {
-    return apiFetch('/api/families/invite', {
-        method: 'POST',
-    });
+  return apiFetch("/api/families/invite", {
+    method: "POST",
+  });
 }
 
 /**
@@ -123,8 +123,48 @@ export async function generateInviteToken() {
  * @returns {Promise<any>}
  */
 export async function joinFamily(inviteData) {
-    return apiFetch('/api/families/join', {
-        method: 'POST',
-        body: inviteData
-    });
+  return apiFetch("/api/families/join", {
+    method: "POST",
+    body: inviteData,
+  });
+}
+
+/**
+ * Create a new family event
+ * @param {object} eventData - { name, description, date, icon, icon_color, icon_bg }
+ * @returns {Promise<any>}
+ */
+export async function createEvent(eventData) {
+  return apiFetch("/api/families/events", {
+    method: "POST",
+    body: eventData,
+  });
+}
+
+/**
+ * Update a family event
+ * @param {string} eventId
+ * @param {object} eventData - Fields to update
+ * @returns {Promise<any>}
+ */
+export async function updateEvent(eventId, eventData) {
+  return apiFetch(`/api/families/events/${eventId}`, {
+    method: "PATCH",
+    body: eventData,
+  });
+}
+
+/**
+ * Delete a family event
+ * @param {string} eventId
+ * @returns {Promise<any>}
+ */
+export async function deleteEvent(eventId) {
+  return apiFetch(`/api/families/events/${eventId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function getUpcomingEvents() {
+    return apiFetch("/api/families/events/upcoming");
 }

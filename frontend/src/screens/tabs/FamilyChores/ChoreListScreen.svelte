@@ -1,94 +1,84 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import {
-        activeTab,
-        choreDetailParams,
-        choreEditParams,
-    } from "$lib/navigation";
+    import { activeTab, choreEditParams } from "$lib/navigation";
     import { getChores } from "$api/chores";
     import type { ChoreItem } from "$types/index";
     import Icon from "@iconify/svelte";
     import SearchBox from "$ui/SearchBox.svelte";
     import ChoreListItem from "$features/chores/ChoreListItem.svelte";
-    import AsyncStateView from "$ui/AsyncStateView.svelte";
+    import { swr } from "$lib/swr";
 
-    let chores: ChoreItem[] = [];
+    const choreStore = swr("chores", getChores);
+
+    $: chores = $choreStore.data?.chores ?? [];
+    $: loading = $choreStore.loading;
+
     let searchQuery = "";
-    let loading = true;
-    let error = false;
-
-    onMount(loadData);
-
-    async function loadData() {
-        loading = true;
-        error = false;
-        try {
-            const raw = await getChores();
-            chores = raw.chores ?? [];
-        } catch (e) {
-            console.error(e);
-            error = true;
-        } finally {
-            loading = false;
-        }
-    }
-
-    function openDetail(chore: ChoreItem) {
-        choreDetailParams.set({ chore });
-        activeTab.set("choreDetailScreen");
-    }
-
-    function openTemplates() {
-        activeTab.set("choreTemplatesScreen");
-    }
 
     $: normalizedQuery = searchQuery.trim().toLowerCase();
     $: filteredChores = normalizedQuery
         ? chores.filter((c) => c.name.toLowerCase().includes(normalizedQuery))
         : chores;
+
+    function openDetail(chore: ChoreItem) {
+        choreEditParams.set({ chore });
+        activeTab.set("choreEditScreen");
+    }
 </script>
 
 <div class="page">
     <header class="page-header">
         <button
             class="back-btn"
-            on:click={() => activeTab.set("settingsScreen")}
+            onclick={() => activeTab.set("settingsScreen")}
         >
             <Icon
                 icon="material-symbols:arrow-back-ios-rounded"
-                width="18"
-                height="18"
+                width={18}
+                height={18}
             />
             Назад
         </button>
         <h1>Мои дела</h1>
-        <div class="header-spacer"></div>
+        <div class="header-spacer" />
     </header>
 
     <div class="page-content">
         <SearchBox bind:searchQuery />
 
-        <button class="create-new-item" on:click={openTemplates}>
+        <button
+            class="create-new-item"
+            onclick={() => activeTab.set("choreTemplatesScreen")}
+        >
             <span class="create-new-icon">+</span>
             <span>Добавить новое дело</span>
         </button>
 
-        <AsyncStateView
-            {loading}
-            {error}
-            errorMessage="Не удалось загрузить дела"
-            onRetry={loadData}
-            empty={filteredChores.length === 0}
-            emptyMessage="Дел пока нет"
-            shimmerCount={7}
-        >
+        {#if loading}
+            <div class="empty-state">
+                <span class="empty-sub">Загрузка...</span>
+            </div>
+        {:else if filteredChores.length === 0}
+            <div class="empty-state">
+                <span class="empty-icon">{normalizedQuery ? "🔍" : "📋"}</span>
+                <span class="empty-text"
+                    >{normalizedQuery
+                        ? "Ничего не найдено"
+                        : "Дел пока нет"}</span
+                >
+                <span class="empty-sub"
+                    >{normalizedQuery
+                        ? "Попробуй другой запрос"
+                        : "Добавьте первое дело"}</span
+                >
+            </div>
+        {:else}
             <div class="section-label">Дела моего семейного круга</div>
             <div class="chore-list">
                 {#each filteredChores as chore (chore.id)}
-                    <ChoreListItem {chore} onClick={(c) => openDetail(c)} />
+                    <ChoreListItem {chore} onClick={() => openDetail(chore)} />
                 {/each}
             </div>
-        </AsyncStateView>
+        {/if}
     </div>
 </div>
 
@@ -156,22 +146,31 @@
         display: flex;
         align-items: center;
         gap: 12px;
+
         width: calc(100% - 32px);
+
         padding: 13px 14px;
+        margin: 0 16px 12px;
+
         background: var(--accent-soft);
         border: 1.5px dashed var(--accent);
-        border-radius: 14px;
+        border-radius: 20px;
+
         color: var(--accent);
         font-size: 15px;
         font-weight: 600;
         font-family: inherit;
-        cursor: pointer;
         text-align: left;
-        margin: 0 16px 12px;
-        transition: opacity 0.1s;
+
+        cursor: pointer;
+
+        transition:
+            transform 0.15s ease,
+            opacity 0.15s ease;
     }
 
     .create-new-item:active {
+        transform: scale(0.98);
         opacity: 0.7;
     }
 
@@ -183,10 +182,10 @@
 
     .section-label {
         font-size: 11px;
-        font-weight: 600;
+        font-weight: 700;
         color: var(--text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.6px;
+        letter-spacing: 0.8px;
         padding: 8px 16px 6px;
     }
 
@@ -195,5 +194,32 @@
         flex-direction: column;
         gap: 6px;
         padding: 0 16px;
+    }
+
+    /* EMPTY */
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 16px;
+        gap: 6px;
+    }
+
+    .empty-icon {
+        font-size: 36px;
+        margin-bottom: 4px;
+    }
+
+    .empty-text {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .empty-sub {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
     }
 </style>

@@ -125,3 +125,77 @@ export async function reschedulePlannedChore(id, data) {
     body: data,
   });
 }
+
+
+/**
+ * Create a Quick Planned Chore
+ * @param {Object} data
+ * @returns {Promise<{id: string}>}
+ */
+export async function createQuickPlannedChore(data) {
+    return apiFetch("/api/chores/quick", {
+        method: "POST",
+        body: data,
+    });
+}
+
+/**
+ * Get Quick Planned Chores for family
+ * @param {string} [dateFrom] - ISO date
+ * @param {string} [dateTo] - ISO date
+ * @returns {Promise<any>}
+ */
+export async function getQuickPlannedChores(dateFrom, dateTo) {
+    const params = new URLSearchParams();
+    if (dateFrom) params.set("date_from", dateFrom);
+    if (dateTo)   params.set("date_to", dateTo);
+
+    const qs = params.toString();
+    return apiFetch(`/api/chores/quick${qs ? `?${qs}` : ""}`);
+}
+
+/**
+ * Complete a Quick Planned Chore
+ * @param {string} id
+ * @returns {Promise<any>}
+ */
+export async function completeQuickPlannedChore(id) {
+    return apiFetch(`/api/chores/quick/${id}/complete`, {
+        method: "PATCH",
+    });
+}
+
+/**
+ * Uncomplete a Quick Planned Chore
+ * @param {string} id
+ * @returns {Promise<any>}
+ */
+export async function uncompleteQuickPlannedChore(id) {
+    return apiFetch(`/api/chores/quick/${id}/uncomplete`, {
+        method: "PATCH",
+    });
+}
+
+/**
+ * Update a Quick Planned Chore
+ * @param {string} id
+ * @param {Object} data
+ * @returns {Promise<any>}
+ */
+export async function updateQuickPlannedChore(id, data) {
+    return apiFetch(`/api/chores/quick/${id}`, {
+        method: "PATCH",
+        body: data,
+    });
+}
+
+/**
+ * Delete a Quick Planned Chore
+ * @param {string} id
+ * @returns {Promise<any>}
+ */
+export async function deleteQuickPlannedChore(id) {
+    return apiFetch(`/api/chores/quick/${id}`, {
+        method: "DELETE",
+    });
+}

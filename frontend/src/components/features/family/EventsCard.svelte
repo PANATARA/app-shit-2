@@ -3,10 +3,10 @@
     import type { FamilyEvent } from "$types/index";
     import EventDetailSheet from "$screens/modal/EventDetailSheet.svelte";
     import { activeTab } from "$lib/navigation";
+    import Card from "$ui/Card.svelte";
 
     export let loading = true;
     export let events = [];
-    export let onAddClick = () => {};
 
     let selectedEvent: FamilyEvent | null = null;
 
@@ -30,19 +30,18 @@
     }
 </script>
 
-<div class="container">
-    <!-- декоративный блик -->
-
-    <div class="head">
-        <span class="title">События</span>
-        <button
-            class="add-btn"
-            on:click={() => activeTab.set("eventCreate")}
-            aria-label="Добавить событие"
-        >
-            <Icon icon="material-symbols:add-rounded" width={20} />
-        </button>
-    </div>
+<Card
+    title="Ближайшие события"
+    glowDirection="bottom-left"
+    gradientDirection="to-left"
+>
+    <button
+        slot="action"
+        class="add-btn"
+        on:click={() => activeTab.set("eventCreate")}
+    >
+        <Icon icon="material-symbols:add-rounded" width={20} />
+    </button>
 
     {#if !events.length}
         <div class="empty">
@@ -54,7 +53,10 @@
         <div class="list">
             {#each events as event}
                 {@const label = getDateLabel(event.date)}
-                <button class="event-row" on:click={() => (selectedEvent = event)}>
+                <button
+                    class="event-row"
+                    on:click={() => (selectedEvent = event)}
+                >
                     <div class="icon-wrap" style="background: {event.icon_bg}">
                         <Icon
                             icon={event.icon}
@@ -78,7 +80,7 @@
             {/each}
         </div>
     {/if}
-</div>
+</Card>
 
 {#if selectedEvent}
     <EventDetailSheet
@@ -86,71 +88,8 @@
         on:close={() => (selectedEvent = null)}
     />
 {/if}
+
 <style>
-    .container {
-        position: relative;
-        overflow: hidden;
-
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-
-        padding: 18px 10px;
-
-        border-radius: 24px;
-
-        background: linear-gradient(
-            180deg,
-            color-mix(in srgb, var(--accent) 10%, var(--surface)),
-            var(--surface)
-        );
-
-        box-shadow:
-            0 10px 30px rgba(0, 0, 0, 0.08),
-            inset 0 1px rgba(255, 255, 255, 0.04);
-    }
-
-    .container::before {
-        content: "";
-
-        position: absolute;
-
-        right: -70px;
-        top: -70px;
-
-        width: 180px;
-        height: 180px;
-
-        border-radius: 50%;
-
-        background: color-mix(in srgb, var(--accent) 18%, transparent);
-
-        filter: blur(16px);
-
-        pointer-events: none;
-    }
-
-    /* HEAD */
-
-    .head {
-        position: relative;
-        z-index: 1;
-
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .title {
-        font-size: 13px;
-        font-weight: 800;
-
-        letter-spacing: 0.8px;
-        text-transform: uppercase;
-
-        color: var(--text-primary);
-    }
-
     .add-btn {
         display: flex;
         align-items: center;
@@ -199,7 +138,7 @@
         border: none;
         border-radius: 20px;
 
-        background: rgba(255, 255, 255, 0.035);
+        background: color-mix(in srgb, var(--accent) 5%, var(--surface-alt));
 
         cursor: pointer;
 
@@ -210,7 +149,7 @@
 
     .event-row:active {
         transform: scale(0.97);
-        background: rgba(255, 255, 255, 0.06);
+        background: color-mix(in srgb, var(--accent) 10%, var(--surface-alt));
     }
 
     /* ICON */
@@ -237,6 +176,7 @@
         display: flex;
         flex-direction: column;
         gap: 3px;
+        text-align: left;
     }
 
     .event-name {

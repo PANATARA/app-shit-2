@@ -6,7 +6,7 @@
   import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
 
   import { createFamily, joinFamily } from "$api/family";
-  import AvatarConstructor from "$features/settings/AvatarConstructor.svelte";
+  import AvatarConstructor from "$features/settings/AvatarBuilder.svelte";
   import Welcome from "$features/entry/Welcome.svelte";
   import ChooseFamilyEntry from "$features/entry/ChooseFamilyEntry.svelte";
   import CreateFamily from "$features/entry/CreateFamily.svelte";
