@@ -56,7 +56,7 @@ export async function uploadAvatar(file) {
     const formData = new FormData();
     formData.append('file', file);
 
-    return apiFetch('/api/usersme/avatar/file', {
+    return apiFetch('/api/users/me/avatar/file', {
         method: 'POST',
         body: formData,
         isMultipart: true

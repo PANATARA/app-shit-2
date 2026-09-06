@@ -39,7 +39,7 @@
             Назад
         </button>
         <h1>Мои дела</h1>
-        <div class="header-spacer" />
+        <div class="header-spacer"></div>
     </header>
 
     <div class="page-content">

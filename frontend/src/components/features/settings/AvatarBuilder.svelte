@@ -254,9 +254,20 @@
 
     // ─── State ────────────────────────────────────────────────────────────────
 
-    let selectedIcon = $state(initialIcon);
-    let selectedIconColor = $state(initialIconColor);
-    let selectedBg = $state(initialBg);
+    let selectedIcon = $state("");
+    let selectedIconColor = $state("");
+    let selectedBg = $state("");
+
+    // Sync state if initial props change externally
+    $effect.pre(() => {
+        selectedIcon = initialIcon;
+    });
+    $effect.pre(() => {
+        selectedIconColor = initialIconColor;
+    });
+    $effect.pre(() => {
+        selectedBg = initialBg;
+    });
     let activeCategoryIndex = $state(0);
 
     // ─── Derived ──────────────────────────────────────────────────────────────

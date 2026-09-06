@@ -88,7 +88,7 @@
     <!-- Иконка + сообщение -->
     <div class="chore-header">
         <div class="chore-icon-wrap">
-            <span class="icon-glow" />
+            <span class="icon-glow"></span>
             <ChoreIcon chore={plannedChore.chore} size={68} />
         </div>
         {#if plannedChore.message}
@@ -128,7 +128,7 @@
             />
         </div>
 
-        <div class="divider" />
+        <div class="divider"></div>
 
         <div class="detail-row">
             <div class="detail-icon">
@@ -154,7 +154,7 @@
             </div>
         </div>
 
-        <div class="divider" />
+        <div class="divider"></div>
 
         <div class="detail-row">
             <div
@@ -186,7 +186,7 @@
             </div>
         </div>
 
-        <div class="divider" />
+        <div class="divider"></div>
 
         <div class="detail-row">
             <div class="detail-icon">

@@ -79,10 +79,6 @@
 
 <div class="calendar">
     <div class="scroll-wrapper">
-        <!-- {#if currentWeek > 0}
-            <div class="edge-hint left">‹</div>
-        {/if} -->
-
         <div
             class="scroll-container"
             bind:this={container}
@@ -104,13 +100,8 @@
                 </div>
             {/each}
         </div>
-
-        <!-- {#if currentWeek < weeks.length - 1}
-            <div class="edge-hint right">›</div>
-        {/if} -->
     </div>
     <div class="header">
-        <!-- <div class="week-label">{weekLabels[currentWeek]}</div> -->
         <div class="dots">
             {#each weeks as _, i}
                 <div class="dot" class:active={i === currentWeek}></div>
@@ -152,34 +143,10 @@
         position: relative;
     }
 
-    .edge-hint {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        font-size: 18px;
-        z-index: 1;
-        pointer-events: none;
-        opacity: 0.5;
-    }
-
-    .edge-hint.left {
-        left: -14px;
-    }
-    .edge-hint.right {
-        right: -14px;
-    }
     .calendar {
         display: flex;
         flex-direction: column;
         gap: 10px;
-    }
-
-    .week-label {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-muted);
-        padding: 0 2px;
     }
 
     /* ── Скролл-контейнер ───────────────────────── */

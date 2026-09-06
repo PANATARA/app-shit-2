@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 
 // Support VITE_API_URL or get/set it dynamically
-let savedUrl = 'http://192.168.0.233:8000';
+let savedUrl = '';
 try {
     if (typeof localStorage !== 'undefined') {
         savedUrl = localStorage.getItem('api_base_url') || '';
@@ -10,8 +10,7 @@ try {
     console.warn('localStorage not available:', e);
 }
 
-let apiBaseUrl = import.meta.env.VITE_API_URL || 'http://172.20.10.5:8000';
-// let apiBaseUrl = savedUrl || (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) || '';
+let apiBaseUrl = savedUrl || import.meta.env.VITE_API_URL || 'http://172.20.10.5:8000';
 export function getBaseUrl() {
     return apiBaseUrl;
 }
@@ -88,6 +87,10 @@ export function clearTokens() {
     refreshTokenStore.set('');
     setStoredToken('refresh_token', '');
     isLoggedInStore.set(false);
+    userSession.set({
+        userId: null,
+        isFamilyAdmin: false,
+    });
 }
 
 // Handle multi-request refresh queueing

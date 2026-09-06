@@ -1,5 +1,5 @@
 import { writable } from "svelte/store";
-import { getCached, setCached } from "$lib/cashe";
+import { getCached, setCached } from "$lib/cache";
 
 export interface SWRState<T> {
   data: T | null;

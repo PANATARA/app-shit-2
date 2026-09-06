@@ -42,10 +42,12 @@
     >
         {#if title}
             <div class="sheet-header">
+                <div class="sheet-handle"></div>
                 <div class="sheet-title">{title}</div>
             </div>
         {:else}
             <div class="sheet-handle-only">
+                <div class="sheet-handle"></div>
             </div>
         {/if}
 

@@ -19,14 +19,12 @@
 
   $: isDefaultChore = !!selectedChore?.default_chore_id;
 
-  function updateAvatar(e) {
-    const { icon, icon_color, icon_bg } = e.detail;
-
+  function updateAvatar(val: { icon: string; icon_color: string; icon_bg: string }) {
     form = {
       ...form,
-      icon,
-      icon_color,
-      icon_bg,
+      icon: val.icon,
+      icon_color: val.icon_color,
+      icon_bg: val.icon_bg,
     };
   }
 </script>
@@ -42,13 +40,13 @@
       initialIcon={form.icon}
       initialIconColor={form.icon_color}
       initialBg={form.icon_bg}
-      on:change={updateAvatar}
+      onchange={updateAvatar}
     />
   {/if}
 
   <!-- Название -->
   <div class="field">
-    <label class="field-label"> Название </label>
+    <span class="field-label"> Название </span>
 
     <CustomInput
       bind:value={form.name}
@@ -59,7 +57,7 @@
 
   <!-- Описание -->
   <div class="field">
-    <label class="field-label"> Описание </label>
+    <span class="field-label"> Описание </span>
 
     <CustomTextarea
       bind:value={form.description}
@@ -71,7 +69,7 @@
 
   <!-- Награда -->
   <div class="field">
-    <label class="field-label"> Награда (монеты) </label>
+    <span class="field-label"> Награда (монеты) </span>
 
     <CustomInput
       bind:value={form.valuation}

@@ -5,10 +5,12 @@
     "moduleResolution": "bundler",
     "strict": false,
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["src/*"],
       "$api/*": ["src/api/*"],
       "$features/*": ["src/components/features/*"],
+      "$skeletons/*": ["src/components/skeletons/*"],
       "$ui/*": ["src/components/ui/*"],
       "$screens/*": ["src/screens/*"],
       "$types/*": ["src/types/*"],

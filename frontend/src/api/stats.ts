@@ -1,6 +1,5 @@
-import { ChoreCompletionStat, StatFilters } from '../types/index.js';
+import type { ChoreCompletionStat, StatFilters } from '$types/index';
 import { apiFetch } from './client.js';
-
 
 /**
  * Get family chores sorted by completion count
@@ -14,7 +13,7 @@ export async function getStatisticsOnFamilyChore(
 }
 
 /**
- * Get family chores sorted by completion count
+ * Get family members sorted by completion count
  */
 export async function getStatisticsFamilyMembers(
   filters: StatFilters = {}

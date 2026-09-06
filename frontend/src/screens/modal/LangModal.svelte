@@ -246,7 +246,7 @@
     border-color: var(--text-muted);
   } */
 
-    .check-icon {
+    :global(.check-icon) {
         display: block;
         stroke-width: 2.5px;
     }

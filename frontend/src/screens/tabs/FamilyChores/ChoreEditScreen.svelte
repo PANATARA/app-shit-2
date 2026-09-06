@@ -113,7 +113,7 @@
             {/if}
 
             <div class="field">
-                <label class="field-label">Название</label>
+                <span class="field-label">Название</span>
 
                 <CustomInput
                     bind:value={form.name}
@@ -123,7 +123,7 @@
             </div>
 
             <div class="field">
-                <label class="field-label">Описание</label>
+                <span class="field-label">Описание</span>
 
                 <CustomTextarea
                     bind:value={form.description}
@@ -135,7 +135,7 @@
             </div>
 
             <div class="field">
-                <label class="field-label">Награда (монеты)</label>
+                <span class="field-label">Награда (монеты)</span>
 
                 <CustomInput
                     bind:value={form.valuation}

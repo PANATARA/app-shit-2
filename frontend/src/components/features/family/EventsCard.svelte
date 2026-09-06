@@ -43,7 +43,19 @@
         <Icon icon="material-symbols:add-rounded" width={20} />
     </button>
 
-    {#if !events.length}
+    {#if loading}
+        <div class="list">
+            {#each Array(2) as _}
+                <div class="event-row skeleton-row">
+                    <div class="skeleton icon-skeleton"></div>
+                    <div class="event-info">
+                        <div class="skeleton name-skeleton"></div>
+                        <div class="skeleton desc-skeleton"></div>
+                    </div>
+                </div>
+            {/each}
+        </div>
+    {:else if !events.length}
         <div class="empty">
             <span class="empty-icon">🗓️</span>
             <span class="empty-text">Событий пока нет</span>
@@ -271,5 +283,41 @@
         font-weight: 500;
 
         color: var(--text-muted);
+    }
+
+    .skeleton {
+        background: linear-gradient(
+            90deg,
+            var(--surface-alt) 25%,
+            var(--border) 50%,
+            var(--surface-alt) 75%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+        from { background-position: 200% 0; }
+        to { background-position: -200% 0; }
+    }
+
+    .icon-skeleton {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        flex-shrink: 0;
+    }
+
+    .name-skeleton {
+        width: 130px;
+        height: 14px;
+        border-radius: 6px;
+    }
+
+    .desc-skeleton {
+        width: 80px;
+        height: 11px;
+        border-radius: 4px;
+        margin-top: 6px;
     }
 </style>

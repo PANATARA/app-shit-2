@@ -10,12 +10,6 @@
 </script>
 
 <div class="onboarding-screen">
-    <!-- <header class="onboarding-header">
-        <BackButton on:click={() => activeTab.set("onboardingWelcome")} />
-
-        <h2 class="screen-title">Семейный круг</h2>
-    </header> -->
-
     <main class="content">
         <section class="intro">
             <div class="intro-icon">
@@ -122,27 +116,6 @@
         flex-direction: column;
 
         background: var(--bg);
-        color: var(--text-primary);
-    }
-
-    /* ───────────────── Header ───────────────── */
-
-    .onboarding-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        padding: 56px 20px 10px;
-    }
-
-    .screen-title {
-        margin: 0;
-
-        font-size: 20px;
-        line-height: 1.2;
-        font-weight: 800;
-        letter-spacing: -0.35px;
-
         color: var(--text-primary);
     }
 
@@ -400,10 +373,6 @@
     /* ───────────────── Small screens ───────────────── */
 
     @media (max-width: 380px) {
-        .onboarding-header {
-            padding-top: 48px;
-        }
-
         .content {
             padding: 24px 16px 24px;
         }

@@ -36,9 +36,9 @@
     on:click={() => !disabled && dispatch("click")}
 >
     <!-- фоновый glow -->
-    <span class="glow" />
+    <span class="glow"></span>
     <!-- блик -->
-    <span class="shine" />
+    <span class="shine"></span>
 
     <span class="label">{label}</span>
 </button>

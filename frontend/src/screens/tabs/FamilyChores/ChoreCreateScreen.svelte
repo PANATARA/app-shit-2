@@ -61,7 +61,7 @@
             Назад
         </button>
         <h1>Новое дело</h1>
-        <div class="header-spacer" />
+        <div class="header-spacer"></div>
     </header>
 
     <div class="page-content">
@@ -74,7 +74,7 @@
             />
 
             <div class="field">
-                <label class="field-label">Название</label>
+                <span class="field-label">Название</span>
                 <CustomInput
                     bind:value={form.name}
                     placeholder="Например: Покормить кота"
@@ -82,7 +82,7 @@
             </div>
 
             <div class="field">
-                <label class="field-label">Описание</label>
+                <span class="field-label">Описание</span>
                 <CustomTextarea
                     bind:value={form.description}
                     placeholder="Дополнительные детали..."
@@ -92,7 +92,7 @@
             </div>
 
             <div class="field">
-                <label class="field-label">Награда (монеты)</label>
+                <span class="field-label">Награда (монеты)</span>
                 <CustomInput
                     bind:value={form.valuation}
                     inputType="number"

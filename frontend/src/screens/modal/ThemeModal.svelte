@@ -63,7 +63,7 @@
                                 <span
                                     class="color"
                                     style="background: {color}"
-                                />
+                                ></span>
                             {/each}
                         </div>
                         <div class="text">
@@ -80,7 +80,7 @@
                                 />
                             </div>
                         {:else}
-                            <div class="inactive" />
+                            <div class="inactive"></div>
                         {/if}
                     </div>
                 </button>

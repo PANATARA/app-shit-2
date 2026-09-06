@@ -63,7 +63,7 @@
     <header class="page-header">
         <Backbtn label="Назад" on:click={handleBack} />
         <h1>Новое событие</h1>
-        <div class="header-spacer" />
+        <div class="header-spacer"></div>
     </header>
 
     <div class="icon-header">
@@ -100,7 +100,7 @@
                 rows={3}
             />
 
-            <div class="divider" />
+            <div class="divider"></div>
 
             <input class="field-input" type="date" bind:value={date} />
         </div>

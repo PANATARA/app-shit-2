@@ -124,7 +124,7 @@
 <div class="repeat-selector-container">
     <!-- FREQUENCY GRID -->
     <div class="field">
-        <label class="field-label">Повторяемость задачи</label>
+        <span class="field-label">Повторяемость задачи</span>
         <div class="repeat-selector-grid">
             {#each repeatOptions as opt}
                 <button
@@ -146,7 +146,7 @@
         <div class="settings-panel">
             <!-- INTERVAL -->
             <div class="field">
-                <label class="field-label">Частота повторения</label>
+                <span class="field-label">Частота повторения</span>
                 <div class="stepper-container">
                     <button
                         type="button"
@@ -194,7 +194,7 @@
             <!-- WEEKLY DAYS -->
             {#if value.frequency_type === "weekly"}
                 <div class="field">
-                    <label class="field-label">Дни недели</label>
+                    <span class="field-label">Дни недели</span>
                     <div class="weekly-container">
                         <div class="days-row">
                             {#each weekDays as d}
@@ -254,7 +254,7 @@
             <!-- MONTHLY DAY -->
             {#if value.frequency_type === "monthly"}
                 <div class="field">
-                    <label class="field-label">Какого числа повторять</label>
+                    <span class="field-label">Какого числа повторять</span>
                     <div class="monthly-container">
                         <div class="stepper-container">
                             <button

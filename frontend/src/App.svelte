@@ -15,7 +15,7 @@
     import { profileModal, closeProfile } from "$lib/settings";
     import { activeTab } from "$lib/navigation";
     import StepOne from "$screens/tabs/PlannedChoreCreate/StepOne.svelte";
-    import StepTwo from "./screens/tabs/PlannedChoreCreate/StepTwo.svelte";
+    import StepTwo from "$screens/tabs/PlannedChoreCreate/StepTwo.svelte";
     import PlannedChoreDetail from "$screens/tabs/PlannedChoreDetail.svelte";
     import ChoreListScreen from "$screens/tabs/FamilyChores/ChoreListScreen.svelte";
     import ChoreEditScreen from "$screens/tabs/FamilyChores/ChoreEditScreen.svelte";
@@ -113,7 +113,16 @@
             {:else if $activeTab === "boardScreen"}
                 <BoardScreen />
             {:else if $activeTab === "settingsScreen"}
-                <ProfileSettingsScreen />
+                <ProfileSettingsScreen
+                    on:logout={() => {
+                        isAuthed = false;
+                        isInFamily = false;
+                    }}
+                    on:family-left={() => {
+                        isInFamily = false;
+                        activeTab.set("onboardingWelcome");
+                    }}
+                />
             {:else if $activeTab === "debugScreen"}
                 <DebugScreen />
             {:else if $activeTab === "createPlannedChoreStepOne"}
@@ -130,8 +139,6 @@
                 <ChoreCreateScreen />
             {:else if $activeTab === "choreTemplatesScreen"}
                 <ChoreTemplatesScreen />
-            {:else if $activeTab === "welcomeScreen"}
-                <WelcomeScreen />
             {:else if $activeTab === "eventCreate"}
                 <EventCreateScreen />
             {/if}
@@ -174,7 +181,7 @@
                 <button
                     class="nav-item"
                     class:active={$activeTab === "debugScreen"}
-                    on:click={() => activeTab.set("welcomeScreen")}
+                    on:click={() => activeTab.set("debugScreen")}
                     aria-label="Карта"
                 >
                     <div class="nav-icon">
@@ -306,28 +313,6 @@
         overflow: hidden;
     }
 
-    .top-bar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 10;
-        height: 50px;
-        padding-top: env(safe-area-inset-top);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--bg-bar);
-        flex-shrink: 0;
-        /* border-bottom: 0.5px solid rgba(255, 255, 255, 0.1); */
-    }
-
-    .top-bar h1 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin: 0;
-    }
-
     .content {
         flex: 1;
         overflow-y: auto;
@@ -443,10 +428,6 @@
         .nav-item:hover .nav-icon {
             background: rgba(255, 255, 255, 0.06);
         }
-    }
-
-    .icon svg {
-        display: block;
     }
 
     .app-loading {

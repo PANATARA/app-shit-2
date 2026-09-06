@@ -211,7 +211,7 @@
                 maxlength={500}
                 rows={2}
             />
-            <div class="divider" />
+            <div class="divider"></div>
             <input class="field-input" type="date" bind:value={dueDate} />
         </div>
 

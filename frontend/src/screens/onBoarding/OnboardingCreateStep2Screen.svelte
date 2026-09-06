@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { scale, fade } from "svelte/transition";
+    import { scale, fade, slide } from "svelte/transition";
     import { activeTab, onboardingParams } from "$lib/navigation";
     import { createFamily } from "$api/family";
 
@@ -102,7 +102,10 @@
                     <div class="loader-ring loader-ring-outer"></div>
                     <div class="loader-ring loader-ring-inner"></div>
 
-                    <div class="loader-icon">
+                    <div
+                        class="loader-icon"
+                        style="background: {$onboardingParams.familyForm.icon_bg}"
+                    >
                         <Icon
                             icon={$onboardingParams.familyForm.icon}
                             width="34"
@@ -147,10 +150,8 @@
                         initialIconColor={$onboardingParams.familyForm
                             .icon_color}
                         initialBg={$onboardingParams.familyForm.icon_bg}
-                        on:change={(e) => {
-                            const { icon, icon_color, icon_bg } = e.detail;
-
-                            updateAvatar(icon, icon_color, icon_bg);
+                        onchange={(e) => {
+                            updateAvatar(e.icon, e.icon_color, e.icon_bg);
                         }}
                     />
                 </div>
@@ -422,8 +423,6 @@
         justify-content: center;
 
         border-radius: 16px;
-
-        background: $onboardingParams.familyForm.icon_bg;
     }
 
     .loader-text h2 {

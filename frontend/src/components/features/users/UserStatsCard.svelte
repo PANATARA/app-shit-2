@@ -51,12 +51,6 @@
 <!-- </div> -->
 
 <style>
-    .content {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
     /* ── HERO ────────────────────────────────────── */
     .hero-stat {
         position: relative;

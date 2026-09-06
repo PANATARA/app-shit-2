@@ -1,13 +1,11 @@
 <script lang="ts">
-    import Icon from "@iconify/svelte";
     import UserAvatar from "$ui/UserAvatar.svelte";
     import UserProfileSkeleton from "$skeletons/CompactUserProfile.svelte";
     import ProgressBar from "$ui/ProgressBar.svelte";
     import Card from "$ui/Card.svelte";
+    import type { UserProfileStats } from "$types/index";
 
-    export let user: UserProfileStats;
-    export let onNotificationClick = () => {};
-    export let unread = false;
+    export let user: UserProfileStats | null = null;
     export let loading = true;
 </script>
 

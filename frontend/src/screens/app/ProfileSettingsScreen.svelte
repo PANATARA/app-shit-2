@@ -110,12 +110,12 @@
             </div>
             <div class="edit-fields">
                 <div class="field">
-                    <label class="field-label">Имя</label>
-                    <input class="field-input" bind:value={editName} />
+                    <label class="field-label" for="edit-profile-name">Имя</label>
+                    <input id="edit-profile-name" class="field-input" bind:value={editName} />
                 </div>
                 <div class="field">
-                    <label class="field-label">Фамилия</label>
-                    <input class="field-input" bind:value={editSurname} />
+                    <label class="field-label" for="edit-profile-surname">Фамилия</label>
+                    <input id="edit-profile-surname" class="field-input" bind:value={editSurname} />
                 </div>
             </div>
             <div class="edit-actions">
@@ -128,7 +128,7 @@
             <div class="profile-header">
                 <div class="avatar-wrap">
                     <UserAvatar user={meUser} size={100} />
-                    <button class="edit-icon-btn" onclick={openEdit}>
+                    <button class="edit-icon-btn" onclick={openEdit} aria-label="Редактировать профиль">
                         <Icon icon="material-symbols:edit-square" width={18} height={18} color="white" />
                     </button>
                 </div>
@@ -148,7 +148,7 @@
     {:else}
         <Block>
             {#each familyMembers as member (member.id)}
-                <div class="row clickable" onclick={() => openProfile(member.id)}>
+                <button type="button" class="row clickable" onclick={() => openProfile(member.id)}>
                     <UserAvatar user={member} size={30} />
                     <div class="row-text">
                         <div class="row-title">
@@ -159,16 +159,16 @@
                         </div>
                     </div>
                     <span class="arrow">›</span>
-                </div>
+                </button>
             {/each}
 
-            <div class="row clickable invite-row" onclick={() => (inviteModalOpen = true)}>
+            <button type="button" class="row clickable invite-row" onclick={() => (inviteModalOpen = true)}>
                 <div class="invite-icon">+</div>
                 <div class="row-text">
                     <div class="row-title invite-title">Пригласить участника</div>
                 </div>
                 <span class="arrow invite-arrow">›</span>
-            </div>
+            </button>
         </Block>
     {/if}
 
@@ -406,6 +406,14 @@
         align-items: center;
         gap: 12px;
         padding: 12px 14px;
+    }
+
+    button.row {
+        width: 100%;
+        border: none;
+        background: transparent;
+        text-align: left;
+        font-family: inherit;
     }
 
     .clickable {

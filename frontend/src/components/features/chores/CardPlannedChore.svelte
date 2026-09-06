@@ -24,7 +24,7 @@
     tabindex="0"
 >
     {#if !done}
-        <span class="glow" />
+        <span class="glow"></span>
     {/if}
 
     <!-- Иконка — разная для обычных и быстрых задач -->

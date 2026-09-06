@@ -78,16 +78,14 @@
         style="
         top: {glow.top}; bottom: {glow.bottom};
         left: {glow.left}; right: {glow.right};
-    "
-    />
+    "></div>
 
     <div
         class="glow glow-2"
         style="
         top: {glow2.top}; bottom: {glow2.bottom};
         left: {glow2.left}; right: {glow2.right};
-    "
-    />
+    "></div>
 
     {#if title || $$slots.action}
         <div class="card-head">

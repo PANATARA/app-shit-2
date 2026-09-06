@@ -3,6 +3,7 @@
 
   export let checked: boolean = false;
   export let disabled: boolean = false;
+  export let label: string = "Переключатель";
 
   const dispatch = createEventDispatcher();
 
@@ -29,6 +30,7 @@
   class:disabled
   on:click={onClick}
   type="button"
+  aria-label={label}
   aria-pressed={checked}
 >
   <span class="tog-track">

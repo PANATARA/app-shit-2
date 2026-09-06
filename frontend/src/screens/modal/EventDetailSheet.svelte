@@ -72,7 +72,7 @@
                 <span class="info-value">{getDaysLeft(event.date)}</span>
             </div>
             {#if event.description}
-                <div class="divider" />
+                <div class="divider"></div>
                 <div class="info-row info-row--col">
                     <div class="info-row-head">
                         <Icon icon="material-symbols:notes-rounded" width={18} color="var(--accent)" />
