@@ -199,3 +199,63 @@ export async function deleteQuickPlannedChore(id) {
         method: "DELETE",
     });
 }
+
+// ==========================================
+// 3. CHORE SCHEDULES (РАСПИСАНИЯ ЗАДАЧ)
+// ==========================================
+
+/**
+ * Create a chore schedule
+ * @param {string} choreId
+ * @param {object} scheduleData - { assigned_to_id, frequency_type, interval, days_of_week, day_of_month, starts_at, ends_at }
+ * @returns {Promise<any>}
+ */
+export async function createChoreSchedule(choreId, scheduleData) {
+    return apiFetch(`/api/chores/${choreId}/schedule`, {
+        method: "POST",
+        body: scheduleData,
+    });
+}
+
+/**
+ * Get active schedule for a chore
+ * @param {string} choreId
+ * @returns {Promise<any>}
+ */
+export async function getChoreSchedule(choreId) {
+    try {
+        return await apiFetch(`/api/chores/${choreId}/schedule`);
+    } catch (e) {
+        if (e && e.status === 404) return null;
+        throw e;
+    }
+}
+
+/**
+ * Update a chore schedule
+ * @param {string} scheduleId
+ * @param {object} scheduleData
+ * @returns {Promise<any>}
+ */
+export async function updateChoreSchedule(scheduleId, scheduleData) {
+    return apiFetch(`/api/schedules/${scheduleId}`, {
+        method: "PATCH",
+        body: scheduleData,
+    });
+}
+
+/**
+ * Soft delete a chore schedule
+ * @param {string} scheduleId
+ * @param {boolean} [revokeCompletedAwards=false]
+ * @returns {Promise<any>}
+ */
+export async function deleteChoreSchedule(scheduleId, revokeCompletedAwards = false) {
+    return apiFetch(
+        `/api/schedules/${scheduleId}?revoke_completed_awards=${revokeCompletedAwards}`,
+        {
+            method: "DELETE",
+        }
+    );
+}
+

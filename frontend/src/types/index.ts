@@ -96,6 +96,7 @@ export interface QuickPlannedChore {
 // PlannedChore тоже нужен маркер
 export interface PlannedChore {
     id: string;
+    schedule_id?: string | null;
     chore: ChoreItem;
     completed_by: UserShort | null;
     assigned_to: UserShort | null;
@@ -150,4 +151,41 @@ export interface ChoreForm {
   icon_color: string;
   icon_bg: string;
   valuation: number;
+}
+
+export interface ChoreSchedule {
+  id: string;
+  chore_id: string;
+  family_id: string;
+  assigned_to_id: string;
+  frequency_type: "daily" | "weekly" | "monthly";
+  interval: number;
+  days_of_week: number | null;
+  day_of_month: number | null;
+  starts_at: string;
+  ends_at: string | null;
+  last_generated_until?: string | null;
+  is_active: boolean;
+  created_by?: string | null;
+}
+
+export interface ChoreScheduleCreate {
+  assigned_to_id: string;
+  frequency_type: "daily" | "weekly" | "monthly";
+  interval: number;
+  days_of_week?: number | null;
+  day_of_month?: number | null;
+  starts_at: string;
+  ends_at?: string | null;
+}
+
+export interface ChoreScheduleUpdate {
+  assigned_to_id?: string;
+  frequency_type?: "daily" | "weekly" | "monthly";
+  interval?: number;
+  days_of_week?: number | null;
+  day_of_month?: number | null;
+  starts_at?: string;
+  ends_at?: string | null;
+  is_active?: boolean;
 }

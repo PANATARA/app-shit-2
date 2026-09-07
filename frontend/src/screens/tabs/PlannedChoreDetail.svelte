@@ -2,20 +2,270 @@
     import UserAvatar from "$ui/UserAvatar.svelte";
     import ChoreIcon from "$ui/ChoreIcon.svelte";
     import Icon from "@iconify/svelte";
+    import RepeatSelector from "$features/chores/RepeatSelector.svelte";
     import {
         deletePlannedChore,
         reschedulePlannedChore,
         completePlannedChore,
         unCompletePlannedChore,
+        getChoreSchedule,
+        createChoreSchedule,
+        updateChoreSchedule,
+        deleteChoreSchedule,
     } from "$api/chores";
+    import { userSession } from "$api/client";
     import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
     import { t } from "$lib/i18n";
     import { language } from "$lib/settings";
+
+    type FrequencyType = "none" | "daily" | "weekly" | "monthly";
+
+    interface RepeatConfig {
+        frequency_type: FrequencyType;
+        interval: number;
+        days_of_week: number[];
+        day_of_month: number | null;
+        starts_at: string;
+        ends_at: string | null;
+    }
 
     $: plannedChore = $detailPlannedChoreParams.plannedChore;
 
     let newDate = plannedChore?.due_date;
     let loading = false;
+
+    // ─── Schedule state ──────────────────────────────────────────────────────────
+    let activeSchedule: any = null;
+    let scheduleLoading = false;
+    let scheduleSaving = false;
+    let isScheduleEditing = false;
+    let scheduleErrorMessage = "";
+
+    function getTodayIso(): string {
+        return new Date().toISOString().split("T")[0];
+    }
+
+    let repeatConfig: RepeatConfig = {
+        frequency_type: "none",
+        interval: 1,
+        days_of_week: [],
+        day_of_month: null,
+        starts_at: getTodayIso(),
+        ends_at: null,
+    };
+
+    function daysOfWeekToBitmask(days: number[]): number {
+        let mask = 0;
+        for (const d of days) {
+            if (d === 0) {
+                mask |= (1 << 6); // Sunday = 64
+            } else if (d >= 1 && d <= 6) {
+                mask |= (1 << (d - 1)); // 1=Mo(1), 2=Tu(2), 3=We(4), 4=Th(8), 5=Fr(16), 6=Sa(32)
+            }
+        }
+        return mask;
+    }
+
+    function bitmaskToDaysOfWeek(mask: number | null | undefined): number[] {
+        const days: number[] = [];
+        if (!mask) return days;
+        for (let i = 0; i < 6; i++) {
+            if (mask & (1 << i)) {
+                days.push(i + 1); // 1 = Monday ... 6 = Saturday
+            }
+        }
+        if (mask & (1 << 6)) {
+            days.push(0); // 0 = Sunday
+        }
+        return days;
+    }
+
+    function getPlural(n: number, one: string, two: string, five: string): string {
+        const absN = Math.abs(n) % 100;
+        const n1 = absN % 10;
+        if (absN > 10 && absN < 20) return five;
+        if (n1 > 1 && n1 < 5) return two;
+        if (n1 === 1) return one;
+        return five;
+    }
+
+    function getScheduleDisplayText(schedule: any, lang: string): string {
+        if (!schedule || !schedule.is_active || schedule.frequency_type === "none") {
+            return lang === "en" ? "No repetition" : "Без повторения";
+        }
+        const interval = schedule.interval || 1;
+        if (schedule.frequency_type === "daily") {
+            if (lang === "en") {
+                return interval === 1 ? "Every day" : `Every ${interval} days`;
+            } else {
+                if (interval === 1) return "Каждый день";
+                return `Каждые ${interval} ${getPlural(interval, "день", "дня", "дней")}`;
+            }
+        }
+        if (schedule.frequency_type === "weekly") {
+            const days = bitmaskToDaysOfWeek(schedule.days_of_week);
+            const dayLabelsEn: Record<number, string> = { 1: "Mo", 2: "Tu", 3: "We", 4: "Th", 5: "Fr", 6: "Sa", 0: "Su" };
+            const dayLabelsRu: Record<number, string> = { 1: "Пн", 2: "Вт", 3: "Ср", 4: "Чт", 5: "Пт", 6: "Сб", 0: "Вс" };
+            const labels = days.map((d) => (lang === "en" ? dayLabelsEn[d] : dayLabelsRu[d])).join(", ");
+
+            if (lang === "en") {
+                const prefix = interval === 1 ? "Every week" : `Every ${interval} weeks`;
+                return labels ? `${prefix} (${labels})` : prefix;
+            } else {
+                const prefix = interval === 1 ? "Каждую неделю" : `Каждые ${interval} ${getPlural(interval, "неделю", "недели", "недель")}`;
+                return labels ? `${prefix} (${labels})` : prefix;
+            }
+        }
+        if (schedule.frequency_type === "monthly") {
+            const dom = schedule.day_of_month;
+            if (lang === "en") {
+                const prefix = interval === 1 ? "Every month" : `Every ${interval} months`;
+                return dom ? `${prefix} (${dom}th)` : prefix;
+            } else {
+                const prefix = interval === 1 ? "Каждый месяц" : `Каждые ${interval} ${getPlural(interval, "месяц", "месяца", "месяцев")}`;
+                return dom ? `${prefix} (${dom}-го числа)` : prefix;
+            }
+        }
+        return lang === "en" ? "Scheduled" : "По расписанию";
+    }
+
+    function clearPlannedChoresSwrCache() {
+        try {
+            if (typeof localStorage !== "undefined") {
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith("swr:planned-chores:")) {
+                        localStorage.removeItem(k);
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("Could not clear SWR cache:", e);
+        }
+    }
+
+    async function fetchSchedule() {
+        if (!plannedChore?.chore?.id) return;
+        scheduleLoading = true;
+        try {
+            const sched = await getChoreSchedule(plannedChore.chore.id);
+            activeSchedule = sched;
+            if (sched && sched.is_active) {
+                repeatConfig = {
+                    frequency_type: sched.frequency_type,
+                    interval: sched.interval,
+                    days_of_week: bitmaskToDaysOfWeek(sched.days_of_week),
+                    day_of_month: sched.day_of_month,
+                    starts_at: sched.starts_at || getTodayIso(),
+                    ends_at: sched.ends_at,
+                };
+            } else {
+                repeatConfig = {
+                    frequency_type: "none",
+                    interval: 1,
+                    days_of_week: [],
+                    day_of_month: null,
+                    starts_at: plannedChore.due_date || getTodayIso(),
+                    ends_at: null,
+                };
+            }
+        } catch (err) {
+            console.error("Failed to load chore schedule:", err);
+        } finally {
+            scheduleLoading = false;
+        }
+    }
+
+    let loadedChoreId: string | null = null;
+    $: if (plannedChore?.chore?.id && plannedChore.chore.id !== loadedChoreId) {
+        loadedChoreId = plannedChore.chore.id;
+        fetchSchedule();
+    }
+
+    async function handleSaveSchedule() {
+        scheduleSaving = true;
+        scheduleErrorMessage = "";
+        try {
+            if (repeatConfig.frequency_type === "none") {
+                if (activeSchedule) {
+                    await deleteChoreSchedule(activeSchedule.id, false);
+                    activeSchedule = null;
+                }
+            } else {
+                const startsAt = repeatConfig.starts_at || plannedChore.due_date || getTodayIso();
+                const payload: any = {
+                    frequency_type: repeatConfig.frequency_type,
+                    interval: Math.max(1, repeatConfig.interval || 1),
+                    starts_at: startsAt,
+                    ends_at: repeatConfig.ends_at || null,
+                    is_active: true,
+                };
+
+                if (repeatConfig.frequency_type === "weekly") {
+                    let mask = daysOfWeekToBitmask(repeatConfig.days_of_week || []);
+                    if (mask === 0) {
+                        const d = new Date(startsAt).getDay();
+                        mask = 1 << (d === 0 ? 6 : d - 1);
+                    }
+                    payload.days_of_week = mask;
+                    payload.day_of_month = null;
+                } else if (repeatConfig.frequency_type === "monthly") {
+                    payload.day_of_month = repeatConfig.day_of_month || new Date(startsAt).getDate();
+                    payload.days_of_week = null;
+                } else {
+                    payload.days_of_week = null;
+                    payload.day_of_month = null;
+                }
+
+                if (activeSchedule) {
+                    activeSchedule = await updateChoreSchedule(activeSchedule.id, payload);
+                } else {
+                    const finalAssignedTo =
+                        plannedChore.assigned_to?.id ||
+                        $userSession.userId;
+                    payload.assigned_to_id = finalAssignedTo;
+                    activeSchedule = await createChoreSchedule(plannedChore.chore.id, payload);
+                }
+            }
+
+            clearPlannedChoresSwrCache();
+            isScheduleEditing = false;
+        } catch (e: any) {
+            console.error("Failed to save schedule:", e);
+            scheduleErrorMessage =
+                e?.message ||
+                ($language === "en" ? "Failed to save schedule" : "Не удалось сохранить расписание");
+        } finally {
+            scheduleSaving = false;
+        }
+    }
+
+    async function handleDeleteSchedule() {
+        if (!activeSchedule) return;
+        scheduleSaving = true;
+        scheduleErrorMessage = "";
+        try {
+            await deleteChoreSchedule(activeSchedule.id, false);
+            activeSchedule = null;
+            repeatConfig = {
+                frequency_type: "none",
+                interval: 1,
+                days_of_week: [],
+                day_of_month: null,
+                starts_at: plannedChore?.due_date || getTodayIso(),
+                ends_at: null,
+            };
+            clearPlannedChoresSwrCache();
+            isScheduleEditing = false;
+        } catch (e: any) {
+            console.error("Failed to delete schedule:", e);
+            scheduleErrorMessage =
+                e?.message ||
+                ($language === "en" ? "Failed to disable schedule" : "Не удалось отключить расписание");
+        } finally {
+            scheduleSaving = false;
+        }
+    }
 
     function formatDate(iso: string, lang: string): string {
         return new Date(iso).toLocaleDateString(lang === "en" ? "en-US" : "ru-RU", {
@@ -33,6 +283,7 @@
         loading = true;
         try {
             await deletePlannedChore(plannedChore.id);
+            clearPlannedChoresSwrCache();
             handleBack();
         } catch (e) {
             console.error(e);
@@ -47,6 +298,7 @@
             const updated = plannedChore.completed_by
                 ? await unCompletePlannedChore(plannedChore.id)
                 : await completePlannedChore(plannedChore.id);
+            clearPlannedChoresSwrCache();
             handleBack();
         } catch (e) {
             console.error(e);
@@ -62,6 +314,7 @@
             await reschedulePlannedChore(plannedChore.id, {
                 reschedule_due_date: newDate,
             });
+            clearPlannedChoresSwrCache();
             handleBack();
         } catch (e) {
             console.error(e);
@@ -205,6 +458,111 @@
                 >
             </div>
         </div>
+
+        <div class="divider"></div>
+
+        <div
+            class="detail-row schedule-row"
+            on:click={() => (isScheduleEditing = !isScheduleEditing)}
+            on:keydown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    isScheduleEditing = !isScheduleEditing;
+                }
+            }}
+            role="button"
+            tabindex="0"
+        >
+            <div
+                class="detail-icon"
+                class:active-schedule-icon={!!activeSchedule?.is_active}
+            >
+                <Icon
+                    icon="material-symbols:sync-rounded"
+                    width="18"
+                    height="18"
+                />
+            </div>
+            <div class="detail-text">
+                <span class="detail-label"
+                    >{$t.repeat?.title ||
+                        ($language === "en" ? "Repeat" : "Повторение")}</span
+                >
+                <span
+                    class="detail-value"
+                    class:muted={!activeSchedule?.is_active}
+                >
+                    {scheduleLoading
+                        ? $language === "en"
+                            ? "Loading..."
+                            : "Загрузка..."
+                        : getScheduleDisplayText(activeSchedule, $language)}
+                </span>
+            </div>
+            <div class="edit-hint">
+                <Icon
+                    icon={isScheduleEditing
+                        ? "material-symbols:expand-less-rounded"
+                        : "material-symbols:edit-rounded"}
+                    width="16"
+                    height="16"
+                />
+            </div>
+        </div>
+
+        {#if isScheduleEditing}
+            <div class="schedule-editor-wrap">
+                {#if scheduleErrorMessage}
+                    <div class="schedule-error">
+                        <Icon
+                            icon="material-symbols:error-rounded"
+                            width="16"
+                            height="16"
+                        />
+                        <span>{scheduleErrorMessage}</span>
+                    </div>
+                {/if}
+
+                <RepeatSelector bind:value={repeatConfig} />
+
+                <div class="schedule-editor-actions">
+                    <button
+                        type="button"
+                        class="schedule-btn schedule-save-btn"
+                        on:click={handleSaveSchedule}
+                        disabled={scheduleSaving}
+                    >
+                        <Icon
+                            icon="material-symbols:check-rounded"
+                            width="16"
+                            height="16"
+                        />
+                        {scheduleSaving
+                            ? $t.common.saving
+                            : $language === "en"
+                              ? "Save repeat schedule"
+                              : "Сохранить расписание"}
+                    </button>
+
+                    {#if activeSchedule}
+                        <button
+                            type="button"
+                            class="schedule-btn schedule-delete-btn"
+                            on:click={handleDeleteSchedule}
+                            disabled={scheduleSaving}
+                        >
+                            <Icon
+                                icon="material-symbols:delete-outline-rounded"
+                                width="16"
+                                height="16"
+                            />
+                            {$language === "en"
+                                ? "Disable repeat"
+                                : "Отключить повторение"}
+                        </button>
+                    {/if}
+                </div>
+            </div>
+        {/if}
     </div>
 
     <!-- Кнопки -->
@@ -470,6 +828,102 @@
         height: 0.5px;
         background: var(--border);
         margin: 0 16px;
+    }
+
+    .schedule-row {
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.15s ease;
+    }
+
+    .schedule-row:active {
+        background: color-mix(in srgb, var(--accent) 6%, transparent);
+    }
+
+    .active-schedule-icon {
+        background: color-mix(in srgb, var(--accent) 18%, var(--surface-alt));
+        color: var(--accent);
+    }
+
+    .schedule-editor-wrap {
+        padding: 14px 16px 18px;
+        background: color-mix(in srgb, var(--surface) 80%, var(--surface-alt));
+        border-top: 0.5px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .schedule-error {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #e85a5a;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 8px 12px;
+        border-radius: 12px;
+        background: rgba(232, 90, 90, 0.1);
+        border: 1px solid rgba(232, 90, 90, 0.2);
+    }
+
+    .schedule-editor-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    .schedule-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 12px 16px;
+        border: none;
+        border-radius: 14px;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition:
+            opacity 0.15s ease,
+            transform 0.15s ease;
+    }
+
+    .schedule-btn:active {
+        opacity: 0.7;
+        transform: scale(0.98);
+    }
+
+    .schedule-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .schedule-save-btn {
+        background: var(--accent);
+        color: #ffffff;
+        box-shadow: 0 4px 14px
+            color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    .schedule-delete-btn {
+        background: rgba(232, 90, 90, 0.1);
+        color: #e85a5a;
     }
 
     /* ── ACTIONS ─────────────────────────────────── */

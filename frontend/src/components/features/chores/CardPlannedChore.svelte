@@ -40,6 +40,11 @@
     <div class="content">
         <div class="title" class:completed-text={done}>
             {title}
+            {#if !item.is_quick && item.schedule_id}
+                <span class="repeat-icon" title="Повторяющаяся задача">
+                    <Icon icon="material-symbols:repeat-rounded" width="14" height="14" />
+                </span>
+            {/if}
         </div>
 
         {#if message}
@@ -276,5 +281,14 @@
             transform: scale(1) rotate(0);
             opacity: 1;
         }
+    }
+
+    .repeat-icon {
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+        margin-left: 4px;
+        color: var(--accent);
+        opacity: 0.9;
     }
 </style>

@@ -1,7 +1,8 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte";
     import RepeatSelector from "$features/chores/RepeatSelector.svelte";
-    import { createPlannedChore, createQuickPlannedChore } from "$api/chores";
+    import { createPlannedChore, createQuickPlannedChore, createChoreSchedule } from "$api/chores";
+    import { userSession } from "$api/client";
     import { getFamilyMembers } from "$api/family";
     import UserAvatar from "$ui/UserAvatar.svelte";
     import ChoreIcon from "$ui/ChoreIcon.svelte";
@@ -68,6 +69,21 @@
         return new Date().toISOString().split("T")[0];
     }
 
+    let isSubmitting = false;
+    let errorMessage = "";
+
+    function daysOfWeekToBitmask(days: number[]): number {
+        let mask = 0;
+        for (const d of days) {
+            if (d === 0) {
+                mask |= (1 << 6); // Sunday = 64
+            } else if (d >= 1 && d <= 6) {
+                mask |= (1 << (d - 1)); // 1=Mo(1), 2=Tu(2), 3=We(4), 4=Th(8), 5=Fr(16), 6=Sa(32)
+            }
+        }
+        return mask;
+    }
+
     // ─── Navigation ──────────────────────────────────────────────────────────
 
     function handleBack() {
@@ -76,6 +92,10 @@
 
     async function add() {
         if (!isQuickTask && !selectedChore) return;
+        if (isSubmitting) return;
+
+        isSubmitting = true;
+        errorMessage = "";
 
         const payload = {
             message: comment || "",
@@ -93,19 +113,67 @@
                     icon_bg: quickTaskAvatar.icon_bg,
                     ...payload,
                 });
-                console.log("quick task", {
-                    quickTaskName,
-                    quickTaskValuation,
-                    quickTaskAvatar,
-                    ...payload,
-                });
+            } else if (repeat && repeat.frequency_type !== "none") {
+                const finalAssignedTo =
+                    assignedTo ||
+                    $userSession.userId ||
+                    familyMembers?.members?.[0]?.id;
+
+                if (!finalAssignedTo) {
+                    errorMessage =
+                        $t.chores.assignToRequired ||
+                        "Выберите исполнителя для расписания";
+                    isSubmitting = false;
+                    return;
+                }
+
+                const startsAt = dueDate || repeat.starts_at || getTodayIso();
+                const schedulePayload: any = {
+                    assigned_to_id: finalAssignedTo,
+                    frequency_type: repeat.frequency_type,
+                    interval: Math.max(1, repeat.interval || 1),
+                    starts_at: startsAt,
+                    ends_at: repeat.ends_at || null,
+                };
+
+                if (repeat.frequency_type === "weekly") {
+                    let mask = daysOfWeekToBitmask(repeat.days_of_week || []);
+                    if (mask === 0) {
+                        const d = new Date(startsAt).getDay();
+                        mask = 1 << (d === 0 ? 6 : d - 1);
+                    }
+                    schedulePayload.days_of_week = mask;
+                } else if (repeat.frequency_type === "monthly") {
+                    schedulePayload.day_of_month =
+                        repeat.day_of_month || new Date(startsAt).getDate();
+                }
+
+                await createChoreSchedule(selectedChore!.id, schedulePayload);
             } else {
                 await createPlannedChore(selectedChore!.id, payload);
             }
+
+            // Invalidate SWR caches for planned chores
+            try {
+                if (typeof localStorage !== "undefined") {
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const k = localStorage.key(i);
+                        if (k && k.startsWith("swr:planned-chores:")) {
+                            localStorage.removeItem(k);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not clear SWR cache:", e);
+            }
+
             dispatch("add");
             activeTab.set("boardScreen");
-        } catch (e) {
+        } catch (e: any) {
             console.error("Failed to create planned chore:", e);
+            errorMessage = e?.message || "Не удалось создать задачу";
+        } finally {
+            isSubmitting = false;
         }
     }
 </script>
@@ -225,7 +293,10 @@
     </div>
 
     <div class="add-btn">
-        <ButtonPrimaryGlow on:click={add} label={$t.chores.addBtn} fullWidth />
+        {#if errorMessage}
+            <div class="error-banner">{errorMessage}</div>
+        {/if}
+        <ButtonPrimaryGlow on:click={add} label={isSubmitting ? ($t.common.saving || "Сохранение...") : $t.chores.addBtn} fullWidth />
     </div>
 </div>
 
@@ -455,5 +526,15 @@
         bottom: 0;
         padding: 12px 16px 8px;
         background: linear-gradient(to bottom, transparent, var(--bg) 40%);
+    }
+
+    .error-banner {
+        color: #ef4444;
+        font-size: 13px;
+        text-align: center;
+        margin-bottom: 8px;
+        padding: 8px 12px;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 10px;
     }
 </style>
