@@ -2,6 +2,7 @@
     import BottomSheet from "$ui/BottomSheet.svelte";
     import Icon from "@iconify/svelte";
     import { theme } from "$lib/settings.js";
+    import { t } from "$lib/i18n";
     import { createEventDispatcher } from "svelte";
     import { get } from "svelte/store";
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
@@ -15,23 +16,23 @@
     let currentTheme = get(theme) || "sunset";
     let selectedTheme = currentTheme;
 
-    const themes = [
+    $: themes = [
         {
             id: "sunset",
-            name: "Закат",
-            description: "Тёплые оттенки с терракотовым акцентом",
+            name: $t.modals.themeSunset,
+            description: $t.modals.themeSunsetDesc,
             colors: ["#fdf6ee", "#e05c3a", "#5a9e6f"],
         },
         {
             id: "rose",
-            name: "Роза",
-            description: "Голубой фон с розовым акцентом",
+            name: $t.modals.themeRose,
+            description: $t.modals.themeRoseDesc,
             colors: ["#cce8f4", "#c2185b", "#0277bd"],
         },
         {
             id: "royal",
-            name: "Королевская",
-            description: "Небесно-голубой с синим акцентом",
+            name: $t.modals.themeRoyal,
+            description: $t.modals.themeRoyalDesc,
             colors: ["#dff7ff", "#2457ff", "#0891b2"],
         },
     ];
@@ -44,7 +45,7 @@
 </script>
 
 <BottomSheet
-    title="Тема приложения"
+    title={$t.modals.themeTitle}
     on:close={close}
     flyY={999}
     flyDuration={320}
@@ -91,7 +92,7 @@
     <div class="actions">
         <ButtonPrimaryGlow
             on:click={applyTheme}
-            label="Применить"
+            label={$t.common.apply}
             disabled={selectedTheme === currentTheme}
             fullWidth
         />

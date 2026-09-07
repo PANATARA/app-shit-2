@@ -2,6 +2,7 @@
     import { scale, fade, slide } from "svelte/transition";
     import { activeTab } from "$lib/navigation";
     import { joinFamily } from "$api/family";
+    import { t } from "$lib/i18n";
 
     import BackButton from "$ui/backbtn.svelte";
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
@@ -42,8 +43,7 @@
         const clean = codeInputRaw.replace("-", "").trim();
 
         if (clean.length < 6) {
-            errorMessage =
-                "Введите полный 6-значный код (например, ABC-123)";
+            errorMessage = $t.onboarding.enterFullCodeError;
             return;
         }
 
@@ -61,8 +61,7 @@
             successData = profile;
             isSuccess = true;
         } catch {
-            errorMessage =
-                "Семейный круг с таким кодом не найден.";
+            errorMessage = $t.onboarding.familyNotFoundError;
         } finally {
             isLoading = false;
         }
@@ -101,15 +100,15 @@
                 </div>
 
                 <span class="success-label">
-                    Всё готово
+                    {$t.onboarding.allDone}
                 </span>
 
                 <h1 class="success-title">
-                    Вы в семейном круге!
+                    {$t.onboarding.youAreInCircle}
                 </h1>
 
                 <p class="success-subtitle">
-                    Добро пожаловать в семейный круг
+                    {$t.onboarding.familyCreatedSubtitle}
                 </p>
 
                 <div class="family-name">
@@ -117,7 +116,7 @@
                 </div>
 
                 <ButtonPrimaryGlow
-                    label="Войти в семейный круг"
+                    label={$t.onboarding.enterFamily}
                     on:click={() => onSuccess(successData)}
                 />
             </div>
@@ -145,10 +144,10 @@
                 </div>
 
                 <div class="loader-text">
-                    <h2>Ищем семейный круг</h2>
+                    <h2>{$t.onboarding.searchingFamily}</h2>
 
                     <p>
-                        Проверяем код приглашения...
+                        {$t.onboarding.checkingCode}
                     </p>
                 </div>
 
@@ -168,11 +167,11 @@
 
             <div class="header-info">
                 <span class="header-step">
-                    Присоединение
+                    {$t.onboarding.joining}
                 </span>
 
                 <h2 class="screen-title">
-                    Войти в семейный круг
+                    {$t.onboarding.enterFamilyCircle}
                 </h2>
             </div>
         </header>
@@ -188,11 +187,10 @@
                 </div>
 
                 <div>
-                    <h1>Пригласительный код</h1>
+                    <h1>{$t.onboarding.inviteCodeHeader}</h1>
 
                     <p>
-                        Введите код, который вам передал
-                        член вашей семьи.
+                        {$t.onboarding.inviteCodeSubtitle}
                     </p>
                 </div>
             </div>
@@ -217,7 +215,7 @@
                     for="invite-code-input"
                     class="code-input-label"
                 >
-                    Пригласительный код
+                    {$t.onboarding.inviteCodeLabel}
                 </label>
 
                 <input
@@ -235,7 +233,7 @@
                 />
 
                 <span class="code-subtext">
-                    Три символа, дефис, три символа
+                    {$t.onboarding.codeSubtext}
                 </span>
             </section>
 
@@ -249,14 +247,13 @@
                 </div>
 
                 <span>
-                    Код можно получить у владельца или
-                    участника семейного круга.
+                    {$t.onboarding.codeHint}
                 </span>
             </div>
 
             <div class="actions">
                 <ButtonPrimaryGlow
-                    label="Присоединиться"
+                    label={$t.onboarding.joinFamily}
                     on:click={handleJoinByCode}
                 />
             </div>

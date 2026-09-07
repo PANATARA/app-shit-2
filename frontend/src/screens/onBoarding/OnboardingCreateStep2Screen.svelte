@@ -2,6 +2,7 @@
     import { scale, fade, slide } from "svelte/transition";
     import { activeTab, onboardingParams } from "$lib/navigation";
     import { createFamily } from "$api/family";
+    import { t } from "$lib/i18n";
 
     import AvatarConstructor from "$features/settings/AvatarBuilder.svelte";
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
@@ -42,7 +43,7 @@
             successData = profile;
             isSuccess = true;
         } catch {
-            errorMessage = "Не удалось создать семью. Попробуйте ещё раз.";
+            errorMessage = $t.onboarding.createFamilyError;
         } finally {
             isLoading = false;
         }
@@ -77,18 +78,18 @@
                     </div>
                 </div>
 
-                <span class="success-label"> Всё готово </span>
+                <span class="success-label"> {$t.onboarding.allDone} </span>
 
-                <h1 class="success-title">Семья создана!</h1>
+                <h1 class="success-title">{$t.onboarding.familyCreatedTitle}</h1>
 
-                <p class="success-subtitle">Добро пожаловать в семейный круг</p>
+                <p class="success-subtitle">{$t.onboarding.familyCreatedSubtitle}</p>
 
                 <div class="family-name">
                     «{successData.name}»
                 </div>
 
                 <ButtonPrimaryGlow
-                    label="Войти в семейный круг"
+                    label={$t.onboarding.enterFamily}
                     on:click={() => onSuccess(successData)}
                 />
             </div>
@@ -116,9 +117,9 @@
                 </div>
 
                 <div class="loader-text">
-                    <h2>Создаём вашу семью</h2>
+                    <h2>{$t.onboarding.creatingFamily}</h2>
 
-                    <p>Подготавливаем семейное пространство...</p>
+                    <p>{$t.onboarding.creatingSubtitle}</p>
                 </div>
 
                 <div class="loader-progress">
@@ -135,9 +136,9 @@
             />
 
             <div class="header-info">
-                <span class="header-step"> Шаг 2 из 2 </span>
+                <span class="header-step"> {$t.onboarding.step2Of2} </span>
 
-                <h2 class="screen-title">Аватар семейного круга</h2>
+                <h2 class="screen-title">{$t.onboarding.step2Title}</h2>
             </div>
         </header>
 
@@ -180,14 +181,14 @@
                     />
                 </div>
 
-                <span> Аватар можно изменить позже в настройках семьи. </span>
+                <span> {$t.onboarding.avatarHint} </span>
             </div>
 
             <!-- Actions -->
 
             <div class="actions">
                 <ButtonPrimaryGlow
-                    label="Создать семью"
+                    label={$t.onboarding.createFamilyBtn}
                     on:click={handleFinishCreate}
                 />
             </div>

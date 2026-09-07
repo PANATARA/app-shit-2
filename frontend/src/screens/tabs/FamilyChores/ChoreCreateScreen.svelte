@@ -6,6 +6,7 @@
     import CustomInput from "$ui/CustomInput.svelte";
     import CustomTextarea from "$ui/CustomTextarea.svelte";
     import type { ChoreForm } from "$types/index";
+    import { t } from "$lib/i18n";
 
     let saving = false;
 
@@ -58,9 +59,9 @@
                 width={18}
                 height={18}
             />
-            Назад
+            {$t.common.back}
         </button>
-        <h1>Новое дело</h1>
+        <h1>{$t.chores.newChoreTitle}</h1>
         <div class="header-spacer"></div>
     </header>
 
@@ -74,25 +75,25 @@
             />
 
             <div class="field">
-                <span class="field-label">Название</span>
+                <span class="field-label">{$t.chores.name}</span>
                 <CustomInput
                     bind:value={form.name}
-                    placeholder="Например: Покормить кота"
+                    placeholder={$t.chores.namePlaceholder}
                 />
             </div>
 
             <div class="field">
-                <span class="field-label">Описание</span>
+                <span class="field-label">{$t.chores.description}</span>
                 <CustomTextarea
                     bind:value={form.description}
-                    placeholder="Дополнительные детали..."
+                    placeholder={$t.chores.descPlaceholder}
                     maxlength={500}
                     rows={3}
                 />
             </div>
 
             <div class="field">
-                <span class="field-label">Награда (монеты)</span>
+                <span class="field-label">{$t.chores.reward}</span>
                 <CustomInput
                     bind:value={form.valuation}
                     inputType="number"
@@ -102,14 +103,14 @@
             </div>
 
             <div class="form-actions">
-                <button class="btn-cancel" onclick={handleCancel}>Отмена</button
+                <button class="btn-cancel" onclick={handleCancel}>{$t.common.cancel}</button
                 >
                 <button
                     class="btn-save"
                     onclick={handleSave}
                     disabled={saving || !form.name.trim()}
                 >
-                    {saving ? "Сохранение..." : "Создать"}
+                    {saving ? $t.common.saving : $t.common.create}
                 </button>
             </div>
         </div>

@@ -6,6 +6,7 @@
     import AvatarBuilder from "$features/settings/AvatarBuilder.svelte";
     import { activeTab } from "$lib/navigation";
     import { createEvent } from "$api/family";
+    import { t } from "$lib/i18n";
 
     const dispatch = createEventDispatcher();
 
@@ -52,7 +53,7 @@
             activeTab.set("statsScreen");
         } catch (error) {
             console.error("Failed to create event:", error);
-            errorMessage = "Не удалось создать событие";
+            errorMessage = $t.events.createError;
         } finally {
             loading = false;
         }
@@ -61,8 +62,8 @@
 
 <div class="page">
     <header class="page-header">
-        <Backbtn label="Назад" on:click={handleBack} />
-        <h1>Новое событие</h1>
+        <Backbtn label={$t.common.back} on:click={handleBack} />
+        <h1>{$t.events.newEvent}</h1>
         <div class="header-spacer"></div>
     </header>
 
@@ -79,23 +80,23 @@
 
     <div class="detail-form">
         <div class="section">
-            <div class="section-label">Название</div>
+            <div class="section-label">{$t.chores.name}</div>
 
             <input
                 class="field-input"
                 type="text"
-                placeholder="Куда едем или что отмечаем..."
+                placeholder={$t.events.whereOrWhat}
                 bind:value={name}
                 maxlength={100}
             />
         </div>
 
         <div class="section">
-            <div class="section-label">Детали</div>
+            <div class="section-label">{$t.events.details}</div>
 
             <CustomTextarea
                 bind:value={description}
-                placeholder="Описание события..."
+                placeholder={$t.events.eventDescPlaceholder}
                 maxlength={500}
                 rows={3}
             />
@@ -115,7 +116,7 @@
     <div class="add-btn">
         <ButtonPrimaryGlow
             on:click={handleAdd}
-            label={loading ? "Создание..." : "Добавить событие"}
+            label={loading ? $t.events.creating : $t.events.addEvent}
             fullWidth
             disabled={!canSubmit}
         />

@@ -5,6 +5,8 @@
     import Icon from "@iconify/svelte";
     import DefaultChoreListItem from "$features/chores/DefaultChoreListItem.svelte";
     import { swr } from "$lib/swr";
+    import { t } from "$lib/i18n";
+    import { language } from "$lib/settings";
 
     const defaultChoresStore = swr("default-chores", getDefaultChores);
 
@@ -22,7 +24,7 @@
         try {
             await createChoresFromDefault({
                 default_chore_ids: [def.id],
-                language: "ru",
+                language: $language,
             });
             activeTab.set("choreListScreen");
         } catch (e) {
@@ -44,29 +46,29 @@
                 width={18}
                 height={18}
             />
-            Назад
+            {$t.common.back}
         </button>
-        <h1>Выбери шаблон</h1>
+        <h1>{$t.chores.chooseTemplate}</h1>
         <div class="header-spacer"></div>
     </header>
 
     <div class="page-content">
         <button class="create-new-item" onclick={openCreateCustom}>
             <span class="create-new-icon">✏️</span>
-            <span>Создать своё дело</span>
+            <span>{$t.chores.createCustom}</span>
         </button>
 
         {#if loading}
             <div class="empty-state">
-                <span class="empty-sub">Загрузка...</span>
+                <span class="empty-sub">{$t.common.loading}</span>
             </div>
         {:else if defaultChores.length === 0}
             <div class="empty-state">
                 <span class="empty-icon">📋</span>
-                <span class="empty-text">Шаблонов нет</span>
+                <span class="empty-text">{$t.chores.noTemplates}</span>
             </div>
         {:else}
-            <div class="section-label">Стандартные дела</div>
+            <div class="section-label">{$t.chores.standardChores}</div>
             <div class="chore-list">
                 {#each defaultChores as def (def.id)}
                     <DefaultChoreListItem

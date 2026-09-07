@@ -1,6 +1,7 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
     import Card from "$ui/Card.svelte";
+    import { t } from "$lib/i18n";
 </script>
 
 <div class="screen">
@@ -13,9 +14,9 @@
                     height="48"
                 />
             </div>
-            <h2>Карта дома</h2>
+            <h2>{$t.map.title}</h2>
             <p>
-                Интерактивная карта комнат и зон находится в разработке. Скоро здесь можно будет привязывать дела к локациям в доме.
+                {$t.map.desc}
             </p>
         </div>
     </Card>

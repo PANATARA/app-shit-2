@@ -3,6 +3,7 @@
     import type { UserProfileStats } from "$types/index";
     import UserProfileSkeleton from "$skeletons/UserProfileSkeleton.svelte";
     import Card from "$ui/Card.svelte";
+    import { t } from "$lib/i18n";
 
     export let user: UserProfileStats;
     export let loading = true;
@@ -17,7 +18,7 @@
         <!-- Hero -->
         <div class="hero-stat">
             <div class="hero-value">{user.total_completed}</div>
-            <div class="hero-label">домашних дел ты выполнил за всё время</div>
+            <div class="hero-label">{$t.stats.choresCompletedTotal}</div>
         </div>
 
         <!-- Grid -->
@@ -27,21 +28,21 @@
                     <Icon icon="material-symbols:bolt-rounded" width={20} height={20} />
                 </div>
                 <div class="mini-value">{user.week_completed}</div>
-                <div class="mini-label">На этой неделе</div>
+                <div class="mini-label">{$t.stats.thisWeek}</div>
             </div>
             <div class="mini-card">
                 <div class="mini-icon fire">
                     <Icon icon="material-symbols:calendar-month-rounded" width={20} height={20} />
                 </div>
                 <div class="mini-value">{user.month_completed}</div>
-                <div class="mini-label">В этом месяце</div>
+                <div class="mini-label">{$t.stats.thisMonth}</div>
             </div>
             <div class="mini-card">
                 <div class="mini-icon magic">
                     <Icon icon="material-symbols:auto-awesome-rounded" width={20} height={20} />
                 </div>
                 <div class="mini-value">{user.experience}</div>
-                <div class="mini-label">Твой опыт</div>
+                <div class="mini-label">{$t.stats.yourXp}</div>
             </div>
         </div>
 

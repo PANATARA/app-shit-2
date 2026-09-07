@@ -1,5 +1,7 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
+    import { t } from "$lib/i18n";
+    import { language } from "$lib/settings";
 
     type FrequencyType = "none" | "daily" | "weekly" | "monthly";
 
@@ -27,42 +29,48 @@
         };
     }
 
-    const repeatOptions: {
-        value: FrequencyType;
-        label: string;
-        icon: string;
-    }[] = [
+    $: repeatOptions = [
         {
-            value: "none",
-            label: "Не повторять",
+            value: "none" as FrequencyType,
+            label: $t.repeat.none,
             icon: "material-symbols:block-rounded",
         },
         {
-            value: "daily",
-            label: "Каждый день",
+            value: "daily" as FrequencyType,
+            label: $t.repeat.daily,
             icon: "material-symbols:today-rounded",
         },
         {
-            value: "weekly",
-            label: "Каждую неделю",
+            value: "weekly" as FrequencyType,
+            label: $t.repeat.weekly,
             icon: "material-symbols:view-week-rounded",
         },
         {
-            value: "monthly",
-            label: "Каждый месяц",
+            value: "monthly" as FrequencyType,
+            label: $t.repeat.monthly,
             icon: "material-symbols:calendar-month-rounded",
         },
     ];
 
-    const weekDays = [
-        { id: 1, label: "Пн" },
-        { id: 2, label: "Вт" },
-        { id: 3, label: "Ср" },
-        { id: 4, label: "Чт" },
-        { id: 5, label: "Пт" },
-        { id: 6, label: "Сб" },
-        { id: 0, label: "Вс" },
-    ];
+    $: weekDays = $language === "en"
+        ? [
+            { id: 1, label: "Mo" },
+            { id: 2, label: "Tu" },
+            { id: 3, label: "We" },
+            { id: 4, label: "Th" },
+            { id: 5, label: "Fr" },
+            { id: 6, label: "Sa" },
+            { id: 0, label: "Su" },
+          ]
+        : [
+            { id: 1, label: "Пн" },
+            { id: 2, label: "Вт" },
+            { id: 3, label: "Ср" },
+            { id: 4, label: "Чт" },
+            { id: 5, label: "Пт" },
+            { id: 6, label: "Сб" },
+            { id: 0, label: "Вс" },
+          ];
 
     function getTodayIso(): string {
         return new Date().toISOString().split("T")[0];
@@ -105,7 +113,18 @@
         return five;
     }
 
-    function getIntervalText(interval: number, type: FrequencyType): string {
+    function getIntervalText(interval: number, type: FrequencyType, currentLang: string): string {
+        if (currentLang === "en") {
+            if (interval === 1) {
+                if (type === "daily") return "Every day";
+                if (type === "weekly") return "Every week";
+                if (type === "monthly") return "Every month";
+            }
+            if (type === "daily") return `Every ${interval} days`;
+            if (type === "weekly") return `Every ${interval} weeks`;
+            if (type === "monthly") return `Every ${interval} months`;
+            return `Interval: ${interval}`;
+        }
         if (interval === 1) {
             if (type === "daily") return "Каждый день";
             if (type === "weekly") return "Каждую неделю";
@@ -124,7 +143,7 @@
 <div class="repeat-selector-container">
     <!-- FREQUENCY GRID -->
     <div class="field">
-        <span class="field-label">Повторяемость задачи</span>
+        <span class="field-label">{$t.repeat.title}</span>
         <div class="repeat-selector-grid">
             {#each repeatOptions as opt}
                 <button
@@ -146,7 +165,7 @@
         <div class="settings-panel">
             <!-- INTERVAL -->
             <div class="field">
-                <span class="field-label">Частота повторения</span>
+                <span class="field-label">{$t.repeat.frequency}</span>
                 <div class="stepper-container">
                     <button
                         type="button"
@@ -156,7 +175,7 @@
                             update({
                                 interval: Math.max(1, value.interval - 1),
                             })}
-                        aria-label="Уменьшить интервал"
+                        aria-label="Decrease interval"
                     >
                         <Icon
                             icon="material-symbols:remove-rounded"
@@ -169,6 +188,7 @@
                             {getIntervalText(
                                 value.interval,
                                 value.frequency_type,
+                                $language,
                             )}
                         </span>
                     </div>
@@ -180,7 +200,7 @@
                             update({
                                 interval: Math.min(99, value.interval + 1),
                             })}
-                        aria-label="Увеличить интервал"
+                        aria-label="Increase interval"
                     >
                         <Icon
                             icon="material-symbols:add-rounded"
@@ -194,7 +214,7 @@
             <!-- WEEKLY DAYS -->
             {#if value.frequency_type === "weekly"}
                 <div class="field">
-                    <span class="field-label">Дни недели</span>
+                    <span class="field-label">{$t.repeat.weekdays}</span>
                     <div class="weekly-container">
                         <div class="days-row">
                             {#each weekDays as d}
@@ -217,7 +237,7 @@
                                 onclick={() =>
                                     update({ days_of_week: [1, 2, 3, 4, 5] })}
                             >
-                                Будни
+                                {$t.repeat.workdays}
                             </button>
                             <span class="shortcut-divider">•</span>
                             <button
@@ -225,7 +245,7 @@
                                 class="shortcut-link-btn"
                                 onclick={() => update({ days_of_week: [6, 0] })}
                             >
-                                Выходные
+                                {$t.repeat.weekends}
                             </button>
                             <span class="shortcut-divider">•</span>
                             <button
@@ -236,7 +256,7 @@
                                         days_of_week: [1, 2, 3, 4, 5, 6, 0],
                                     })}
                             >
-                                Все дни
+                                {$t.repeat.allDays}
                             </button>
                             <span class="shortcut-divider">•</span>
                             <button
@@ -244,7 +264,7 @@
                                 class="shortcut-link-btn text-danger"
                                 onclick={() => update({ days_of_week: [] })}
                             >
-                                Сбросить
+                                {$t.repeat.reset}
                             </button>
                         </div>
                     </div>
@@ -254,7 +274,7 @@
             <!-- MONTHLY DAY -->
             {#if value.frequency_type === "monthly"}
                 <div class="field">
-                    <span class="field-label">Какого числа повторять</span>
+                    <span class="field-label">{$t.repeat.dayOfMonth}</span>
                     <div class="monthly-container">
                         <div class="stepper-container">
                             <button
@@ -268,7 +288,7 @@
                                             (value.day_of_month ?? 1) - 1,
                                         ),
                                     })}
-                                aria-label="Уменьшить день"
+                                aria-label="Decrease day"
                             >
                                 <Icon
                                     icon="material-symbols:remove-rounded"
@@ -278,7 +298,9 @@
                             </button>
                             <div class="stepper-value-container">
                                 <span class="stepper-text">
-                                    {value.day_of_month ?? 1}-е число месяца
+                                    {$language === "en"
+                                        ? `Day ${value.day_of_month ?? 1} of the month`
+                                        : `${value.day_of_month ?? 1}-е число месяца`}
                                 </span>
                             </div>
                             <button
@@ -292,7 +314,7 @@
                                             (value.day_of_month ?? 1) + 1,
                                         ),
                                     })}
-                                aria-label="Увеличить день"
+                                aria-label="Increase day"
                             >
                                 <Icon
                                     icon="material-symbols:add-rounded"
@@ -308,7 +330,7 @@
                                 class:active={value.day_of_month === 1}
                                 onclick={() => update({ day_of_month: 1 })}
                             >
-                                1-е число
+                                {$language === "en" ? "1st day" : "1-е число"}
                             </button>
                             <button
                                 type="button"
@@ -316,7 +338,7 @@
                                 class:active={value.day_of_month === 15}
                                 onclick={() => update({ day_of_month: 15 })}
                             >
-                                В середине (15-е)
+                                {$language === "en" ? "Mid-month (15th)" : "В середине (15-е)"}
                             </button>
                             <button
                                 type="button"
@@ -324,14 +346,12 @@
                                 class:active={value.day_of_month === 31}
                                 onclick={() => update({ day_of_month: 31 })}
                             >
-                                Конец месяца
+                                {$language === "en" ? "End of month" : "Конец месяца"}
                             </button>
                         </div>
                     </div>
                 </div>
             {/if}
-
-            <!-- PERIOD CARD -->
         </div>
     {/if}
 </div>

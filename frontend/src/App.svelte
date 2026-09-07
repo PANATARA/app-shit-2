@@ -14,6 +14,7 @@
     import UserProfileModal from "$screens/modal/UserProfileModal.svelte";
     import { profileModal, closeProfile } from "$lib/settings";
     import { activeTab } from "$lib/navigation";
+    import { t } from "$lib/i18n";
     import StepOne from "$screens/tabs/PlannedChoreCreate/StepOne.svelte";
     import StepTwo from "$screens/tabs/PlannedChoreCreate/StepTwo.svelte";
     import PlannedChoreDetail from "$screens/tabs/PlannedChoreDetail.svelte";
@@ -87,7 +88,7 @@
         <div class="app-loading">
             <div class="app-spinner"></div>
             <p style="margin: 0; font-size: 15px; font-weight: 500;">
-                Проверка авторизации...
+                {$t.nav.checkingAuth}
             </p>
         </div>
     {:else if !isAuthed}
@@ -150,7 +151,7 @@
                     class="nav-item"
                     class:active={$activeTab === "statsScreen"}
                     on:click={() => activeTab.set("statsScreen")}
-                    aria-label="Главная"
+                    aria-label={$t.nav.home}
                 >
                     <div class="nav-icon">
                         <Icon
@@ -159,14 +160,14 @@
                             height="24"
                         />
                     </div>
-                    <span class="nav-label">Главная</span>
+                    <span class="nav-label">{$t.nav.home}</span>
                 </button>
 
                 <button
                     class="nav-item"
                     class:active={$activeTab === "boardScreen"}
                     on:click={() => activeTab.set("boardScreen")}
-                    aria-label="Доска"
+                    aria-label={$t.nav.board}
                 >
                     <div class="nav-icon">
                         <Icon
@@ -175,14 +176,14 @@
                             height="24"
                         />
                     </div>
-                    <span class="nav-label">Доска</span>
+                    <span class="nav-label">{$t.nav.board}</span>
                 </button>
 
                 <button
                     class="nav-item"
                     class:active={$activeTab === "debugScreen"}
                     on:click={() => activeTab.set("debugScreen")}
-                    aria-label="Карта"
+                    aria-label={$t.nav.map}
                 >
                     <div class="nav-icon">
                         <Icon
@@ -191,14 +192,14 @@
                             height="24"
                         />
                     </div>
-                    <span class="nav-label">Карта</span>
+                    <span class="nav-label">{$t.nav.map}</span>
                 </button>
 
                 <button
                     class="nav-item"
                     class:active={$activeTab === "settingsScreen"}
                     on:click={() => activeTab.set("settingsScreen")}
-                    aria-label="Настройки"
+                    aria-label={$t.nav.profile}
                 >
                     <div class="nav-icon">
                         <Icon
@@ -207,7 +208,7 @@
                             height="24"
                         />
                     </div>
-                    <span class="nav-label">Профиль</span>
+                    <span class="nav-label">{$t.nav.profile}</span>
                 </button>
             </nav>
         </div>

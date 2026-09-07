@@ -6,6 +6,7 @@
     import SearchBox from "$ui/SearchBox.svelte";
     import ChoreListItem from "$features/chores/ChoreListItem.svelte";
     import { swr } from "$lib/swr";
+    import { t } from "$lib/i18n";
 
     const choreStore = swr("chores", getChores);
 
@@ -36,43 +37,43 @@
                 width={18}
                 height={18}
             />
-            Назад
+            {$t.common.back}
         </button>
-        <h1>Мои дела</h1>
+        <h1>{$t.chores.myChores}</h1>
         <div class="header-spacer"></div>
     </header>
 
     <div class="page-content">
-        <SearchBox bind:searchQuery />
+        <SearchBox bind:searchQuery placeholder={$t.chores.searchPlaceholder} />
 
         <button
             class="create-new-item"
             onclick={() => activeTab.set("choreTemplatesScreen")}
         >
             <span class="create-new-icon">+</span>
-            <span>Добавить новое дело</span>
+            <span>{$t.chores.addNewChore}</span>
         </button>
 
         {#if loading}
             <div class="empty-state">
-                <span class="empty-sub">Загрузка...</span>
+                <span class="empty-sub">{$t.common.loading}</span>
             </div>
         {:else if filteredChores.length === 0}
             <div class="empty-state">
                 <span class="empty-icon">{normalizedQuery ? "🔍" : "📋"}</span>
                 <span class="empty-text"
                     >{normalizedQuery
-                        ? "Ничего не найдено"
-                        : "Дел пока нет"}</span
+                        ? $t.chores.nothingFound
+                        : $t.chores.noChoresYet}</span
                 >
                 <span class="empty-sub"
                     >{normalizedQuery
-                        ? "Попробуй другой запрос"
-                        : "Добавьте первое дело"}</span
+                        ? $t.chores.tryAnotherQuery
+                        : $t.chores.addFirstChore}</span
                 >
             </div>
         {:else}
-            <div class="section-label">Дела моего семейного круга</div>
+            <div class="section-label">{$t.chores.familyChoresSection}</div>
             <div class="chore-list">
                 {#each filteredChores as chore (chore.id)}
                     <ChoreListItem {chore} onClick={() => openDetail(chore)} />

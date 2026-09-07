@@ -18,6 +18,7 @@
     import ProfileSkeleton from "$skeletons/ProfileSkeleton.svelte";
     import { swr } from "$lib/swr";
     import { activeTab } from "$lib/navigation";
+    import { t } from "$lib/i18n";
 
     const dispatch = createEventDispatcher();
 
@@ -73,7 +74,7 @@
     }
 
     async function handleLeaveFamily() {
-        if (!confirm("Вы действительно хотите выйти из семейного круга?")) return;
+        if (!confirm($t.settings.leaveConfirm)) return;
         try {
             await logoutFromFamily();
             dispatch("family-left");
@@ -83,7 +84,7 @@
     }
 
     function handleLogout() {
-        if (!confirm("Вы действительно хотите выйти из аккаунта?")) return;
+        if (!confirm($t.settings.logoutConfirm)) return;
         clearTokens();
         dispatch("logout");
     }
@@ -105,22 +106,22 @@
                     initialBg={editAvatar.icon_bg}
                     onchange={(v) => (editAvatar = v)}
                     allowIconColor={false}
-                    iconCategories={["Питомцы"]}
+                    iconCategories={["pets"]}
                 />
             </div>
             <div class="edit-fields">
                 <div class="field">
-                    <label class="field-label" for="edit-profile-name">Имя</label>
+                    <label class="field-label" for="edit-profile-name">{$t.settings.firstName}</label>
                     <input id="edit-profile-name" class="field-input" bind:value={editName} />
                 </div>
                 <div class="field">
-                    <label class="field-label" for="edit-profile-surname">Фамилия</label>
+                    <label class="field-label" for="edit-profile-surname">{$t.settings.lastName}</label>
                     <input id="edit-profile-surname" class="field-input" bind:value={editSurname} />
                 </div>
             </div>
             <div class="edit-actions">
-                <button class="btn-cancel" onclick={cancelEdit}>Отмена</button>
-                <button class="btn-save" onclick={saveEdit}>Сохранить</button>
+                <button class="btn-cancel" onclick={cancelEdit}>{$t.common.cancel}</button>
+                <button class="btn-save" onclick={saveEdit}>{$t.common.save}</button>
             </div>
         </Card>
     {:else}
@@ -128,7 +129,7 @@
             <div class="profile-header">
                 <div class="avatar-wrap">
                     <UserAvatar user={meUser} size={100} />
-                    <button class="edit-icon-btn" onclick={openEdit} aria-label="Редактировать профиль">
+                    <button class="edit-icon-btn" onclick={openEdit} aria-label={$t.settings.editProfile}>
                         <Icon icon="material-symbols:edit-square" width={18} height={18} color="white" />
                     </button>
                 </div>
@@ -140,7 +141,7 @@
     {/if}
 
     <!-- УЧАСТНИКИ СЕМЬИ -->
-    <div class="section-label">Участники семейного круга</div>
+    <div class="section-label">{$t.settings.familyMembers}</div>
     {#if familyLoading}
         <Block>
             <FamilyMembersSkeleton />
@@ -154,7 +155,7 @@
                         <div class="row-title">
                             {member.name}
                             {#if member.id === $userSession.userId}
-                                <span class="you-badge">(Вы)</span>
+                                <span class="you-badge">{$t.common.you}</span>
                             {/if}
                         </div>
                     </div>
@@ -165,7 +166,7 @@
             <button type="button" class="row clickable invite-row" onclick={() => (inviteModalOpen = true)}>
                 <div class="invite-icon">+</div>
                 <div class="row-text">
-                    <div class="row-title invite-title">Пригласить участника</div>
+                    <div class="row-title invite-title">{$t.settings.inviteMember}</div>
                 </div>
                 <span class="arrow invite-arrow">›</span>
             </button>
@@ -173,27 +174,27 @@
     {/if}
 
     <!-- НАСТРОЙКИ СЕМЬИ -->
-    <div class="section-label">Настройки семейного круга</div>
+    <div class="section-label">{$t.settings.familyChores}</div>
     <Block>
         <button class="btn-row" onclick={() => activeTab.set("choreListScreen")}>
             <div class="row-icon">
                 <Icon icon="material-symbols:format-list-bulleted-rounded" width={24} height={24} />
             </div>
             <div class="row-text">
-                <div class="row-title">Домашние дела</div>
+                <div class="row-title">{$t.chores.myChores}</div>
             </div>
             <span class="arrow">›</span>
         </button>
     </Block>
 
     <!-- НАСТРОЙКИ -->
-    <div class="section-label">Настройки</div>
+    <div class="section-label">{$t.settings.language} & {$t.settings.theme}</div>
     <Block>
         <button class="btn-row" onclick={() => (languageModalOpen = true)}>
             <div class="row-icon">
                 <Icon icon="material-symbols:language" width={24} height={24} />
             </div>
-            <div class="row-text"><div class="row-title">Язык</div></div>
+            <div class="row-text"><div class="row-title">{$t.settings.language}</div></div>
             <div class="row-right">{$language === "ru" ? "Русский" : "English"}</div>
             <span class="arrow">›</span>
         </button>
@@ -202,7 +203,7 @@
             <div class="row-icon">
                 <Icon icon="material-symbols:palette" width={24} height={24} />
             </div>
-            <div class="row-text"><div class="row-title">Тема</div></div>
+            <div class="row-text"><div class="row-title">{$t.settings.theme}</div></div>
             <div class="row-right">{$theme}</div>
             <span class="arrow">›</span>
         </button>
@@ -211,17 +212,17 @@
             <div class="row-icon">
                 <Icon icon="material-symbols:info-rounded" width={24} height={24} />
             </div>
-            <div class="row-text"><div class="row-title">Версия</div></div>
+            <div class="row-text"><div class="row-title">{$t.settings.version}</div></div>
             <div class="row-right">{appVersion}</div>
         </div>
     </Block>
 
     <!-- АККАУНТ -->
-    <div class="section-label">Аккаунт</div>
+    <div class="section-label">{$t.settings.account}</div>
     <Block padding={10}>
         <div class="danger-rows">
-            <CustButton label="Выйти из семейного круга" variant="danger" onClick={handleLeaveFamily} />
-            <CustButton label="Выйти из аккаунта" variant="danger" onClick={handleLogout} />
+            <CustButton label={$t.settings.leaveFamily} variant="danger" onClick={handleLeaveFamily} />
+            <CustButton label={$t.settings.logout} variant="danger" onClick={handleLogout} />
         </div>
     </Block>
 

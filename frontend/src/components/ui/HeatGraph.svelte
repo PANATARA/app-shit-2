@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { showDays } from "$lib/settings.js";
+  import { showDays, language } from "$lib/settings.js";
 
   let tooltipX = 0;
   let tooltipY = 0;
@@ -83,8 +83,9 @@
 
   $: grid = generateGrid(fakeData ?? data);
   $: if (fake) generateFake();
-  $: if (!fake) fakeData = null
-  const weekDays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+  $: weekDays = $language === "en"
+    ? ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+    : ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 </script>
 
 <div class="heatmap-wrapper" style="--gap:{gap}px;">
@@ -125,13 +126,13 @@
       style="left:{tooltipX-25}px; top:{tooltipY-50}px;"
     >
       <span class="tooltip-date">
-        {activeDay.date.toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}
+        {activeDay.date.toLocaleDateString($language === "en" ? "en-US" : "ru-RU", { day: "numeric", month: "short" })}
       </span>
       <span class="tooltip-count">
         {#if activeDay.count === 0}
           —
         {:else}
-          {activeDay.count} {"раз"}
+          {activeDay.count} {$language === "en" ? (activeDay.count === 1 ? "time" : "times") : "раз"}
         {/if}
       </span>
     </div>

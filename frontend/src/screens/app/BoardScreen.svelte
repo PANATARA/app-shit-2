@@ -16,6 +16,8 @@
     import ProgressBar from "$ui/ProgressBar.svelte";
     import WeekCalendar from "$ui/WeekCalendar.svelte";
     import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
+    import { t } from "$lib/i18n";
+    import { language } from "$lib/settings";
     import type { AnyPlannedChore, PlannedChore, QuickPlannedChore } from "$types/index";
 
     // ─── State ───────────────────────────────────────────────────────────────────
@@ -122,15 +124,15 @@
         <div class="prog-bar-section">
             <ProgressBar
                 percent={progressPercentage}
-                label={getFriendlyDate(selectedDate)}
-                sublabel="{completedCount}/{totalCount} задач"
+                label={getFriendlyDate(selectedDate, $language)}
+                sublabel="{completedCount}/{totalCount} {$t.stats.tasks}"
                 shimmer={true}
             />
         </div>
 
         <ButtonPrimaryGlow
             on:click={() => activeTab.set("createPlannedChoreStepOne")}
-            label={"Запланировать задачу"}
+            label={$t.board.planChore}
             fullWidth
         />
     </div>
@@ -142,17 +144,16 @@
             <!-- Absolute Zero Empty State -->
             <div class="empty-state perfect-empty" in:fade={{ duration: 200 }}>
                 <div class="empty-icon-large">🏕️</div>
-                <h3>Планы отсутствуют</h3>
+                <h3>{$t.board.noChoresTitle}</h3>
                 <p>
-                    На этот день пока не запланировано никаких домашних дел.
-                    Добавьте задачу с помощью кнопки ниже!
+                    {$t.board.noChoresDesc}
                 </p>
             </div>
         {:else}
             <!-- ACTIVE CHORES -->
             <div class="section">
                 <div class="section-header">
-                    <h2>АКТИВНЫЕ</h2>
+                    <h2>{$t.board.active.toUpperCase()}</h2>
                     <span class="section-count"
                         >{activePlannedChores.length}</span
                     >
@@ -162,10 +163,9 @@
                     {#if activePlannedChores.length === 0}
                         <div class="empty-state clean-success">
                             <div class="empty-icon">🎉</div>
-                            <h3>Все дела сделаны!</h3>
+                            <h3>{$t.board.allDoneTitle}</h3>
                             <p>
-                                Отличная работа! Все запланированные задачи на
-                                сегодня успешно завершены.
+                                {$t.board.allDoneDesc}
                             </p>
                         </div>
                     {:else}
@@ -184,7 +184,7 @@
             {#if completedPlannedChores.length > 0}
                 <div class="section">
                     <div class="section-header">
-                        <h2>ВЫПОЛНЕННЫЕ</h2>
+                        <h2>{$t.board.completed.toUpperCase()}</h2>
                         <span class="section-count completed-count-badge">
                             {completedPlannedChores.length}
                         </span>

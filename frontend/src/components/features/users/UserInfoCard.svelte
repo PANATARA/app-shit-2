@@ -3,6 +3,7 @@
     import UserProfileSkeleton from "$skeletons/CompactUserProfile.svelte";
     import ProgressBar from "$ui/ProgressBar.svelte";
     import Card from "$ui/Card.svelte";
+    import { t } from "$lib/i18n";
     import type { UserProfileStats } from "$types/index";
 
     export let user: UserProfileStats | null = null;
@@ -18,7 +19,7 @@
                 <UserAvatar {user} size={52} />
                 <div class="user-info">
                     <span class="name">{user.name}</span>
-                    <span class="level-badge">Уровень {user.level}</span>
+                    <span class="level-badge">{$t.stats.level} {user.level}</span>
                 </div>
             </div>
         </div>
@@ -26,7 +27,7 @@
         <div class="xp-row">
             <ProgressBar
                 percent={user.progress_percent}
-                label="Опыт"
+                label={$t.stats.xp}
                 sublabel="{user.experience} / {user.exp_to_next_total} XP"
                 shimmer={true}
             />

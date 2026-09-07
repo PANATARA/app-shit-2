@@ -3,6 +3,7 @@
   import ChoreIcon from "$ui/ChoreIcon.svelte";
   import CustomInput from "$ui/CustomInput.svelte";
   import CustomTextarea from "$ui/CustomTextarea.svelte";
+  import { t } from "$lib/i18n";
 
   export let form;
   export let selectedChore = null;
@@ -11,8 +12,11 @@
 
   export let saving = false;
 
-  export let submitText = "Создать";
-  export let cancelText = "Отмена";
+  export let submitText = "";
+  export let cancelText = "";
+
+  $: effectiveSubmitText = submitText || (mode === "create" ? $t.common.create : $t.common.save);
+  $: effectiveCancelText = cancelText || $t.common.cancel;
 
   export let onCancel: () => void;
   export let onSubmit: () => void;
@@ -46,22 +50,22 @@
 
   <!-- Название -->
   <div class="field">
-    <span class="field-label"> Название </span>
+    <span class="field-label"> {$t.chores.name} </span>
 
     <CustomInput
       bind:value={form.name}
-      placeholder="Например: Покормить кота"
+      placeholder={$t.chores.namePlaceholder}
       disabled={isDefaultChore}
     />
   </div>
 
   <!-- Описание -->
   <div class="field">
-    <span class="field-label"> Описание </span>
+    <span class="field-label"> {$t.chores.description} </span>
 
     <CustomTextarea
       bind:value={form.description}
-      placeholder="Дополнительные детали..."
+      placeholder={$t.chores.descPlaceholder}
       maxlength={500}
       rows={3}
     />
@@ -69,7 +73,7 @@
 
   <!-- Награда -->
   <div class="field">
-    <span class="field-label"> Награда (монеты) </span>
+    <span class="field-label"> {$t.chores.reward} </span>
 
     <CustomInput
       bind:value={form.valuation}
@@ -81,7 +85,7 @@
 
   <div class="form-actions">
     <button class="btn-cancel" on:click={onCancel}>
-      {cancelText}
+      {effectiveCancelText}
     </button>
 
     <button
@@ -89,7 +93,7 @@
       on:click={onSubmit}
       disabled={saving || (mode === "create" && !form.name.trim())}
     >
-      {saving ? "Сохранение..." : submitText}
+      {saving ? $t.common.saving : effectiveSubmitText}
     </button>
   </div>
 </div>

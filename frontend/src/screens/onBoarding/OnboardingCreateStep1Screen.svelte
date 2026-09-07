@@ -1,6 +1,7 @@
 <script lang="ts">
     import { slide } from "svelte/transition";
     import { activeTab, onboardingParams } from "$lib/navigation";
+    import { t } from "$lib/i18n";
 
     import BackButton from "$ui/backbtn.svelte";
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
@@ -27,7 +28,7 @@
 
     function handleNext() {
         if (!familyName.trim()) {
-            errorMessage = "Введите название вашей семьи";
+            errorMessage = $t.onboarding.nameRequired;
             return;
         }
 
@@ -45,8 +46,8 @@
         <BackButton on:click={handleBack} />
 
         <div class="header-info">
-            <span class="header-step">Шаг 1 из 2</span>
-            <h2 class="screen-title">Создание семьи</h2>
+            <span class="header-step">{$t.onboarding.step1Of2}</span>
+            <h2 class="screen-title">{$t.onboarding.createFamily}</h2>
         </div>
     </header>
 
@@ -62,11 +63,10 @@
             </div>
 
             <div class="intro-text">
-                <h1>Как назовём вашу семью?</h1>
+                <h1>{$t.onboarding.step1Title}</h1>
 
                 <p>
-                    Это название будут видеть все участники вашего семейного
-                    круга.
+                    {$t.onboarding.step1Subtitle}
                 </p>
             </div>
         </section>
@@ -74,14 +74,14 @@
         <!-- Form -->
         <section class="form">
             <label class="field-label" for="family-name">
-                Название семьи
+                {$t.onboarding.familyNameLabel}
             </label>
 
             <CustomInput
                 value={familyName}
                 on:inputChange={(e) => handleNameChange(e.detail)}
                 icon="🏡"
-                placeholder="Например: Супер Семейка"
+                placeholder={$t.onboarding.familyPlaceholder}
                 maxlength={36}
             />
 
@@ -106,13 +106,13 @@
                     />
                 </div>
 
-                <span> Название можно изменить позже в настройках. </span>
+                <span>{$t.onboarding.step1Hint}</span>
             </div>
         </section>
 
         <!-- Actions -->
         <div class="actions">
-            <ButtonPrimaryGlow label="Продолжить" on:click={handleNext} />
+            <ButtonPrimaryGlow label={$t.onboarding.continueBtn} on:click={handleNext} />
         </div>
     </main>
 </div>

@@ -2,6 +2,7 @@
     import Icon from "@iconify/svelte";
     import ChoreIcon from "$ui/ChoreIcon.svelte";
     import type { ChoreItem } from "$types/index";
+    import { t } from "$lib/i18n";
 
     export let chore: ChoreItem;
     export let onAdd: () => void;
@@ -24,7 +25,7 @@
     <button
         class="add-button"
         on:click|stopPropagation={onAdd}
-        aria-label="Добавить задачу"
+        aria-label={$t.chores.addNewChore}
     >
         <Icon icon="material-symbols:add-rounded" width={24} height={24} />
     </button>

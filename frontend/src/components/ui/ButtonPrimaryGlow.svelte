@@ -1,10 +1,13 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { onMount } from "svelte";
+    import { language } from "$lib/settings.js";
 
-    export let label = "Продолжить";
+    export let label: string = "";
     export let disabled = false;
     export let fullWidth = false;
+
+    $: displayLabel = label || ($language === "en" ? "Continue" : "Продолжить");
 
     const dispatch = createEventDispatcher();
 
@@ -40,7 +43,7 @@
     <!-- блик -->
     <span class="shine"></span>
 
-    <span class="label">{label}</span>
+    <span class="label">{displayLabel}</span>
 </button>
 
 <style>

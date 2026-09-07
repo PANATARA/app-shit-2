@@ -11,6 +11,7 @@
     import CustomInput from "$ui/CustomInput.svelte";
     import CustomTextarea from "$ui/CustomTextarea.svelte";
     import type { ChoreForm } from "$types/index";
+    import { t } from "$lib/i18n";
 
     const chore = $choreEditParams.chore;
 
@@ -89,10 +90,10 @@
                 width={18}
                 height={18}
             />
-            Назад
+            {$t.common.back}
         </button>
 
-        <h1>Редактировать</h1>
+        <h1>{$t.chores.editChoreTitle}</h1>
 
         <div class="header-spacer"></div>
     </header>
@@ -113,21 +114,21 @@
             {/if}
 
             <div class="field">
-                <span class="field-label">Название</span>
+                <span class="field-label">{$t.chores.name}</span>
 
                 <CustomInput
                     bind:value={form.name}
-                    placeholder="Например: Покормить кота"
+                    placeholder={$t.chores.namePlaceholder}
                     disabled={isDefaultChore || deleting}
                 />
             </div>
 
             <div class="field">
-                <span class="field-label">Описание</span>
+                <span class="field-label">{$t.chores.description}</span>
 
                 <CustomTextarea
                     bind:value={form.description}
-                    placeholder="Дополнительные детали..."
+                    placeholder={$t.chores.descPlaceholder}
                     maxlength={500}
                     rows={3}
                     disabled={deleting}
@@ -135,7 +136,7 @@
             </div>
 
             <div class="field">
-                <span class="field-label">Награда (монеты)</span>
+                <span class="field-label">{$t.chores.reward}</span>
 
                 <CustomInput
                     bind:value={form.valuation}
@@ -152,7 +153,7 @@
                     onclick={handleCancel}
                     disabled={saving || deleting}
                 >
-                    Отмена
+                    {$t.common.cancel}
                 </button>
 
                 <button
@@ -160,7 +161,7 @@
                     onclick={handleSave}
                     disabled={saving || deleting}
                 >
-                    {saving ? "Сохранение..." : "Сохранить"}
+                    {saving ? $t.common.saving : $t.common.save}
                 </button>
             </div>
 
@@ -176,7 +177,7 @@
                         height={18}
                     />
 
-                    {deleting ? "Удаление..." : "Удалить дело"}
+                    {deleting ? $t.common.deleting : $t.chores.deleteChore}
                 </button>
             </div>
         </div>

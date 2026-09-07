@@ -1,6 +1,9 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
+  import { t } from "$lib/i18n";
+
   export let searchQuery = "";
+  export let placeholder = "";
 </script>
 
 <div class="search-box">
@@ -13,7 +16,7 @@
   <input
     class="search-input"
     type="text"
-    placeholder="Поиск..."
+    placeholder={placeholder || $t.common.search}
     bind:value={searchQuery}
   />
   {#if searchQuery}

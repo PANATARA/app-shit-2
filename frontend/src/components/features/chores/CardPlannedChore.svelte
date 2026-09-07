@@ -3,6 +3,7 @@
     import ChoreIcon from "$ui/ChoreIcon.svelte";
     import Icon from "@iconify/svelte";
     import UserAvatar from "$ui/UserAvatar.svelte";
+    import { t } from "$lib/i18n";
 
     export let item: AnyPlannedChore;
     export let onToggle: (item: AnyPlannedChore) => void;
@@ -69,8 +70,8 @@
                 onToggle?.(item);
             }}
             aria-label={done
-                ? "Отметить как невыполненное"
-                : "Завершить задачу"}
+                ? $t.chores.markUndone
+                : $t.chores.markDone}
         >
             {#if done}
                 <svg

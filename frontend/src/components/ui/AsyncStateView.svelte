@@ -30,19 +30,19 @@
 {:else if error}
     <div class="state-msg">
         <p class="state-text">
-            {errorMessage ?? $t("common.load_error")}
+            {errorMessage ?? $t.common.loadError}
         </p>
 
         {#if onRetry}
             <button class="retry-btn" on:click={onRetry}>
-                {$t("common.retry")}
+                {$t.common.retry}
             </button>
         {/if}
     </div>
 {:else if empty}
     <div class="state-msg">
         <p class="state-text">
-            {emptyMessage ?? $t("common.empty")}
+            {emptyMessage ?? $t.common.empty}
         </p>
     </div>
 {:else}

@@ -12,6 +12,7 @@
     import { swr } from "$lib/swr";
     const dispatch = createEventDispatcher();
     import { createPlannedChoreParams, activeTab } from "$lib/navigation";
+    import { t } from "$lib/i18n";
 
     // ─── Types ───────────────────────────────────────────────────────────────
 
@@ -111,8 +112,8 @@
 
 <div class="page">
     <header class="page-header">
-        <Backbtn label="Назад" on:click={handleBack} />
-        <h1>{isQuickTask ? "Быстрая задача" : selectedChore?.name}</h1>
+        <Backbtn label={$t.common.back} on:click={handleBack} />
+        <h1>{isQuickTask ? $t.board.quickTask : selectedChore?.name}</h1>
         <div class="header-spacer"></div>
     </header>
 
@@ -140,11 +141,11 @@
         <!-- Название (только для быстрой задачи) -->
         {#if isQuickTask}
             <div class="section">
-                <div class="section-label">Название</div>
+                <div class="section-label">{$t.chores.name}</div>
                 <input
                     class="field-input"
                     type="text"
-                    placeholder="Что нужно сделать..."
+                    placeholder={$t.chores.whatNeedsDone}
                     bind:value={quickTaskName}
                     maxlength={100}
                 />
@@ -152,7 +153,7 @@
 
             <!-- Награда -->
             <div class="section">
-                <div class="section-label">Награда</div>
+                <div class="section-label">{$t.common.reward}</div>
                 <div class="valuation-row">
                     {#each VALUATION_OPTIONS as v}
                         <button
@@ -169,7 +170,7 @@
 
         <!-- Кому назначить -->
         <div class="section">
-            <div class="section-label">Кому назначить</div>
+            <div class="section-label">{$t.chores.assignTo}</div>
             <div class="users-row">
                 <button
                     class="user-btn"
@@ -182,7 +183,7 @@
                     >
                         <UserAvatar size={44} />
                     </div>
-                    <span>Никому</span>
+                    <span>{$t.common.none}</span>
                 </button>
                 {#each familyMembers?.members ?? [] as user}
                     <button
@@ -204,10 +205,10 @@
 
         <!-- Комментарий + Дата -->
         <div class="section">
-            <div class="section-label">Детали</div>
+            <div class="section-label">{$t.chores.details}</div>
             <CustomTextarea
                 bind:value={comment}
-                placeholder="Комментарий..."
+                placeholder={$t.chores.commentPlaceholder}
                 maxlength={500}
                 rows={2}
             />
@@ -224,7 +225,7 @@
     </div>
 
     <div class="add-btn">
-        <ButtonPrimaryGlow on:click={add} label="Добавить" fullWidth />
+        <ButtonPrimaryGlow on:click={add} label={$t.chores.addBtn} fullWidth />
     </div>
 </div>
 

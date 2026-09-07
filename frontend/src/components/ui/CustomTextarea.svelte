@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { fade } from "svelte/transition";
+  import { language } from "$lib/settings.js";
 
   export let value = "";
   export let placeholder = "";
@@ -39,7 +40,7 @@
       on:click={clear}
       transition:fade={{ duration: 120 }}
       type="button"
-      aria-label="Очистить"
+      aria-label={$language === "en" ? "Clear" : "Очистить"}
     >
       ×
     </button>

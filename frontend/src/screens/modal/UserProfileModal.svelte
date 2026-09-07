@@ -6,6 +6,7 @@
     import { userSession } from "$api/client";
     import CustButton from "$ui/button.svelte";
     import { swr } from "$lib/swr";
+    import { t } from "$lib/i18n";
     import CompactUserProfile from "$features/users/UserInfoCard.svelte";
     import UserStatsCard from "$features/users/UserStatsCard.svelte";
 
@@ -62,13 +63,13 @@
         {#if $userSession.isFamilyAdmin && $userSession.userId != userId}
             <div class="actions-card">
                 <CustButton
-                    label="Сделать главой семьи"
+                    label={$t.modals.makeAdminModal}
                     variant="primary"
                     onClick={handleChangeAdmin}
                 />
 
                 <CustButton
-                    label="Исключить из семейного круга"
+                    label={$t.modals.kickMemberModal}
                     variant="danger"
                     onClick={handleKickMember}
                 />

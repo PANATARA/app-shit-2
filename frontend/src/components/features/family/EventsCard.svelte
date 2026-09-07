@@ -3,6 +3,8 @@
     import type { FamilyEvent } from "$types/index";
     import EventDetailSheet from "$screens/modal/EventDetailSheet.svelte";
     import { activeTab } from "$lib/navigation";
+    import { language } from "$lib/settings";
+    import { t } from "$lib/i18n";
     import Card from "$ui/Card.svelte";
 
     export let loading = true;
@@ -10,7 +12,7 @@
 
     let selectedEvent: FamilyEvent | null = null;
 
-    function getDateLabel(dateStr: string): {
+    function getDateLabel(dateStr: string, currentLang: string): {
         text: string;
         badge: string;
         cls: string;
@@ -19,19 +21,20 @@
         today.setHours(0, 0, 0, 0);
         const date = new Date(dateStr);
         const diff = Math.round((date.getTime() - today.getTime()) / 86400000);
+        const loc = currentLang === "en" ? "en-US" : "ru-RU";
         const text = date
-            .toLocaleDateString("ru-RU", { day: "numeric", month: "short" })
+            .toLocaleDateString(loc, { day: "numeric", month: "short" })
             .replace(".", "");
 
-        if (diff === 0) return { text, badge: "сегодня", cls: "today" };
-        if (diff === 1) return { text, badge: "завтра", cls: "soon" };
-        if (diff === 2) return { text, badge: "послезавтра", cls: "soon" };
-        return { text, badge: `через ${diff} дн`, cls: "upcoming" };
+        if (diff === 0) return { text, badge: $t.common.today.toLowerCase(), cls: "today" };
+        if (diff === 1) return { text, badge: $t.common.tomorrow.toLowerCase(), cls: "soon" };
+        if (diff === 2) return { text, badge: currentLang === "en" ? "in 2 days" : "послезавтра", cls: "soon" };
+        return { text, badge: $t.common.daysIn.replace("{n}", String(diff)), cls: "upcoming" };
     }
 </script>
 
 <Card
-    title="Ближайшие события"
+    title={$t.stats.upcomingEvents}
     glowDirection="bottom-left"
     gradientDirection="to-left"
 >
@@ -58,13 +61,13 @@
     {:else if !events.length}
         <div class="empty">
             <span class="empty-icon">🗓️</span>
-            <span class="empty-text">Событий пока нет</span>
-            <span class="empty-sub">Добавьте поездку или праздник</span>
+            <span class="empty-text">{$t.stats.noEvents}</span>
+            <span class="empty-sub">{$t.stats.addEventHint}</span>
         </div>
     {:else}
         <div class="list">
             {#each events as event}
-                {@const label = getDateLabel(event.date)}
+                {@const label = getDateLabel(event.date, $language)}
                 <button
                     class="event-row"
                     on:click={() => (selectedEvent = event)}

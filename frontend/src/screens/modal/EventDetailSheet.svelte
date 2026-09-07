@@ -4,6 +4,8 @@
     import Icon from "@iconify/svelte";
     import CustButton from "$ui/button.svelte";
     import type { FamilyEvent } from "$types/index";
+    import { t } from "$lib/i18n";
+    import { language } from "$lib/settings";
 
     const dispatch = createEventDispatcher();
 
@@ -28,25 +30,25 @@
         close();
     }
 
-    function formatFullDate(dateStr: string): string {
-        return new Date(dateStr).toLocaleDateString("ru-RU", {
+    function formatFullDate(dateStr: string, currentLang: string): string {
+        return new Date(dateStr).toLocaleDateString(currentLang === "en" ? "en-US" : "ru-RU", {
             weekday: "long",
             day: "numeric",
             month: "long",
         });
     }
 
-    function getDaysLeft(dateStr: string): string {
+    function getDaysLeft(dateStr: string, currentLang: string): string {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const date = new Date(dateStr);
         const diff = Math.round((date.getTime() - today.getTime()) / 86400000);
 
-        if (diff === 0) return "сегодня";
-        if (diff === 1) return "завтра";
-        if (diff === 2) return "послезавтра";
-        if (diff > 0)   return `через ${diff} дней`;
-        return "уже прошло";
+        if (diff === 0) return $t.common.today.toLowerCase();
+        if (diff === 1) return $t.common.tomorrow.toLowerCase();
+        if (diff === 2) return currentLang === "en" ? "in 2 days" : "послезавтра";
+        if (diff > 0)   return $t.events.daysLeft.replace("{n}", String(diff));
+        return $t.events.alreadyPassed;
     }
 </script>
 
@@ -60,7 +62,7 @@
             </div>
             <div class="hero-info">
                 <span class="hero-name">{event.name}</span>
-                <span class="hero-date">{formatFullDate(event.date)}</span>
+                <span class="hero-date">{formatFullDate(event.date, $language)}</span>
             </div>
         </div>
 
@@ -68,15 +70,15 @@
         <div class="info-card">
             <div class="info-row">
                 <Icon icon="material-symbols:calendar-clock-rounded" width={18} color="var(--accent)" />
-                <span class="info-label">Когда</span>
-                <span class="info-value">{getDaysLeft(event.date)}</span>
+                <span class="info-label">{$t.events.when}</span>
+                <span class="info-value">{getDaysLeft(event.date, $language)}</span>
             </div>
             {#if event.description}
                 <div class="divider"></div>
                 <div class="info-row info-row--col">
                     <div class="info-row-head">
                         <Icon icon="material-symbols:notes-rounded" width={18} color="var(--accent)" />
-                        <span class="info-label">Описание</span>
+                        <span class="info-label">{$t.chores.description}</span>
                     </div>
                     <span class="info-desc">{event.description}</span>
                 </div>
@@ -86,12 +88,12 @@
         <!-- ACTIONS -->
         {#if rescheduleMode}
             <div class="reschedule-card">
-                <span class="reschedule-label">Новая дата</span>
+                <span class="reschedule-label">{$t.events.newDate}</span>
                 <input class="field-input" type="date" bind:value={newDate} />
                 <div class="reschedule-actions">
-                    <CustButton label="Сохранить" variant="primary" onClick={handleReschedule} />
+                    <CustButton label={$t.common.save} variant="primary" onClick={handleReschedule} />
                     <CustButton
-                        label="Отмена"
+                        label={$t.common.cancel}
                         variant="secondary"
                         onClick={() => { rescheduleMode = false; newDate = event.date; }}
                     />
@@ -99,8 +101,8 @@
             </div>
         {:else}
             <div class="actions-card">
-                <CustButton label="Перенести дату" variant="secondary" onClick={() => (rescheduleMode = true)} />
-                <CustButton label="Удалить событие" variant="danger" onClick={handleDelete} />
+                <CustButton label={$t.events.rescheduleDate} variant="secondary" onClick={() => (rescheduleMode = true)} />
+                <CustButton label={$t.events.deleteEvent} variant="danger" onClick={handleDelete} />
             </div>
         {/if}
 

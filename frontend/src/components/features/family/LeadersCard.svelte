@@ -3,29 +3,29 @@
     import UserAvatar from "$ui/UserAvatar.svelte";
     import { userSession } from "$api/client";
     import LeaderCardSkeleton from "$skeletons/LeaderCardSkeleton.svelte";
-    import { openProfile } from "$lib/settings";
+    import { openProfile, language } from "$lib/settings";
     import { getCurrentWeekRange } from "$lib/utils";
+    import { t } from "$lib/i18n";
     import Card from "$ui/Card.svelte";
 
     export let loading = true;
     export let weekLeaders: WeeklyLeadersResponse | null = null;
 
-    const weekRange = getCurrentWeekRange();
-
+    $: weekRange = getCurrentWeekRange($language);
     $: leaders = weekLeaders?.leaders ?? [];
 </script>
 
 {#if loading}
     <LeaderCardSkeleton />
 {:else}
-    <Card title="Лидеры недели" glowDirection="top-right">
+    <Card title={$t.stats.weeklyLeaders} glowDirection="top-right">
         <span slot="action" class="lb-subtitle">{weekRange}</span>
 
         {#if !leaders.length}
             <div class="empty-state">
                 <span class="empty-icon">🏆</span>
-                <span class="empty-text">Пока никто не выполнил задачи</span>
-                <span class="empty-sub">Будь первым на этой неделе</span>
+                <span class="empty-text">{$t.stats.noLeaders}</span>
+                <span class="empty-sub">{$t.stats.beFirst}</span>
             </div>
         {:else}
             <div class="leader-list">
@@ -37,7 +37,7 @@
                         class:rank-3={i === 2}
                         class:is-me={leader.member.id === $userSession.userId}
                         onclick={() => openProfile(leader.member.id)}
-                        aria-label="Открыть профиль {leader.member.name}"
+                        aria-label="{$t.modals.openProfile} {leader.member.name}"
                     >
                         <span
                             class="rank"
@@ -54,7 +54,7 @@
                                     >{leader.member.name}</span
                                 >
                                 {#if leader.member.id === $userSession.userId}
-                                    <span class="you-tag">Вы</span>
+                                    <span class="you-tag">{$t.common.you.replace(/[()]/g, "")}</span>
                                 {/if}
                             </div>
                         </div>
@@ -62,7 +62,7 @@
                             <span class="score" class:score-gold={i === 0}>
                                 {leader.chore_completion_count}
                             </span>
-                            <span class="score-label">задач</span>
+                            <span class="score-label">{$t.stats.tasks}</span>
                         </div>
                     </button>
                 {/each}

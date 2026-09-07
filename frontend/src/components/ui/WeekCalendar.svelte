@@ -23,8 +23,10 @@
         return d;
     }
 
-    function getDayName(date: Date) {
-        return date.toLocaleDateString("ru-RU", { weekday: "short" });
+    import { language } from "$lib/settings";
+
+    function getDayName(date: Date, currentLang: string) {
+        return date.toLocaleDateString(currentLang === "en" ? "en-US" : "ru-RU", { weekday: "short" });
     }
 
     function isToday(date: Date) {
@@ -51,8 +53,6 @@
     }
 
     const weeks = [getWeekDays(-1), getWeekDays(0), getWeekDays(1)];
-
-    const weekLabels = ["Прошлая неделя", "Эта неделя", "Следующая неделя"];
 
     // ─── Скролл ───────────────────────────────────────────────────────────────
 
@@ -93,7 +93,7 @@
                             class:today={isToday(day)}
                             on:click={() => select(day)}
                         >
-                            <div class="weekday">{getDayName(day)}</div>
+                            <div class="weekday">{getDayName(day, $language)}</div>
                             <div class="date">{day.getDate()}</div>
                         </button>
                     {/each}

@@ -2,6 +2,7 @@
     import BottomSheet from "$ui/BottomSheet.svelte";
     import Icon from "@iconify/svelte";
     import { language as langStore } from "$lib/settings.js";
+    import { t } from "$lib/i18n";
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
 
@@ -31,20 +32,14 @@
 </script>
 
 <BottomSheet
-    title={$langStore === "ru" ? "Сменить язык" : "Change Language"}
+    title={$t.modals.langTitle}
     on:close={close}
     flyY={999}
     flyDuration={320}
 >
     <div class="lang-container">
         <p class="intro-text">
-            {#if $langStore === "ru"}
-                Выберите язык интерфейса приложения. Изменения применятся
-                мгновенно.
-            {:else}
-                Choose your preferred interface language. Changes will apply
-                instantly.
-            {/if}
+            {$t.modals.langDesc}
         </p>
 
         <div class="languages-list">

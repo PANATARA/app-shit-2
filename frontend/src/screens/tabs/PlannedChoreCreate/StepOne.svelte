@@ -8,6 +8,7 @@
     import { swr } from "$lib/swr";
     import { createPlannedChoreParams, activeTab } from "$lib/navigation";
     import CardPlannedChoreSkeleton from "$skeletons/CardPlannedChoreSkeleton.svelte";
+    import { t } from "$lib/i18n";
 
     // ─── State ───────────────────────────────────────────────────────────────
 
@@ -55,12 +56,12 @@
 
 <div class="page">
     <header class="page-header">
-        <Backbtn label="Назад" on:click={handleBack} />
-        <h1>Запланировать задачу</h1>
+        <Backbtn label={$t.common.back} on:click={handleBack} />
+        <h1>{$t.board.planChore}</h1>
         <div class="header-spacer"></div>
     </header>
 
-    <SearchBox bind:searchQuery />
+    <SearchBox bind:searchQuery placeholder={$t.chores.searchPlaceholder} />
 
     {#if loading}
         <CardPlannedChoreSkeleton count={3} />
@@ -84,9 +85,9 @@
                         </svg>
                     </div>
                     <div class="quick-task-info">
-                        <span class="quick-task-name">Быстрая задача</span>
+                        <span class="quick-task-name">{$t.board.quickTask}</span>
                         <span class="quick-task-desc"
-                            >Без категории и шаблона</span
+                            >{$t.chores.quickTaskDesc}</span
                         >
                     </div>
                     <svg
@@ -104,7 +105,7 @@
             </div>
 
             <div class="divider">
-                <span class="divider-label">или выберите из шаблонов</span>
+                <span class="divider-label">{$t.chores.orChooseFromTemplates}</span>
             </div>
         {/if}
 
@@ -114,7 +115,7 @@
                 on:click={() => selectChore(searchQuery.trim())}
             >
                 <span class="create-new-icon">+</span>
-                <span>Создать «{searchQuery.trim()}»</span>
+                <span>{$t.common.create} «{searchQuery.trim()}»</span>
             </button>
         {/if}
 
@@ -126,7 +127,7 @@
             </div>
         {:else if !showCreateNew}
             <div class="state-msg">
-                <p class="state-text">Ничего не найдено</p>
+                <p class="state-text">{$t.chores.nothingFound}</p>
             </div>
         {/if}
     {/if}

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { requestCode, verifyCode, debugAuth } from "$api/auth";
+  import { t } from "$lib/i18n";
 
   const dispatch = createEventDispatcher();
 
@@ -14,7 +15,7 @@
 
   async function handleRequestCode() {
     if (!email.trim()) {
-      error = "Введите email";
+      error = $t.auth.enterEmailError;
       return;
     }
     error = "";
@@ -23,7 +24,7 @@
       await requestCode(email.trim());
       step = "code";
     } catch (e: any) {
-      error = e?.message ?? "Ошибка отправки кода";
+      error = e?.message ?? $t.auth.sendCodeError;
     } finally {
       loading = false;
     }
@@ -31,7 +32,7 @@
 
   async function handleVerifyCode() {
     if (!code.trim()) {
-      error = "Введите код";
+      error = $t.auth.enterCode;
       return;
     }
     error = "";
@@ -40,7 +41,7 @@
       await verifyCode(email.trim(), parseInt(code.trim(), 10));
       dispatch("auth");
     } catch (e: any) {
-      error = e?.message ?? "Неверный код";
+      error = e?.message ?? $t.auth.invalidCodeError;
     } finally {
       loading = false;
     }
@@ -54,7 +55,7 @@
       await debugAuth(debugEmail);
       dispatch("auth");
     } catch (e: any) {
-      error = e?.message ?? "Ошибка debug-авторизации";
+      error = e?.message ?? $t.auth.debugAuthError;
     } finally {
       loading = false;
     }
@@ -72,16 +73,16 @@
     <div class="logo">🏠</div>
 
     {#if step === "email"}
-      <h1 class="title">Добро пожаловать</h1>
-      <p class="subtitle">Введите email для входа</p>
+      <h1 class="title">{$t.auth.welcome}</h1>
+      <p class="subtitle">{$t.auth.enterEmail}</p>
 
       <div class="field">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="field-label">Email</label>
+        <label class="field-label">{$t.auth.emailLabel}</label>
         <input
           class="field-input"
           type="email"
-          placeholder="you@example.com"
+          placeholder={$t.auth.emailPlaceholder}
           bind:value={email}
           on:keydown={handleKeydown}
           autocomplete="email"
@@ -98,15 +99,15 @@
         on:click={handleRequestCode}
         disabled={loading}
       >
-        {loading ? "Отправка..." : "Получить код"}
+        {loading ? $t.auth.sending : $t.auth.sendCode}
       </button>
     {:else}
-      <h1 class="title">Проверьте почту</h1>
-      <p class="subtitle">Код отправлен на <strong>{email}</strong></p>
+      <h1 class="title">{$t.auth.checkEmail}</h1>
+      <p class="subtitle">{$t.auth.codeSentTo} <strong>{email}</strong></p>
 
       <div class="field">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="field-label">Код из письма</label>
+        <label class="field-label">{$t.auth.codeLabel}</label>
         <input
           class="field-input code-input"
           type="text"
@@ -129,7 +130,7 @@
         on:click={handleVerifyCode}
         disabled={loading}
       >
-        {loading ? "Проверка..." : "Войти"}
+        {loading ? $t.auth.verifying : $t.auth.login}
       </button>
 
       <button
@@ -141,7 +142,7 @@
         }}
         disabled={loading}
       >
-        ← Изменить email
+        {$t.auth.changeEmail}
       </button>
     {/if}
 
@@ -161,7 +162,7 @@
           <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" />
           <path d="M12 8v4l3 3" />
         </svg>
-        Войти без кода {email ? `(${email})` : "(debug@dev.local)"}
+        {$t.auth.loginWithoutCode} {email ? `(${email})` : "(debug@dev.local)"}
       </button>
     </div>
   </div>

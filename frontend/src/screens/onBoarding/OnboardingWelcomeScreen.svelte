@@ -1,22 +1,23 @@
 <script lang="ts">
     import { activeTab } from "$lib/navigation";
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
+    import { t } from "$lib/i18n";
 </script>
 
 <div class="onboarding-screen">
     <div class="first-info">
         <div class="icon-wrap">🏠</div>
-        <h2 class="title">Семейный круг</h2>
+        <h2 class="title">{$t.onboarding.familyCircle}</h2>
         <p class="subtitle">
-            Организуйте быт вместе — задания, привычки и награды для всей семьи
+            {$t.onboarding.welcomeSubtitle}
         </p>
         <div class="pills">
-            <div class="pill"><span>👥</span> До 10 участников</div>
-            <div class="pill"><span>🛡️</span> Только для своих</div>
-            <div class="pill"><span>🔄</span> Синхронизация</div>
+            <div class="pill"><span>👥</span> {$t.onboarding.upTo10}</div>
+            <div class="pill"><span>🛡️</span> {$t.onboarding.onlyFamily}</div>
+            <div class="pill"><span>🔄</span> {$t.onboarding.sync}</div>
         </div>
         <ButtonPrimaryGlow
-            label={"Продолжить →"}
+            label={$t.onboarding.continue}
             on:click={() => activeTab.set("onboardingChoose")}
         />
     </div>

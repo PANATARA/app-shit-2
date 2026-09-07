@@ -1,9 +1,10 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
+  import { language } from "$lib/settings.js";
 
   export let checked: boolean = false;
   export let disabled: boolean = false;
-  export let label: string = "Переключатель";
+  export let label: string = "";
 
   const dispatch = createEventDispatcher();
 
@@ -30,7 +31,7 @@
   class:disabled
   on:click={onClick}
   type="button"
-  aria-label={label}
+  aria-label={label || ($language === "en" ? "Toggle" : "Переключатель")}
   aria-pressed={checked}
 >
   <span class="tog-track">

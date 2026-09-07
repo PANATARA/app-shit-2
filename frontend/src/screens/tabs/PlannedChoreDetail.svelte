@@ -9,14 +9,16 @@
         unCompletePlannedChore,
     } from "$api/chores";
     import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
+    import { t } from "$lib/i18n";
+    import { language } from "$lib/settings";
 
     $: plannedChore = $detailPlannedChoreParams.plannedChore;
 
     let newDate = plannedChore?.due_date;
     let loading = false;
 
-    function formatDate(iso: string): string {
-        return new Date(iso).toLocaleDateString("ru-RU", {
+    function formatDate(iso: string, lang: string): string {
+        return new Date(iso).toLocaleDateString(lang === "en" ? "en-US" : "ru-RU", {
             day: "numeric",
             month: "long",
             year: "numeric",
@@ -74,10 +76,10 @@
         <button class="back-btn" on:click={handleBack}>
             <Icon
                 icon="material-symbols:arrow-back-ios-rounded"
-                width="18"
-                height="18"
+                width={18}
+                height={18}
             />
-            Назад
+            {$t.common.back}
         </button>
 
         <h1>{plannedChore?.chore.name}</h1>
@@ -103,14 +105,14 @@
             <div class="detail-icon">
                 <Icon
                     icon="material-symbols:calendar-today-rounded"
-                    width="18"
-                    height="18"
+                    width={18}
+                    height={18}
                 />
             </div>
             <div class="detail-text">
-                <span class="detail-label">Дата</span>
+                <span class="detail-label">{$t.chores.date}</span>
                 <span class="detail-value"
-                    >{formatDate(newDate ?? plannedChore.due_date)}</span
+                    >{formatDate(newDate ?? plannedChore.due_date, $language)}</span
                 >
             </div>
             <div class="edit-hint">
@@ -139,7 +141,7 @@
                 />
             </div>
             <div class="detail-text">
-                <span class="detail-label">Назначено</span>
+                <span class="detail-label">{$t.chores.assigned}</span>
                 {#if plannedChore.assigned_to}
                     <div class="user-chip">
                         <UserAvatar user={plannedChore.assigned_to} size={22} />
@@ -149,7 +151,7 @@
                         </span>
                     </div>
                 {:else}
-                    <span class="detail-value muted">Никому</span>
+                    <span class="detail-value muted">{$t.common.none}</span>
                 {/if}
             </div>
         </div>
@@ -168,7 +170,7 @@
                 />
             </div>
             <div class="detail-text">
-                <span class="detail-label">Выполнено</span>
+                <span class="detail-label">{$t.chores.completedBy}</span>
                 {#if plannedChore.completed_by}
                     <div class="user-chip">
                         <UserAvatar
@@ -181,7 +183,7 @@
                         </span>
                     </div>
                 {:else}
-                    <span class="detail-value muted">Ещё нет</span>
+                    <span class="detail-value muted">{$t.common.notYet}</span>
                 {/if}
             </div>
         </div>
@@ -197,9 +199,9 @@
                 />
             </div>
             <div class="detail-text">
-                <span class="detail-label">Награда</span>
+                <span class="detail-label">{$t.common.reward}</span>
                 <span class="detail-value"
-                    >🪙 {plannedChore.chore.valuation} монет</span
+                    >🪙 {plannedChore.chore.valuation} {$t.common.coins}</span
                 >
             </div>
         </div>
@@ -222,8 +224,8 @@
                 height="18"
             />
             {plannedChore.completed_by
-                ? "Отменить выполнение"
-                : "Отметить выполненным"}
+                ? $t.chores.cancelCompletion
+                : $t.chores.markDone}
         </button>
 
         {#if !plannedChore.completed_by && newDate && newDate !== plannedChore.due_date}
@@ -237,7 +239,7 @@
                     width="18"
                     height="18"
                 />
-                {loading ? "Сохранение..." : "Подтвердить перенос"}
+                {loading ? $t.common.saving : $t.chores.confirmReschedule}
             </button>
         {/if}
 
@@ -251,7 +253,7 @@
                 width="18"
                 height="18"
             />
-            {loading ? "Удаление..." : "Удалить задачу"}
+            {loading ? $t.common.deleting : $t.chores.deleteChore}
         </button>
     </div>
 </div>

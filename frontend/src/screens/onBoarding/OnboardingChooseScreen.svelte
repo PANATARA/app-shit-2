@@ -1,6 +1,7 @@
 <script lang="ts">
     import { activeTab } from "$lib/navigation";
     import Icon from "@iconify/svelte";
+    import { t } from "$lib/i18n";
 
     function choose(type: "create" | "join") {
         activeTab.set(
@@ -21,11 +22,10 @@
             </div>
 
             <div class="intro-text">
-                <h1>Как начнём?</h1>
+                <h1>{$t.onboarding.chooseTitle}</h1>
 
                 <p>
-                    Создайте новое семейное пространство или присоединитесь к
-                    уже существующему.
+                    {$t.onboarding.chooseSubtitle}
                 </p>
             </div>
         </section>
@@ -45,11 +45,11 @@
                 </div>
 
                 <div class="choose-content">
-                    <span class="choose-label">Новая семья</span>
+                    <span class="choose-label">{$t.onboarding.newFamily}</span>
 
-                    <strong>Создать семью</strong>
+                    <strong>{$t.onboarding.createFamily}</strong>
 
-                    <p>Создайте пространство для семьи и пригласите близких.</p>
+                    <p>{$t.onboarding.createFamilyDesc}</p>
                 </div>
 
                 <div class="arrow">
@@ -75,11 +75,11 @@
                 </div>
 
                 <div class="choose-content">
-                    <span class="choose-label">Уже есть семья?</span>
+                    <span class="choose-label">{$t.onboarding.alreadyHaveFamily}</span>
 
-                    <strong>Присоединиться</strong>
+                    <strong>{$t.onboarding.joinFamily}</strong>
 
-                    <p>Введите код приглашения, который отправил член семьи.</p>
+                    <p>{$t.onboarding.joinFamilyDesc}</p>
                 </div>
 
                 <div class="arrow">
@@ -100,7 +100,7 @@
             />
 
             <span
-                >Ваше семейное пространство доступно только его участникам</span
+                >{$t.onboarding.privateHint}</span
             >
         </div>
     </main>

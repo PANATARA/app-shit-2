@@ -1,5 +1,6 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
+    import { language } from "$lib/settings.js";
 
     // ─── Props ────────────────────────────────────────────────────────────────
 
@@ -33,6 +34,9 @@
 
     const ALL_ICON_CATEGORIES = [
         {
+            id: "pets",
+            labelRu: "Питомцы",
+            labelEn: "Pets",
             label: "Питомцы",
             icons: [
                 "emojione:dog-face",
@@ -65,6 +69,9 @@
             ],
         },
         {
+            id: "home",
+            labelRu: "Дом",
+            labelEn: "Home",
             label: "Дом",
             icons: [
                 "material-symbols:house-rounded",
@@ -106,6 +113,9 @@
             ],
         },
         {
+            id: "people",
+            labelRu: "Люди",
+            labelEn: "People",
             label: "Люди",
             icons: [
                 "material-symbols:person-rounded",
@@ -131,6 +141,9 @@
             ],
         },
         {
+            id: "nature",
+            labelRu: "Природа",
+            labelEn: "Nature",
             label: "Природа",
             icons: [
                 "material-symbols:eco-rounded",
@@ -147,6 +160,9 @@
             ],
         },
         {
+            id: "misc",
+            labelRu: "Разное",
+            labelEn: "Misc",
             label: "Разное",
             icons: [
                 "material-symbols:favorite-rounded",
@@ -247,9 +263,16 @@
     ];
 
     const TAB_LABELS = {
-        icon: "Иконка",
-        iconColor: "Цвет",
-        bg: "Фон",
+        ru: {
+            icon: "Иконка",
+            iconColor: "Цвет",
+            bg: "Фон",
+        },
+        en: {
+            icon: "Icon",
+            iconColor: "Color",
+            bg: "Background",
+        },
     } as const;
 
     // ─── State ────────────────────────────────────────────────────────────────
@@ -275,7 +298,7 @@
     const filteredCategories = $derived(
         iconCategories
             ? ALL_ICON_CATEGORIES.filter((c) =>
-                  iconCategories!.includes(c.label),
+                  iconCategories!.some((ic) => ic === c.id || ic === c.labelRu || ic === c.labelEn || ic === c.label)
               )
             : ALL_ICON_CATEGORIES,
     );
@@ -344,7 +367,7 @@
                     class:tab-active={activeTab === tab}
                     onclick={() => (activeTab = tab)}
                 >
-                    {TAB_LABELS[tab]}
+                    {TAB_LABELS[$language === "en" ? "en" : "ru"][tab]}
                 </button>
             {/each}
         </div>
@@ -360,7 +383,7 @@
                         class:category-active={activeCategoryIndex === i}
                         onclick={() => (activeCategoryIndex = i)}
                     >
-                        {cat.label}
+                        {cat[$language === "en" ? "labelEn" : "labelRu"]}
                     </button>
                 {/each}
             </div>

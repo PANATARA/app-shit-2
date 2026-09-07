@@ -3,6 +3,8 @@
     import BottomSheet from "$ui/BottomSheet.svelte";
     import { generateInviteToken } from "$api/family";
     import Icon from "@iconify/svelte";
+    import { t } from "$lib/i18n";
+    import { language } from "$lib/settings";
 
     const dispatch = createEventDispatcher();
 
@@ -40,9 +42,13 @@
         return raw.length === 6 ? `${raw.slice(0, 3)}-${raw.slice(3)}` : raw;
     }
 
-    function formatExpiry(seconds: number): string {
+    function formatExpiry(seconds: number, currentLang: string): string {
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
+        if (currentLang === "en") {
+            if (h > 0) return `${h} h ${m} min`;
+            return `${m} min`;
+        }
         if (h > 0) return `${h} ч ${m} мин`;
         return `${m} мин`;
     }
@@ -71,7 +77,7 @@
 </script>
 
 <BottomSheet
-    title="Пригласить участника"
+    title={$t.settings.inviteMember}
     on:close={close}
     flyY={999}
     flyDuration={320}
@@ -84,8 +90,8 @@
             </div>
         {:else if error}
             <div class="error-wrap">
-                <p class="error-text">Не удалось получить код</p>
-                <button class="retry-btn" on:click={loadCode}>Повторить</button>
+                <p class="error-text">{$t.modals.failedToGetCode}</p>
+                <button class="retry-btn" on:click={loadCode}>{$t.modals.retry}</button>
             </div>
         {:else}
             <!-- Иллюстрация -->
@@ -113,8 +119,7 @@
 
             <!-- Подсказка -->
             <p class="hint">
-                Покажите этот код родственнику — он вводит его в приложении на
-                экране «Семейный круг» чтобы присоединиться к вашей семье.
+                {$t.modals.inviteHint}
             </p>
 
             <!-- Код -->
@@ -122,9 +127,9 @@
                 <span class="code-text">{formatCode(code)}</span>
                 <span class="copy-hint">
                     {#if copied}
-                        ✓ Скопировано
+                        ✓ {$t.modals.codeCopied}
                     {:else}
-                        Нажмите чтобы скопировать
+                        {$t.modals.clickToCopy}
                     {/if}
                 </span>
             </button>
@@ -133,7 +138,7 @@
             <div class="expiry-row">
                 <span class="expiry-icon">⏱</span>
                 <span class="expiry-text">
-                    Код действует ещё <strong>{formatExpiry(expiresIn)}</strong>
+                    {$t.modals.codeExpiresIn} <strong>{formatExpiry(expiresIn, $language)}</strong>
                 </span>
             </div>
         {/if}
