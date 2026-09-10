@@ -1,17 +1,26 @@
 <script lang="ts">
-    import type { AnyPlannedChore } from "$types/index";
-    import ChoreIcon from "$ui/ChoreIcon.svelte";
+    // ─── Imports ─────────────────────────────────────────────────────────────
     import Icon from "@iconify/svelte";
+
+    // UI Components
+    import ChoreIcon from "$ui/ChoreIcon.svelte";
     import UserAvatar from "$ui/UserAvatar.svelte";
+    import PlannedChoreSubtasks from "$features/chores/PlannedChoreSubtasks.svelte";
+
+    // Types & Localization
+    import type { AnyPlannedChore } from "$types/index";
     import { t } from "$lib/i18n";
 
+    // ─── Component Props / Dispatch ──────────────────────────────────────────
     export let item: AnyPlannedChore;
     export let onToggle: (item: AnyPlannedChore) => void;
     export let onClick: () => void;
 
+    // ─── Reactive Declarations ───────────────────────────────────────────────
+    // Check if the chore is completed
     $: done = item.completed_by !== null;
 
-    // Абстрагируем разницу между типами
+    // Normalize display fields across standard and quick chores
     $: title = item.is_quick ? item.name : item.chore.name;
     $: message = item.message;
 </script>
@@ -28,7 +37,7 @@
         <span class="glow"></span>
     {/if}
 
-    <!-- Иконка — разная для обычных и быстрых задач -->
+    <!-- Chore icon: distinct for regular and quick tasks -->
     {#if item.is_quick}
         <div class="quick-icon" style="background: {item.icon_bg}">
             <Icon icon={item.icon} width={24} color={item.icon_color} />
@@ -41,16 +50,21 @@
         <div class="title" class:completed-text={done}>
             {title}
             {#if !item.is_quick && item.schedule_id}
-                <span class="repeat-icon" title="Повторяющаяся задача">
+                <span class="repeat-icon" title="Recurring chore">
                     <Icon icon="material-symbols:repeat-rounded" width="14" height="14" />
                 </span>
             {/if}
         </div>
 
         {#if message}
-            <div class="subtitle" class:completed-text={done}>
+            <PlannedChoreSubtasks
                 {message}
-            </div>
+                choreId={item.id}
+                isChoreDone={done}
+                onUpdate={(newMsg) => {
+                    item.message = newMsg;
+                }}
+            />
         {/if}
 
         {#if item.assigned_to && !item.completed_by}
@@ -168,16 +182,6 @@
         color: var(--text-primary);
         line-height: 1.2;
         transition: color 0.2s ease;
-    }
-
-    .subtitle {
-        font-size: 13px;
-        color: var(--text-secondary);
-        line-height: 1.3;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
     }
 
     .completed-text {

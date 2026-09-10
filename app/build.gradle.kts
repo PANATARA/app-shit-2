@@ -55,3 +55,16 @@ android {
         resValues = true
     }
 }
+
+configurations.all {
+    resolutionStrategy {
+        force("org.jetbrains.kotlin:kotlin-stdlib:1.8.22")
+        force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22")
+        force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22")
+        force("org.jetbrains.kotlin:kotlin-stdlib-common:1.8.22")
+    }
+}
+
+dependencies {
+    implementation("androidx.activity:activity-ktx:1.9.3")
+}

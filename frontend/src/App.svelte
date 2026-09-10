@@ -13,7 +13,7 @@
 
     import UserProfileModal from "$screens/modal/UserProfileModal.svelte";
     import { profileModal, closeProfile } from "$lib/settings";
-    import { activeTab } from "$lib/navigation";
+    import { activeTab, closeTopModal, navigateBack, notifyNativeNavigation } from "$lib/navigation";
     import { t } from "$lib/i18n";
     import StepOne from "$screens/tabs/PlannedChoreCreate/StepOne.svelte";
     import StepTwo from "$screens/tabs/PlannedChoreCreate/StepTwo.svelte";
@@ -34,14 +34,35 @@
     let isInFamily = false;
     let checkingAuth = true;
 
-    onMount(async () => {
-        if ($isLoggedInStore) {
-            await checkProfile();
-        } else {
+    onMount(() => {
+        const unsubActiveTab = activeTab.subscribe(() => {
+            notifyNativeNavigation();
+        });
+
+        (window as any).onNativeBack = (action: string = "") => {
+            if (action === "closeModal") {
+                closeTopModal();
+            } else {
+                navigateBack();
+            }
+        };
+
+        (async () => {
+            if ($isLoggedInStore) {
+                await checkProfile();
+            } else {
+                checkingAuth = false;
+                return;
+            }
             checkingAuth = false;
-            return;
-        }
-        checkingAuth = false;
+        })();
+
+        notifyNativeNavigation();
+
+        return () => {
+            unsubActiveTab();
+            delete (window as any).onNativeBack;
+        };
     });
 
     async function checkProfile() {
@@ -339,9 +360,7 @@
         align-items: flex-end;
         justify-content: space-around;
         padding: 10px 8px calc(16px + env(safe-area-inset-bottom));
-        background: color-mix(in srgb, var(--bg-nav) 92%, transparent);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: var(--bg-nav);
         border-radius: 28px 28px 0 0;
         box-shadow:
             0 -1px 0 rgba(255, 255, 255, 0.05),

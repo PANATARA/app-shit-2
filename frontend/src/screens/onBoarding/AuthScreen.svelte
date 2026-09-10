@@ -130,7 +130,7 @@
         on:click={handleVerifyCode}
         disabled={loading}
       >
-        {loading ? $t.auth.verifying : $t.auth.login}
+        {loading ? $t.auth.verifying : $t.auth.getCode}
       </button>
 
       <button

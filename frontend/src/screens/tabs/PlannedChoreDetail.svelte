@@ -1,8 +1,15 @@
 <script lang="ts">
+    // ─── Imports ─────────────────────────────────────────────────────────────
+    import Icon from "@iconify/svelte";
+
+    // UI Components
     import UserAvatar from "$ui/UserAvatar.svelte";
     import ChoreIcon from "$ui/ChoreIcon.svelte";
-    import Icon from "@iconify/svelte";
     import RepeatSelector from "$features/chores/RepeatSelector.svelte";
+    import PlannedChoreSubtasks from "$features/chores/PlannedChoreSubtasks.svelte";
+    import SubtaskEditor from "$features/chores/SubtaskEditor.svelte";
+
+    // API Services
     import {
         deletePlannedChore,
         reschedulePlannedChore,
@@ -12,12 +19,16 @@
         createChoreSchedule,
         updateChoreSchedule,
         deleteChoreSchedule,
+        updatePlannedChoreMessage,
     } from "$api/chores";
     import { userSession } from "$api/client";
+
+    // Navigation & Localization
     import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
     import { t } from "$lib/i18n";
     import { language } from "$lib/settings";
 
+    // ─── Types & Interfaces ──────────────────────────────────────────────────
     type FrequencyType = "none" | "daily" | "weekly" | "monthly";
 
     interface RepeatConfig {
@@ -29,21 +40,21 @@
         ends_at: string | null;
     }
 
+    // ─── Component State ─────────────────────────────────────────────────────
+    // Planned chore details from navigation store
     $: plannedChore = $detailPlannedChoreParams.plannedChore;
 
+    // Local form state
     let newDate = plannedChore?.due_date;
     let loading = false;
 
-    // ─── Schedule state ──────────────────────────────────────────────────────────
+    // Schedule management state
     let activeSchedule: any = null;
     let scheduleLoading = false;
     let scheduleSaving = false;
     let isScheduleEditing = false;
     let scheduleErrorMessage = "";
-
-    function getTodayIso(): string {
-        return new Date().toISOString().split("T")[0];
-    }
+    let loadedChoreId: string | null = null;
 
     let repeatConfig: RepeatConfig = {
         frequency_type: "none",
@@ -54,18 +65,42 @@
         ends_at: null,
     };
 
+    // ─── Reactive Declarations ───────────────────────────────────────────────
+    // Automatically load schedule whenever the selected chore changes
+    $: if (plannedChore?.chore?.id && plannedChore.chore.id !== loadedChoreId) {
+        loadedChoreId = plannedChore.chore.id;
+        fetchSchedule();
+    }
+
+    // ─── Helper Functions ────────────────────────────────────────────────────
+    /** Returns current date as ISO string (YYYY-MM-DD) */
+    function getTodayIso(): string {
+        return new Date().toISOString().split("T")[0];
+    }
+
+    /** Formats ISO date according to the active user language */
+    function formatDate(iso: string, lang: string): string {
+        return new Date(iso).toLocaleDateString(lang === "en" ? "en-US" : "ru-RU", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        });
+    }
+
+    /** Converts UI day indices (0=Sun, 1=Mon..6=Sat) into backend bitmask (1=Mon..64=Sun) */
     function daysOfWeekToBitmask(days: number[]): number {
         let mask = 0;
         for (const d of days) {
             if (d === 0) {
-                mask |= (1 << 6); // Sunday = 64
+                mask |= 1 << 6; // Sunday = 64
             } else if (d >= 1 && d <= 6) {
-                mask |= (1 << (d - 1)); // 1=Mo(1), 2=Tu(2), 3=We(4), 4=Th(8), 5=Fr(16), 6=Sa(32)
+                mask |= 1 << (d - 1); // 1=Mo(1), 2=Tu(2), 3=We(4), 4=Th(8), 5=Fr(16), 6=Sa(32)
             }
         }
         return mask;
     }
 
+    /** Converts backend bitmask (1=Mon..64=Sun) into UI day indices array */
     function bitmaskToDaysOfWeek(mask: number | null | undefined): number[] {
         const days: number[] = [];
         if (!mask) return days;
@@ -80,6 +115,7 @@
         return days;
     }
 
+    /** Russian pluralization helper for numeric labels */
     function getPlural(n: number, one: string, two: string, five: string): string {
         const absN = Math.abs(n) % 100;
         const n1 = absN % 10;
@@ -89,6 +125,7 @@
         return five;
     }
 
+    /** Generates localized, human-readable description of the schedule */
     function getScheduleDisplayText(schedule: any, lang: string): string {
         if (!schedule || !schedule.is_active || schedule.frequency_type === "none") {
             return lang === "en" ? "No repetition" : "Без повторения";
@@ -97,10 +134,9 @@
         if (schedule.frequency_type === "daily") {
             if (lang === "en") {
                 return interval === 1 ? "Every day" : `Every ${interval} days`;
-            } else {
-                if (interval === 1) return "Каждый день";
-                return `Каждые ${interval} ${getPlural(interval, "день", "дня", "дней")}`;
             }
+            if (interval === 1) return "Каждый день";
+            return `Каждые ${interval} ${getPlural(interval, "день", "дня", "дней")}`;
         }
         if (schedule.frequency_type === "weekly") {
             const days = bitmaskToDaysOfWeek(schedule.days_of_week);
@@ -111,24 +147,23 @@
             if (lang === "en") {
                 const prefix = interval === 1 ? "Every week" : `Every ${interval} weeks`;
                 return labels ? `${prefix} (${labels})` : prefix;
-            } else {
-                const prefix = interval === 1 ? "Каждую неделю" : `Каждые ${interval} ${getPlural(interval, "неделю", "недели", "недель")}`;
-                return labels ? `${prefix} (${labels})` : prefix;
             }
+            const prefix = interval === 1 ? "Каждую неделю" : `Каждые ${interval} ${getPlural(interval, "неделю", "недели", "недель")}`;
+            return labels ? `${prefix} (${labels})` : prefix;
         }
         if (schedule.frequency_type === "monthly") {
             const dom = schedule.day_of_month;
             if (lang === "en") {
                 const prefix = interval === 1 ? "Every month" : `Every ${interval} months`;
                 return dom ? `${prefix} (${dom}th)` : prefix;
-            } else {
-                const prefix = interval === 1 ? "Каждый месяц" : `Каждые ${interval} ${getPlural(interval, "месяц", "месяца", "месяцев")}`;
-                return dom ? `${prefix} (${dom}-го числа)` : prefix;
             }
+            const prefix = interval === 1 ? "Каждый месяц" : `Каждые ${interval} ${getPlural(interval, "месяц", "месяца", "месяцев")}`;
+            return dom ? `${prefix} (${dom}-го числа)` : prefix;
         }
         return lang === "en" ? "Scheduled" : "По расписанию";
     }
 
+    /** Clears cached planned chore responses from localStorage */
     function clearPlannedChoresSwrCache() {
         try {
             if (typeof localStorage !== "undefined") {
@@ -144,6 +179,8 @@
         }
     }
 
+    // ─── Data Fetching ───────────────────────────────────────────────────────
+    /** Fetches the active schedule for the current chore */
     async function fetchSchedule() {
         if (!plannedChore?.chore?.id) return;
         scheduleLoading = true;
@@ -176,12 +213,60 @@
         }
     }
 
-    let loadedChoreId: string | null = null;
-    $: if (plannedChore?.chore?.id && plannedChore.chore.id !== loadedChoreId) {
-        loadedChoreId = plannedChore.chore.id;
-        fetchSchedule();
+    // ─── Actions & Handlers ──────────────────────────────────────────────────
+    /** Navigates back to the board screen */
+    function handleBack() {
+        activeTab.set("boardScreen");
     }
 
+    /** Deletes the planned chore */
+    async function handleDelete() {
+        loading = true;
+        try {
+            await deletePlannedChore(plannedChore.id);
+            clearPlannedChoresSwrCache();
+            handleBack();
+        } catch (e) {
+            console.error("Failed to delete planned chore:", e);
+        } finally {
+            loading = false;
+        }
+    }
+
+    /** Toggles completion status of the planned chore */
+    async function handleComplete() {
+        loading = true;
+        try {
+            const updated = plannedChore.completed_by
+                ? await unCompletePlannedChore(plannedChore.id)
+                : await completePlannedChore(plannedChore.id);
+            clearPlannedChoresSwrCache();
+            handleBack();
+        } catch (e) {
+            console.error("Failed to toggle chore completion:", e);
+        } finally {
+            loading = false;
+        }
+    }
+
+    /** Reschedules the planned chore to a new date */
+    async function handleReschedule() {
+        if (!newDate || newDate === plannedChore.due_date) return;
+        loading = true;
+        try {
+            await reschedulePlannedChore(plannedChore.id, {
+                reschedule_due_date: newDate,
+            });
+            clearPlannedChoresSwrCache();
+            handleBack();
+        } catch (e) {
+            console.error("Failed to reschedule chore:", e);
+        } finally {
+            loading = false;
+        }
+    }
+
+    /** Saves or updates the repetition schedule */
     async function handleSaveSchedule() {
         scheduleSaving = true;
         scheduleErrorMessage = "";
@@ -240,6 +325,7 @@
         }
     }
 
+    /** Disables and soft-deletes the schedule */
     async function handleDeleteSchedule() {
         if (!activeSchedule) return;
         scheduleSaving = true;
@@ -267,59 +353,21 @@
         }
     }
 
-    function formatDate(iso: string, lang: string): string {
-        return new Date(iso).toLocaleDateString(lang === "en" ? "en-US" : "ru-RU", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-        });
-    }
+    let isEditingSubtasks = false;
+    let subtaskErrorMessage = "";
 
-    function handleBack() {
-        activeTab.set("boardScreen");
-    }
-
-    async function handleDelete() {
-        loading = true;
+    async function handleSubtasksSave(newMsg: string) {
+        if (!plannedChore) return;
         try {
-            await deletePlannedChore(plannedChore.id);
+            await updatePlannedChoreMessage(plannedChore.id, newMsg);
+            plannedChore.message = newMsg;
+            subtaskErrorMessage = "";
             clearPlannedChoresSwrCache();
-            handleBack();
-        } catch (e) {
-            console.error(e);
-        } finally {
-            loading = false;
-        }
-    }
-
-    async function handleComplete() {
-        loading = true;
-        try {
-            const updated = plannedChore.completed_by
-                ? await unCompletePlannedChore(plannedChore.id)
-                : await completePlannedChore(plannedChore.id);
-            clearPlannedChoresSwrCache();
-            handleBack();
-        } catch (e) {
-            console.error(e);
-        } finally {
-            loading = false;
-        }
-    }
-
-    async function handleReschedule() {
-        if (!newDate || newDate === plannedChore.due_date) return;
-        loading = true;
-        try {
-            await reschedulePlannedChore(plannedChore.id, {
-                reschedule_due_date: newDate,
-            });
-            clearPlannedChoresSwrCache();
-            handleBack();
-        } catch (e) {
-            console.error(e);
-        } finally {
-            loading = false;
+        } catch (e: any) {
+            console.error("Failed to update subtasks:", e);
+            subtaskErrorMessage =
+                e?.message ||
+                ($language === "en" ? "Failed to save subtasks" : "Не удалось сохранить подзадачи");
         }
     }
 </script>
@@ -340,20 +388,66 @@
         <div class="header-spacer"></div>
     </header>
 
-    <!-- Иконка + сообщение -->
+    <!-- Chore header: Icon -->
     <div class="chore-header">
         <div class="chore-icon-wrap">
             <span class="icon-glow"></span>
             <ChoreIcon chore={plannedChore.chore} size={68} />
         </div>
-        {#if plannedChore.message}
-            <p class="chore-message">«{plannedChore.message}»</p>
+    </div>
+
+    <!-- Subtasks & Notes section -->
+    <div class="subtasks-detail-card">
+        <div class="subtasks-header-row">
+            <div class="subtasks-title-wrap">
+                <Icon icon="material-symbols:checklist-rounded" width="20" height="20" />
+                <span class="subtasks-title">Подзадачи и заметки</span>
+            </div>
+            <button
+                type="button"
+                class="subtasks-edit-toggle"
+                on:click={() => (isEditingSubtasks = !isEditingSubtasks)}
+            >
+                <Icon
+                    icon={isEditingSubtasks ? "material-symbols:check-rounded" : "material-symbols:edit-rounded"}
+                    width="15"
+                    height="15"
+                />
+                <span>{isEditingSubtasks ? "Готово" : "Изменить"}</span>
+            </button>
+        </div>
+
+        {#if isEditingSubtasks}
+            <div class="subtasks-editor-wrap">
+                <SubtaskEditor
+                    bind:message={plannedChore.message}
+                    onChange={handleSubtasksSave}
+                />
+            </div>
+        {:else}
+            <PlannedChoreSubtasks
+                message={plannedChore.message}
+                choreId={plannedChore.id}
+                isChoreDone={!!plannedChore.completed_by}
+                onUpdate={(newMsg) => {
+                    plannedChore.message = newMsg;
+                }}
+            />
+            {#if !plannedChore.message}
+                <p class="empty-subtasks-note">
+                    Подзадач нет. Нажмите «Изменить», чтобы добавить чек-лист или комментарий.
+                </p>
+            {/if}
+        {/if}
+
+        {#if subtaskErrorMessage}
+            <p class="subtask-error">{subtaskErrorMessage}</p>
         {/if}
     </div>
 
-    <!-- Детали -->
+    <!-- Chore Details -->
     <div class="details">
-        <!-- Дата — кликабельная строка с инпутом -->
+        <!-- Due date row with hidden date input -->
         <div class="detail-row date-row">
             <div class="detail-icon">
                 <Icon
@@ -565,7 +659,7 @@
         {/if}
     </div>
 
-    <!-- Кнопки -->
+    <!-- Action buttons -->
     <div class="actions">
         <button
             class="action-btn"
@@ -718,13 +812,82 @@
         z-index: 0;
     }
 
-    .chore-message {
-        font-size: 14px;
+    /* ── SUBTASKS DETAIL CARD ────────────────────── */
+    .subtasks-detail-card {
+        margin: 12px 16px 4px;
+        background: var(--surface);
+        border-radius: 22px;
+        padding: 16px;
+        box-shadow:
+            0 1px 0 rgba(0, 0, 0, 0.04),
+            0 4px 12px rgba(0, 0, 0, 0.06);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .subtasks-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .subtasks-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-primary);
+    }
+
+    .subtasks-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .subtasks-edit-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--surface-alt);
+        border: 1.5px solid var(--border);
+        padding: 7px 14px;
+        min-height: 36px;
+        border-radius: 12px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: all 0.15s ease;
+    }
+
+    .subtasks-edit-toggle:active {
+        transform: scale(0.95);
+    }
+
+    .subtasks-edit-toggle:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .subtasks-editor-wrap {
+        margin-top: 4px;
+    }
+
+    .empty-subtasks-note {
+        font-size: 13px;
         color: var(--text-muted);
-        font-style: italic;
-        text-align: center;
         margin: 0;
-        max-width: 260px;
+        font-style: italic;
+    }
+
+    .subtask-error {
+        font-size: 12px;
+        color: var(--danger, #ef4444);
+        margin: 0;
+        font-weight: 500;
     }
 
     /* ── DETAILS ─────────────────────────────────── */
@@ -745,7 +908,7 @@
         padding: 13px 16px;
     }
 
-    /* Дата-строка — поверх неё прозрачный инпут */
+    /* Date row: hidden date input overlay */
     .date-row {
         position: relative;
         cursor: pointer;

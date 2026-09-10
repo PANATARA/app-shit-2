@@ -1,8 +1,10 @@
 <script lang="ts">
+    // ─── Imports ─────────────────────────────────────────────────────────────
     import Icon from "@iconify/svelte";
     import { t } from "$lib/i18n";
     import { language } from "$lib/settings";
 
+    // ─── Types & Interfaces ──────────────────────────────────────────────────
     type FrequencyType = "none" | "daily" | "weekly" | "monthly";
 
     interface RepeatConfig {
@@ -14,10 +16,12 @@
         ends_at: string | null;
     }
 
+    // ─── Component Props / Dispatch ──────────────────────────────────────────
     export let value: RepeatConfig;
     export let onChange: (v: RepeatConfig) => void = () => {};
 
-    // Defensive init
+    // ─── Component State ─────────────────────────────────────────────────────
+    // Defensive initialization if value is not provided
     $: if (!value?.frequency_type) {
         value = {
             frequency_type: "none",
@@ -29,6 +33,7 @@
         };
     }
 
+    // ─── Reactive Declarations ───────────────────────────────────────────────
     $: repeatOptions = [
         {
             value: "none" as FrequencyType,
@@ -52,53 +57,34 @@
         },
     ];
 
-    $: weekDays = $language === "en"
-        ? [
-            { id: 1, label: "Mo" },
-            { id: 2, label: "Tu" },
-            { id: 3, label: "We" },
-            { id: 4, label: "Th" },
-            { id: 5, label: "Fr" },
-            { id: 6, label: "Sa" },
-            { id: 0, label: "Su" },
-          ]
-        : [
-            { id: 1, label: "Пн" },
-            { id: 2, label: "Вт" },
-            { id: 3, label: "Ср" },
-            { id: 4, label: "Чт" },
-            { id: 5, label: "Пт" },
-            { id: 6, label: "Сб" },
-            { id: 0, label: "Вс" },
-          ];
+    $: weekDays =
+        $language === "en"
+            ? [
+                  { id: 1, label: "Mo" },
+                  { id: 2, label: "Tu" },
+                  { id: 3, label: "We" },
+                  { id: 4, label: "Th" },
+                  { id: 5, label: "Fr" },
+                  { id: 6, label: "Sa" },
+                  { id: 0, label: "Su" },
+              ]
+            : [
+                  { id: 1, label: "Пн" },
+                  { id: 2, label: "Вт" },
+                  { id: 3, label: "Ср" },
+                  { id: 4, label: "Чт" },
+                  { id: 5, label: "Пт" },
+                  { id: 6, label: "Сб" },
+                  { id: 0, label: "Вс" },
+              ];
 
+    // ─── Helper Functions ────────────────────────────────────────────────────
+    /** Returns current date as ISO string (YYYY-MM-DD) */
     function getTodayIso(): string {
         return new Date().toISOString().split("T")[0];
     }
 
-    function update(partial: Partial<RepeatConfig>) {
-        let next = { ...value, ...partial };
-
-        if (partial.frequency_type === "weekly" && !next.days_of_week?.length) {
-            next.days_of_week = [new Date().getDay()];
-        }
-        if (partial.frequency_type === "monthly" && !next.day_of_month) {
-            next.day_of_month = new Date().getDate();
-        }
-
-        value = next;
-        onChange(next);
-    }
-
-    function toggleDay(id: number) {
-        const days = value.days_of_week ?? [];
-        update({
-            days_of_week: days.includes(id)
-                ? days.filter((x) => x !== id)
-                : [...days, id],
-        });
-    }
-
+    /** Russian pluralization helper for numeric labels */
     function getPlural(
         n: number,
         one: string,
@@ -113,7 +99,12 @@
         return five;
     }
 
-    function getIntervalText(interval: number, type: FrequencyType, currentLang: string): string {
+    /** Returns localized interval label */
+    function getIntervalText(
+        interval: number,
+        type: FrequencyType,
+        currentLang: string,
+    ): string {
         if (currentLang === "en") {
             if (interval === 1) {
                 if (type === "daily") return "Every day";
@@ -137,6 +128,32 @@
         if (type === "monthly")
             return `Каждые ${interval} ${getPlural(interval, "месяц", "месяца", "месяцев")}`;
         return `Интервал: ${interval}`;
+    }
+
+    // ─── Actions & Handlers ──────────────────────────────────────────────────
+    /** Updates repeat configuration and notifies parent */
+    function update(partial: Partial<RepeatConfig>) {
+        let next = { ...value, ...partial };
+
+        if (partial.frequency_type === "weekly" && !next.days_of_week?.length) {
+            next.days_of_week = [new Date().getDay()];
+        }
+        if (partial.frequency_type === "monthly" && !next.day_of_month) {
+            next.day_of_month = new Date().getDate();
+        }
+
+        value = next;
+        onChange(next);
+    }
+
+    /** Toggles a weekday in the active selection */
+    function toggleDay(id: number) {
+        const days = value.days_of_week ?? [];
+        update({
+            days_of_week: days.includes(id)
+                ? days.filter((x) => x !== id)
+                : [...days, id],
+        });
     }
 </script>
 

@@ -2,14 +2,20 @@
     import { createEventDispatcher } from "svelte";
     import { fly, fade } from "svelte/transition";
     import { onMount, onDestroy } from "svelte";
+    import { registerModal } from "$lib/navigation";
 
     let portal: HTMLDivElement;
+    let unregisterModal: (() => void) | null = null;
 
     onMount(() => {
         document.body.appendChild(portal);
+        unregisterModal = registerModal(close);
     });
 
     onDestroy(() => {
+        if (unregisterModal) {
+            unregisterModal();
+        }
         if (portal && portal.parentNode) {
             portal.parentNode.removeChild(portal);
         }

@@ -44,3 +44,6 @@ export function getCurrentWeekRange(lang: string = "ru"): string {
 
   return `${fmt(monday)} – ${fmt(sunday)}`;
 }
+
+export * from "./utils/checklist";
+

@@ -1,27 +1,48 @@
 package io.github.giwih.heatmap
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import org.json.JSONObject
+import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 
-class MainActivity : Activity() {
+class MainActivity : ComponentActivity() {
     private lateinit var myWebView: WebView
-    private var pendingJson: String? = null
+
+    // Навигационное состояние веб-интерфейса
+    private var isModalOpen: Boolean = false
+    private var activeTab: String = "statsScreen"
+    private var canGoBack: Boolean = false
 
     companion object {
         private const val OPEN_IMAGE_REQUEST = 2
+        // Имя домашней / главной вкладки
+        private const val MAIN_TAB = "statsScreen"
+    }
+
+    /**
+     * Обратный вызов OnBackPressedCallback из AndroidX.
+     * Активен (isEnabled = true) только когда есть что закрыть (модалка, подэкран или история).
+     * Когда экранов для возврата нет (isEnabled = false), система выполняет
+     * стандартное системное действие выхода / сворачивания (с поддержкой Predictive Back).
+     */
+    private val backPressedCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            triggerWebBackAction()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Регистрация колбэка с автоматической привязкой к LifecycleOwner (ComponentActivity)
+        // Исключает утечки памяти (Memory Leaks) при уничтожении активити
+        onBackPressedDispatcher.addCallback(this, backPressedCallback)
+        updateBackCallbackState()
 
         myWebView = WebView(this)
         myWebView.settings.apply {
@@ -30,6 +51,7 @@ class MainActivity : Activity() {
             allowFileAccess = true
             allowContentAccess = true
             allowUniversalAccessFromFileURLs = true
+            mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
 
         myWebView.webViewClient = WebViewClient()
@@ -37,7 +59,32 @@ class MainActivity : Activity() {
 
         setContentView(myWebView)
         myWebView.loadUrl("file:///android_asset/index.html")
-        //myWebView.loadUrl("192.168.0.233:5173")
+    }
+
+    /**
+     * Проверка, является ли текущая вкладка главной.
+     */
+    private fun isMainTab(tab: String): Boolean {
+        return tab == MAIN_TAB
+    }
+
+    /**
+     * Динамическое переключение флага isEnabled:
+     * Колбэк перехватывает жест только при открытой модалке, возможности вернуться назад или неосновной вкладке.
+     */
+    private fun updateBackCallbackState() {
+        val shouldIntercept = isModalOpen || canGoBack || !isMainTab(activeTab)
+        backPressedCallback.isEnabled = shouldIntercept
+    }
+
+    /**
+     * Отправка действия "Назад" обратно в веб-приложение через JavaScript интерфейс.
+     */
+    private fun triggerWebBackAction() {
+        myWebView.evaluateJavascript(
+            "window.onNativeBack && window.onNativeBack()",
+            null
+        )
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -57,12 +104,49 @@ class MainActivity : Activity() {
         }
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        myWebView.evaluateJavascript("window.onAndroidBack && window.onAndroidBack()", null)
-    }
-
     inner class WebAppInterface {
+
+        /**
+         * Метод синхронизации состояния открытых окон и текущей вкладки из веб-интерфейса.
+         * @param isModalOpen флаг наличия хотя бы одного открытого модального окна
+         * @param activeTab идентификатор активной вкладки
+         */
+        @JavascriptInterface
+        fun updateNavigationState(isModalOpen: Boolean, activeTab: String, canGoBack: Boolean) {
+            runOnUiThread {
+                this@MainActivity.isModalOpen = isModalOpen
+                this@MainActivity.activeTab = activeTab
+                this@MainActivity.canGoBack = canGoBack
+                updateBackCallbackState()
+            }
+        }
+
+        @JavascriptInterface
+        fun updateNavigationState(isModalOpen: Boolean, activeTab: String) {
+            updateNavigationState(isModalOpen, activeTab, isModalOpen || !isMainTab(activeTab))
+        }
+
+        /**
+         * Уведомление об изменении состояния модального окна.
+         */
+        @JavascriptInterface
+        fun setModalState(isOpen: Boolean) {
+            runOnUiThread {
+                this@MainActivity.isModalOpen = isOpen
+                updateBackCallbackState()
+            }
+        }
+
+        /**
+         * Уведомление об изменении активной вкладки.
+         */
+        @JavascriptInterface
+        fun setActiveTab(tab: String) {
+            runOnUiThread {
+                this@MainActivity.activeTab = tab
+                updateBackCallbackState()
+            }
+        }
 
         @JavascriptInterface
         fun showConfirmDialog(title: String, message: String) {
@@ -92,7 +176,7 @@ class MainActivity : Activity() {
         fun finish() {
             this@MainActivity.finish()
         }
-        
+
         @JavascriptInterface
         fun openImagePicker() {
             runOnUiThread {
@@ -104,6 +188,5 @@ class MainActivity : Activity() {
                 startActivityForResult(intent, OPEN_IMAGE_REQUEST)
             }
         }
-
     }
 }

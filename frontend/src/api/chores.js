@@ -126,6 +126,27 @@ export async function reschedulePlannedChore(id, data) {
   });
 }
 
+/**
+ * Update message/subtasks of a Planned Chore
+ * @param {string} id - Planned chore ID
+ * @param {string} message - New message content
+ * @returns {Promise<any>}
+ */
+export async function updatePlannedChoreMessage(id, message) {
+  try {
+    return await apiFetch(`/api/chores/planned/${id}/message`, {
+      method: "PATCH",
+      body: { message },
+    });
+  } catch (e) {
+    return await apiFetch(`/api/planned-chores/${id}`, {
+      method: "PATCH",
+      body: { message },
+    });
+  }
+}
+
+
 
 /**
  * Create a Quick Planned Chore

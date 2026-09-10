@@ -1,22 +1,32 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount } from "svelte";
-    import RepeatSelector from "$features/chores/RepeatSelector.svelte";
-    import { createPlannedChore, createQuickPlannedChore, createChoreSchedule } from "$api/chores";
-    import { userSession } from "$api/client";
-    import { getFamilyMembers } from "$api/family";
-    import UserAvatar from "$ui/UserAvatar.svelte";
-    import ChoreIcon from "$ui/ChoreIcon.svelte";
+    // ─── Imports ─────────────────────────────────────────────────────────────
+    import { createEventDispatcher } from "svelte";
+
+    // UI Components
     import Backbtn from "$ui/backbtn.svelte";
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
+    import ChoreIcon from "$ui/ChoreIcon.svelte";
     import CustomTextarea from "$ui/CustomTextarea.svelte";
+    import UserAvatar from "$ui/UserAvatar.svelte";
     import AvatarBuilder from "$features/settings/AvatarBuilder.svelte";
+    import RepeatSelector from "$features/chores/RepeatSelector.svelte";
+    import SubtaskEditor from "$features/chores/SubtaskEditor.svelte";
+
+    // API Services & State
+    import {
+        createPlannedChore,
+        createQuickPlannedChore,
+        createChoreSchedule,
+    } from "$api/chores";
+    import { getFamilyMembers } from "$api/family";
+    import { userSession } from "$api/client";
     import { swr } from "$lib/swr";
-    const dispatch = createEventDispatcher();
+
+    // Navigation & Localization
     import { createPlannedChoreParams, activeTab } from "$lib/navigation";
     import { t } from "$lib/i18n";
 
-    // ─── Types ───────────────────────────────────────────────────────────────
-
+    // ─── Types & Interfaces ──────────────────────────────────────────────────
     type FrequencyType = "none" | "daily" | "weekly" | "monthly";
 
     interface RepeatConfig {
@@ -28,16 +38,20 @@
         ends_at: string | null;
     }
 
-    // ─── State ───────────────────────────────────────────────────────────────
+    // ─── Component Props / Dispatch ──────────────────────────────────────────
+    const dispatch = createEventDispatcher();
 
-    $: selectedChore = $createPlannedChoreParams.chore;
-    $: isQuickTask = $createPlannedChoreParams.isQuickTask;
+    // ─── Component State ─────────────────────────────────────────────────────
+    const VALUATION_OPTIONS = [1, 2, 3, 5, 8, 10, 15, 20];
 
+    // Standard chore form fields
     let comment = "";
-    let dueDate = new Date().toISOString().split("T")[0];
+    let dueDate = getTodayIso();
     let assignedTo: string | null = null;
+    let isSubmitting = false;
+    let errorMessage = "";
 
-    // Быстрая задача
+    // Quick chore form fields
     let quickTaskName = "";
     let quickTaskValuation = 5;
     let quickTaskAvatar = {
@@ -46,8 +60,7 @@
         icon_bg: "linear-gradient(135deg, #F59E0B 0%, #F97316 100%)",
     };
 
-    const VALUATION_OPTIONS = [1, 2, 3, 5, 8, 10, 15, 20];
-
+    // Recurrence configuration
     let repeat: RepeatConfig = {
         frequency_type: "none",
         interval: 1,
@@ -57,39 +70,59 @@
         ends_at: null,
     };
 
-    // ─── Data fetching ───────────────────────────────────────────────────────
-
+    // ─── Data Fetching ───────────────────────────────────────────────────────
     const members = swr("family-members", getFamilyMembers);
+
+    // ─── Reactive Declarations ───────────────────────────────────────────────
+    $: selectedChore = $createPlannedChoreParams.chore;
+    $: isQuickTask = $createPlannedChoreParams.isQuickTask;
 
     $: familyMembers = $members.data ?? [];
     $: loading = $members.loading;
     $: error = $members.error;
 
+    // ─── Helper Functions ────────────────────────────────────────────────────
+    /** Returns current date as ISO string (YYYY-MM-DD) */
     function getTodayIso(): string {
         return new Date().toISOString().split("T")[0];
     }
 
-    let isSubmitting = false;
-    let errorMessage = "";
-
+    /** Converts UI day indices (0=Sun, 1=Mon..6=Sat) into backend bitmask (1=Mon..64=Sun) */
     function daysOfWeekToBitmask(days: number[]): number {
         let mask = 0;
         for (const d of days) {
             if (d === 0) {
-                mask |= (1 << 6); // Sunday = 64
+                mask |= 1 << 6; // Sunday = 64
             } else if (d >= 1 && d <= 6) {
-                mask |= (1 << (d - 1)); // 1=Mo(1), 2=Tu(2), 3=We(4), 4=Th(8), 5=Fr(16), 6=Sa(32)
+                mask |= 1 << (d - 1); // 1=Mo(1), 2=Tu(2), 3=We(4), 4=Th(8), 5=Fr(16), 6=Sa(32)
             }
         }
         return mask;
     }
 
-    // ─── Navigation ──────────────────────────────────────────────────────────
+    /** Clears cached planned chore responses from localStorage */
+    function clearPlannedChoresSwrCache() {
+        try {
+            if (typeof localStorage !== "undefined") {
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith("swr:planned-chores:")) {
+                        localStorage.removeItem(k);
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("Could not clear SWR cache:", e);
+        }
+    }
 
+    // ─── Actions & Handlers ──────────────────────────────────────────────────
+    /** Navigates back to chore selection step */
     function handleBack() {
         activeTab.set("createPlannedChoreStepOne");
     }
 
+    /** Creates a new single planned chore, quick task, or recurring schedule */
     async function add() {
         if (!isQuickTask && !selectedChore) return;
         if (isSubmitting) return;
@@ -153,20 +186,7 @@
                 await createPlannedChore(selectedChore!.id, payload);
             }
 
-            // Invalidate SWR caches for planned chores
-            try {
-                if (typeof localStorage !== "undefined") {
-                    for (let i = localStorage.length - 1; i >= 0; i--) {
-                        const k = localStorage.key(i);
-                        if (k && k.startsWith("swr:planned-chores:")) {
-                            localStorage.removeItem(k);
-                        }
-                    }
-                }
-            } catch (e) {
-                console.warn("Could not clear SWR cache:", e);
-            }
-
+            clearPlannedChoresSwrCache();
             dispatch("add");
             activeTab.set("boardScreen");
         } catch (e: any) {
@@ -271,14 +291,13 @@
             </div>
         </div>
 
-        <!-- Комментарий + Дата -->
+        <!-- Чеклист / Подзадачи и примечание + Дата -->
         <div class="section">
             <div class="section-label">{$t.chores.details}</div>
-            <CustomTextarea
-                bind:value={comment}
-                placeholder={$t.chores.commentPlaceholder}
-                maxlength={500}
-                rows={2}
+            <SubtaskEditor
+                bind:message={comment}
+                placeholder="Добавить пункт..."
+                commentPlaceholder={$t.chores.commentPlaceholder || "Примечание к задаче..."}
             />
             <div class="divider"></div>
             <input class="field-input" type="date" bind:value={dueDate} />
