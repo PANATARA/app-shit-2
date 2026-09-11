@@ -35,21 +35,21 @@
         unread={true}
         onNotificationClick={() => console.log("notifications")}
     />
-
-    <UserStatsCard user={meUser} {loading} />
-    <LeadersCard {weekLeaders} {loading} />
     <EventsCard
         {loading}
         {events}
         onAddClick={() => console.log("открыть форму создания события")}
     />
+
+    <UserStatsCard user={meUser} {loading} />
+    <LeadersCard {weekLeaders} {loading} />
 </div>
 
 <style>
     .screen {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 10px;
         padding: 10px;
         min-height: 100vh;
         font-family:

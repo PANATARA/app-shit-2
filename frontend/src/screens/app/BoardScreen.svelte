@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { fade } from "svelte/transition";
     import {
         completePlannedChore,
@@ -12,8 +13,7 @@
     import { formatDateKey, getFriendlyDate } from "$lib/utils";
     import CardPlannedChore from "$features/chores/CardPlannedChore.svelte";
     import CardPlannedChoreSkeleton from "$skeletons/CardPlannedChoreSkeleton.svelte";
-    import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
-    import ProgressBar from "$ui/ProgressBar.svelte";
+    import Icon from "@iconify/svelte";
     import WeekCalendar from "$ui/WeekCalendar.svelte";
     import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
     import { t } from "$lib/i18n";
@@ -24,11 +24,37 @@
 
     let selectedDate = new Date();
     let optimisticChores: AnyPlannedChore[] | null = null;
+    let screenEl: HTMLElement;
+    let isScrolled = false;
 
     $: dateKey = formatDateKey(selectedDate);
 
     // Сбрасываем оптимистичные данные при смене даты
     $: if (dateKey) optimisticChores = null;
+
+    function handleScroll(e: any = null) {
+        const target = (e?.currentTarget as HTMLElement) || (e?.target as HTMLElement) || screenEl;
+        const currentScroll = target ? target.scrollTop : 0;
+
+        if (currentScroll > 30) {
+            if (!isScrolled) isScrolled = true;
+        } else if (currentScroll <= 10) {
+            if (isScrolled) isScrolled = false;
+        }
+    }
+
+    onMount(() => {
+        const parentContent = screenEl?.closest(".content");
+        const onParentScroll = (e: Event) => handleScroll(e);
+        if (parentContent) {
+            parentContent.addEventListener("scroll", onParentScroll, { passive: true });
+        }
+        return () => {
+            if (parentContent) {
+                parentContent.removeEventListener("scroll", onParentScroll);
+            }
+        };
+    });
 
     // ─── Data fetching ────────────────────────────────────────────────────────────
 
@@ -67,6 +93,10 @@
 
     function handleDateChange(event: CustomEvent<Date>) {
         selectedDate = event.detail;
+        if (screenEl) {
+            screenEl.scrollTop = 0;
+        }
+        isScrolled = false;
     }
 
     function openDetailScreen(plannedChore: PlannedChore) {
@@ -115,28 +145,28 @@
 <!-- Calendar Widget -->
 
 <div class="page">
-    <!-- Progress Bar Header -->
+    <!-- Compact Calendar Header -->
     <div class="calendar-card">
         <div class="week-calendar-section">
             <WeekCalendar {selectedDate} on:change={handleDateChange} />
         </div>
 
-        <div class="prog-bar-section">
-            <ProgressBar
-                percent={progressPercentage}
-                label={getFriendlyDate(selectedDate, $language)}
-                sublabel="{completedCount}/{totalCount} {$t.stats.tasks}"
-                shimmer={true}
-            />
-        </div>
-
-        <ButtonPrimaryGlow
-            on:click={() => activeTab.set("createPlannedChoreStepOne")}
-            label={$t.board.planChore}
-            fullWidth
-        />
+        {#if totalCount > 0}
+            <div class="compact-progress-strip">
+                <span class="strip-date">{getFriendlyDate(selectedDate, $language)}</span>
+                <div class="strip-bar-track">
+                    <div
+                        class="strip-bar-fill"
+                        style="width: {progressPercentage}%;"
+                    ></div>
+                </div>
+                <span class="strip-count" class:done={progressPercentage === 100}>
+                    {completedCount}/{totalCount}
+                </span>
+            </div>
+        {/if}
     </div>
-    <div class="screen">
+    <div class="screen" bind:this={screenEl} on:scroll={handleScroll}>
         <!-- MAIN LIST CONTROLLER -->
         {#if loading}
             <CardPlannedChoreSkeleton count={3} />
@@ -203,6 +233,19 @@
             {/if}
         {/if}
     </div>
+
+    <!-- Floating Action Button (FAB) -->
+    <button
+        class="fab-plan"
+        class:compact={isScrolled}
+        on:click={() => activeTab.set("createPlannedChoreStepOne")}
+        aria-label={$t.board.planChore}
+    >
+        <div class="fab-icon">
+            <Icon icon="material-symbols:add-rounded" width="26" height="26" />
+        </div>
+        <span class="fab-label">{$t.board.planChore}</span>
+    </button>
 </div>
 
 <style>
@@ -210,64 +253,36 @@
         display: flex;
         flex-direction: column;
         height: 100%;
+        position: relative;
     }
     .screen {
         flex: 1;
         overflow-y: auto;
-        padding: 10px;
+        padding: 12px 12px 96px 12px;
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 18px;
         box-sizing: border-box;
     }
 
-    /* ── CALENDAR CARD ───────────────────────────── */
+    /* ── COMPACT CALENDAR CARD ───────────────────── */
     .calendar-card {
         position: relative;
         overflow: hidden;
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
-        padding: 16px;
+        padding: 10px 14px 12px;
         background: linear-gradient(
             160deg,
-            color-mix(in srgb, var(--accent) 12%, var(--surface)) 0%,
+            color-mix(in srgb, var(--accent) 10%, var(--surface)) 0%,
             var(--surface) 55%
         );
-        border-radius: 0 0 32px 32px;
+        border-radius: 0 0 28px 28px;
         box-shadow:
             0 1px 0 rgba(0, 0, 0, 0.04),
-            0 8px 24px rgba(0, 0, 0, 0.08),
-            0 20px 40px rgba(0, 0, 0, 0.04);
+            0 4px 20px rgba(0, 0, 0, 0.06);
         z-index: 10;
-    }
-
-    /* декоративный свет */
-    .calendar-card::before {
-        content: "";
-        position: absolute;
-        width: 260px;
-        height: 260px;
-        right: -80px;
-        top: -120px;
-        border-radius: 50%;
-        background: color-mix(in srgb, var(--accent) 20%, transparent);
-        filter: blur(50px);
-        pointer-events: none;
-    }
-
-    /* второй свет снизу слева для глубины */
-    .calendar-card::after {
-        content: "";
-        position: absolute;
-        width: 160px;
-        height: 160px;
-        left: -40px;
-        bottom: -60px;
-        border-radius: 50%;
-        background: color-mix(in srgb, var(--accent) 8%, transparent);
-        filter: blur(40px);
-        pointer-events: none;
     }
 
     .week-calendar-section {
@@ -275,15 +290,131 @@
         z-index: 1;
     }
 
-    .prog-bar-section {
+    /* ── COMPACT PROGRESS STRIP ───────────────────── */
+    .compact-progress-strip {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 6px 0;
+        margin-top: 2px;
         position: relative;
         z-index: 1;
-        padding-bottom: 10px;
     }
 
-    .calendar-card :global(button) {
-        position: relative;
-        z-index: 1;
+    .strip-date {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-secondary);
+        white-space: nowrap;
+    }
+
+    .strip-bar-track {
+        flex: 1;
+        height: 6px;
+        background: color-mix(in srgb, var(--accent) 15%, var(--surface-alt));
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .strip-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--accent) 0%, var(--success) 100%);
+        transition: width 0.35s ease;
+    }
+
+    .strip-count {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--accent);
+        background: var(--accent-soft);
+        padding: 2px 7px;
+        border-radius: 8px;
+        white-space: nowrap;
+    }
+
+    .strip-count.done {
+        color: var(--success);
+        background: var(--success-soft);
+    }
+
+    /* ── FLOATING ACTION BUTTON (FAB) ────────────── */
+    .fab-plan {
+        position: fixed;
+        left: 50%;
+        bottom: calc(100px + env(safe-area-inset-bottom));
+        transform: translateX(-50%);
+        z-index: 95;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 54px;
+        min-width: 54px;
+        box-sizing: border-box;
+        gap: 10px;
+        padding: 0 34px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(
+            135deg,
+            var(--accent) 0%,
+            color-mix(in srgb, var(--accent) 85%, #000) 100%
+        );
+        color: #ffffff;
+        box-shadow:
+            0 8px 26px color-mix(in srgb, var(--accent) 44%, transparent),
+            0 2px 8px rgba(0, 0, 0, 0.16);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                    padding 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                    gap 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+                    box-shadow 0.18s ease;
+    }
+
+    .fab-plan:active {
+        transform: translateX(-50%) scale(0.93);
+        box-shadow:
+            0 4px 14px color-mix(in srgb, var(--accent) 30%, transparent),
+            0 1px 4px rgba(0, 0, 0, 0.12);
+    }
+
+    .fab-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 26px;
+        height: 26px;
+    }
+
+    .fab-label {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        max-width: 240px;
+        opacity: 1;
+        overflow: hidden;
+        transition: max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.2s ease;
+    }
+
+    /* Идеальный круг при скроллинге */
+    .fab-plan.compact {
+        width: 54px;
+        height: 54px;
+        min-width: 54px;
+        max-width: 54px;
+        padding: 0;
+        gap: 0;
+        border-radius: 50%;
+    }
+
+    .fab-plan.compact .fab-label {
+        max-width: 0;
+        opacity: 0;
     }
 
     /* ── SECTION HEADERS ─────────────────────────── */
