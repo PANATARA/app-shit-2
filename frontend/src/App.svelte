@@ -10,6 +10,7 @@
     import Icon from "@iconify/svelte";
     import { isLoggedInStore, clearTokens } from "$api/client.js";
     import { getProfile } from "$api/me.js";
+    import { getCached, setCached } from "$lib/cache";
 
     import UserProfileModal from "$screens/modal/UserProfileModal.svelte";
     import { profileModal, closeProfile } from "$lib/settings";
@@ -28,6 +29,7 @@
     import OnboardingCreateStep2Screen from "$screens/onBoarding/OnboardingCreateStep2Screen.svelte";
     import OnboardingJoinScreen from "$screens/onBoarding/OnboardingJoinScreen.svelte";
     import EventCreateScreen from "$screens/tabs/EventCreate.svelte";
+    import EventsListScreen from "$screens/tabs/EventsListScreen.svelte";
     import ChoreCreateScreen from "$screens/tabs/FamilyChores/ChoreCreateScreen.svelte";
 
     let isAuthed = false;
@@ -49,6 +51,12 @@
 
         (async () => {
             if ($isLoggedInStore) {
+                const cachedProfile = getCached<any>("profile");
+                if (cachedProfile) {
+                    isAuthed = true;
+                    isInFamily = !!cachedProfile.is_family_member;
+                    checkingAuth = false;
+                }
                 await checkProfile();
             } else {
                 checkingAuth = false;
@@ -68,6 +76,7 @@
     async function checkProfile() {
         try {
             const profile = await getProfile();
+            setCached("profile", profile);
             isAuthed = true;
             isInFamily = !!profile.is_family_member;
             if (!isInFamily) {
@@ -163,6 +172,8 @@
                 <ChoreTemplatesScreen />
             {:else if $activeTab === "eventCreate"}
                 <EventCreateScreen />
+            {:else if $activeTab === "eventsListScreen"}
+                <EventsListScreen />
             {/if}
         </div>
 

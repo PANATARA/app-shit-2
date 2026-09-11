@@ -7,6 +7,7 @@
     import CustomTextarea from "$ui/CustomTextarea.svelte";
     import type { ChoreForm } from "$types/index";
     import { t } from "$lib/i18n";
+    import { mutate } from "$lib/swr";
 
     let saving = false;
 
@@ -42,6 +43,7 @@
         saving = true;
         try {
             await createChore(form);
+            mutate("chores");
             activeTab.set("choreListScreen");
         } catch (e) {
             console.error(e);

@@ -14,7 +14,7 @@
 
     export let userId: string;
 
-    const profile = swr(`user-profile-${userId}`, () => getUserProfile(userId));
+    $: profile = swr(`user-profile-${userId}`, () => getUserProfile(userId));
     $: user = $profile.data;
     $: loading = $profile.loading;
 

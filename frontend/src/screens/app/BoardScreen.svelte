@@ -343,78 +343,113 @@
         position: fixed;
         left: 50%;
         bottom: calc(100px + env(safe-area-inset-bottom));
-        transform: translateX(-50%);
+        transform: translateX(-50%) translateZ(0);
         z-index: 95;
         display: flex;
         align-items: center;
         justify-content: center;
         height: 54px;
+
+        /* Базовые размеры */
         min-width: 54px;
+        max-width: 260px;
+        overflow: hidden;
+
         box-sizing: border-box;
-        gap: 10px;
-        padding: 0 34px;
+        gap: 8px;
+        padding: 0 24px;
         border-radius: 999px;
         border: none;
         background: linear-gradient(
             135deg,
             var(--accent) 0%,
-            color-mix(in srgb, var(--accent) 85%, #000) 100%
+            color-mix(in srgb, var(--accent) 88%, #000) 100%
         );
         color: #ffffff;
+
         box-shadow:
-            0 8px 26px color-mix(in srgb, var(--accent) 44%, transparent),
-            0 2px 8px rgba(0, 0, 0, 0.16);
+            0 10px 30px color-mix(in srgb, var(--accent) 36%, transparent),
+            0 2px 6px rgba(0, 0, 0, 0.08);
+
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
-        transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-                    padding 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-                    gap 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-                    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
-                    box-shadow 0.18s ease;
+        user-select: none;
+        will-change: max-width, padding, gap, transform;
+
+        transition:
+            max-width 0.44s cubic-bezier(0.16, 1, 0.3, 1),
+            padding 0.44s cubic-bezier(0.16, 1, 0.3, 1),
+            gap 0.44s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .fab-plan:active {
-        transform: translateX(-50%) scale(0.93);
+        transform: translateX(-50%) scale(0.94) translateZ(0);
         box-shadow:
-            0 4px 14px color-mix(in srgb, var(--accent) 30%, transparent),
-            0 1px 4px rgba(0, 0, 0, 0.12);
+            0 4px 14px color-mix(in srgb, var(--accent) 26%, transparent),
+            0 1px 3px rgba(0, 0, 0, 0.1);
+
+        transition:
+            transform 0.14s cubic-bezier(0.25, 1, 0.5, 1),
+            box-shadow 0.14s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
+    /* Иконка жестко зафиксирована по центру */
     .fab-icon {
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        width: 26px;
-        height: 26px;
+        width: 24px;
+        height: 24px;
     }
 
     .fab-label {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
         font-size: 15px;
-        font-weight: 700;
-        letter-spacing: 0.3px;
+        font-weight: 600;
+        letter-spacing: -0.2px;
         white-space: nowrap;
-        max-width: 240px;
+
+        /* Ограничиваем лейбл, чтобы он плавно схлопывался */
+        max-width: 180px;
         opacity: 1;
+        transform: translate3d(0, 0, 0);
         overflow: hidden;
-        transition: max-width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-                    opacity 0.2s ease;
+        will-change: max-width, opacity, transform;
+
+        transition:
+            max-width 0.44s cubic-bezier(0.16, 1, 0.3, 1),
+            opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.44s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Идеальный круг при скроллинге */
+    /* ── Свернутое состояние (круг 54x54 с иконкой по центру) ── */
     .fab-plan.compact {
-        width: 54px;
-        height: 54px;
-        min-width: 54px;
         max-width: 54px;
         padding: 0;
         gap: 0;
-        border-radius: 50%;
+
+        transition:
+            max-width 0.38s cubic-bezier(0.32, 0.72, 0, 1),
+            padding 0.38s cubic-bezier(0.32, 0.72, 0, 1),
+            gap 0.38s cubic-bezier(0.32, 0.72, 0, 1),
+            transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .fab-plan.compact .fab-label {
+        /* Лейбл полностью убирает ширину и освобождает место для плюсика */
         max-width: 0;
         opacity: 0;
+        transform: translate3d(-8px, 0, 0);
+        pointer-events: none;
+
+        transition:
+            max-width 0.38s cubic-bezier(0.32, 0.72, 0, 1),
+            opacity 0.16s ease-out,
+            transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
     }
 
     /* ── SECTION HEADERS ─────────────────────────── */

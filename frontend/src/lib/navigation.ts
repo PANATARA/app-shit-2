@@ -19,6 +19,7 @@ export type Tab =
   | "onboardingCreateStep1"
   | "onboardingCreateStep2"
   | "onboardingJoin"
+  | "eventsListScreen"
   | "eventCreate";
 
 export const activeTab = writable<Tab>("statsScreen");
@@ -41,6 +42,7 @@ export const screenParents: Partial<Record<Tab, Tab>> = {
   choreCreateScreen: "choreTemplatesScreen",
   choreTemplatesScreen: "choreListScreen",
   choreListScreen: "settingsScreen",
+  eventsListScreen: "statsScreen",
   eventCreate: "statsScreen",
   onboardingCreateStep2: "onboardingCreateStep1",
   onboardingCreateStep1: "onboardingChoose",

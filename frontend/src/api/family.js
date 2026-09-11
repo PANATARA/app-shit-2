@@ -168,3 +168,12 @@ export async function deleteEvent(eventId) {
 export async function getUpcomingEvents() {
     return apiFetch("/api/families/events/upcoming");
 }
+
+/**
+ * Get all family events with pagination
+ * @param {object} params - { limit, offset }
+ * @returns {Promise<any>}
+ */
+export async function getAllEvents(params = {}) {
+    return apiFetch("/api/families/events", { params });
+}

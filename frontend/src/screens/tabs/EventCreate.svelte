@@ -4,9 +4,10 @@
     import ButtonPrimaryGlow from "$ui/ButtonPrimaryGlow.svelte";
     import CustomTextarea from "$ui/CustomTextarea.svelte";
     import AvatarBuilder from "$features/settings/AvatarBuilder.svelte";
-    import { activeTab } from "$lib/navigation";
+    import { activeTab, navigateBack } from "$lib/navigation";
     import { createEvent } from "$api/family";
     import { t } from "$lib/i18n";
+    import { mutate } from "$lib/swr";
 
     const dispatch = createEventDispatcher();
 
@@ -28,7 +29,7 @@
     $: canSubmit = name.trim().length > 0 && date.length > 0 && !loading;
 
     function handleBack() {
-        activeTab.set("statsScreen");
+        navigateBack();
     }
 
     async function handleAdd() {
@@ -48,9 +49,10 @@
 
         try {
             await createEvent(payload);
-
+            mutate("family-events");
+            mutate("family-all-events");
             dispatch("add");
-            activeTab.set("statsScreen");
+            navigateBack();
         } catch (error) {
             console.error("Failed to create event:", error);
             errorMessage = $t.events.createError;

@@ -8,6 +8,22 @@ export interface SWRState<T> {
   error: unknown;
 }
 
+type MutateListener<T> = (freshData?: T) => void;
+const listeners = new Map<string, Set<MutateListener<any>>>();
+
+/**
+ * Ручное обновление данных в SWR-кэше и оповещение всех активных подписчиков
+ */
+export function mutate<T>(key: string, data?: T) {
+  if (data !== undefined) {
+    setCached(key, data);
+  }
+  const set = listeners.get(key);
+  if (set) {
+    set.forEach((fn) => fn(data));
+  }
+}
+
 export function swr<T>(key: string, fetcher: () => Promise<T>) {
   const cached = getCached<T>(key);
 
@@ -30,7 +46,24 @@ export function swr<T>(key: string, fetcher: () => Promise<T>) {
     }
   }
 
+  const onMutate: MutateListener<T> = (freshData) => {
+    if (freshData !== undefined) {
+      store.update((s) => ({ ...s, data: freshData, loading: false }));
+    } else {
+      revalidate();
+    }
+  };
+
+  if (!listeners.has(key)) {
+    listeners.set(key, new Set());
+  }
+  const set = listeners.get(key)!;
+  set.add(onMutate);
+
   revalidate();
 
-  return { subscribe: store.subscribe, revalidate };
+  return {
+    subscribe: store.subscribe,
+    revalidate,
+  };
 }

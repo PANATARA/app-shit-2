@@ -16,7 +16,7 @@
     import { logoutFromFamily } from "$api/family";
     import FamilyMembersSkeleton from "$skeletons/FamilyMembersSkeleton.svelte";
     import ProfileSkeleton from "$skeletons/ProfileSkeleton.svelte";
-    import { swr } from "$lib/swr";
+    import { swr, mutate } from "$lib/swr";
     import { activeTab } from "$lib/navigation";
     import { t } from "$lib/i18n";
 
@@ -65,11 +65,13 @@
 
     async function saveEdit() {
         if (!meUser) return;
-        meUser = await updateProfile({
+        const updated = await updateProfile({
             name: editName,
             surname: editSurname,
             ...editAvatar,
         });
+        meUser = updated;
+        mutate("profile", updated);
         isEditing = false;
     }
 

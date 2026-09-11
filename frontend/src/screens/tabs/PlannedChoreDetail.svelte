@@ -22,6 +22,7 @@
         updatePlannedChoreMessage,
     } from "$api/chores";
     import { userSession } from "$api/client";
+    import { swr, mutate } from "$lib/swr";
 
     // Navigation & Localization
     import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
@@ -66,10 +67,36 @@
     };
 
     // ─── Reactive Declarations ───────────────────────────────────────────────
-    // Automatically load schedule whenever the selected chore changes
-    $: if (plannedChore?.chore?.id && plannedChore.chore.id !== loadedChoreId) {
-        loadedChoreId = plannedChore.chore.id;
-        fetchSchedule();
+    $: choreId = plannedChore?.chore?.id;
+    $: scheduleStore = choreId
+        ? swr(`chore-schedule:${choreId}`, () => getChoreSchedule(choreId))
+        : null;
+
+    $: if ($scheduleStore) {
+        scheduleLoading = $scheduleStore.loading;
+        const sched = $scheduleStore.data;
+        if (sched !== undefined) {
+            activeSchedule = sched;
+            if (sched && sched.is_active) {
+                repeatConfig = {
+                    frequency_type: sched.frequency_type,
+                    interval: sched.interval,
+                    days_of_week: bitmaskToDaysOfWeek(sched.days_of_week),
+                    day_of_month: sched.day_of_month,
+                    starts_at: sched.starts_at || getTodayIso(),
+                    ends_at: sched.ends_at,
+                };
+            } else if (!isScheduleEditing) {
+                repeatConfig = {
+                    frequency_type: "none",
+                    interval: 1,
+                    days_of_week: [],
+                    day_of_month: null,
+                    starts_at: plannedChore?.due_date || getTodayIso(),
+                    ends_at: null,
+                };
+            }
+        }
     }
 
     // ─── Helper Functions ────────────────────────────────────────────────────
@@ -179,40 +206,6 @@
         }
     }
 
-    // ─── Data Fetching ───────────────────────────────────────────────────────
-    /** Fetches the active schedule for the current chore */
-    async function fetchSchedule() {
-        if (!plannedChore?.chore?.id) return;
-        scheduleLoading = true;
-        try {
-            const sched = await getChoreSchedule(plannedChore.chore.id);
-            activeSchedule = sched;
-            if (sched && sched.is_active) {
-                repeatConfig = {
-                    frequency_type: sched.frequency_type,
-                    interval: sched.interval,
-                    days_of_week: bitmaskToDaysOfWeek(sched.days_of_week),
-                    day_of_month: sched.day_of_month,
-                    starts_at: sched.starts_at || getTodayIso(),
-                    ends_at: sched.ends_at,
-                };
-            } else {
-                repeatConfig = {
-                    frequency_type: "none",
-                    interval: 1,
-                    days_of_week: [],
-                    day_of_month: null,
-                    starts_at: plannedChore.due_date || getTodayIso(),
-                    ends_at: null,
-                };
-            }
-        } catch (err) {
-            console.error("Failed to load chore schedule:", err);
-        } finally {
-            scheduleLoading = false;
-        }
-    }
-
     // ─── Actions & Handlers ──────────────────────────────────────────────────
     /** Navigates back to the board screen */
     function handleBack() {
@@ -314,6 +307,9 @@
             }
 
             clearPlannedChoresSwrCache();
+            if (choreId) {
+                mutate(`chore-schedule:${choreId}`, activeSchedule);
+            }
             isScheduleEditing = false;
         } catch (e: any) {
             console.error("Failed to save schedule:", e);
@@ -333,6 +329,9 @@
         try {
             await deleteChoreSchedule(activeSchedule.id, false);
             activeSchedule = null;
+            if (choreId) {
+                mutate(`chore-schedule:${choreId}`, null);
+            }
             repeatConfig = {
                 frequency_type: "none",
                 interval: 1,

@@ -4,7 +4,7 @@
     import type { DefaultChore } from "$types/index";
     import Icon from "@iconify/svelte";
     import DefaultChoreListItem from "$features/chores/DefaultChoreListItem.svelte";
-    import { swr } from "$lib/swr";
+    import { swr, mutate } from "$lib/swr";
     import { t } from "$lib/i18n";
     import { language } from "$lib/settings";
 
@@ -26,6 +26,7 @@
                 default_chore_ids: [def.id],
                 language: $language,
             });
+            mutate("chores");
             activeTab.set("choreListScreen");
         } catch (e) {
             console.error(e);
