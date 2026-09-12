@@ -52,19 +52,19 @@
         overflow: hidden;
 
         /* градиент как у calendar-card */
-        background: linear-gradient(
+        background: var(--accent-gradient, linear-gradient(
             160deg,
             color-mix(in srgb, var(--accent) 85%, white) 0%,
-            var(--accent) 60%
-        );
-        color: var(--bg);
+            var(--accent) 100%
+        ));
+        color: #ffffff;
 
         border: none;
-        padding: 15px 20px;
-        border-radius: 18px;
+        padding: 15px 22px;
+        border-radius: 20px;
 
         font-size: 15px;
-        font-weight: 800;
+        font-weight: 700;
         letter-spacing: 0.2px;
 
         cursor: pointer;
@@ -79,13 +79,12 @@
         -webkit-tap-highlight-color: transparent;
 
         box-shadow:
-            0 1px 0 rgba(0, 0, 0, 0.04),
-            0 8px 24px color-mix(in srgb, var(--accent) 35%, transparent),
-            0 20px 40px color-mix(in srgb, var(--accent) 12%, transparent);
+            0 2px 6px rgba(0, 0, 0, 0.06),
+            0 8px 24px var(--accent-glow);
 
         transition:
             opacity 0.35s ease,
-            transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+            transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
             box-shadow 0.2s ease;
     }
 
@@ -105,13 +104,12 @@
     /* ── декоративный glow внутри ────────────────── */
     .glow {
         position: absolute;
-        width: 140px;
-        height: 140px;
-        right: -40px;
-        top: -60px;
+        width: 120px;
+        height: 120px;
+        right: -30px;
+        top: -40px;
         border-radius: 50%;
-        background: color-mix(in srgb, white 22%, transparent);
-        filter: blur(24px);
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.35) 0%, transparent 70%);
         pointer-events: none;
     }
 

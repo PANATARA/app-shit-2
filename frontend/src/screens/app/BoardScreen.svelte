@@ -147,6 +147,15 @@
 <div class="page">
     <!-- Compact Calendar Header -->
     <div class="calendar-card">
+        <header class="hub-header">
+            <div class="hub-title-row">
+                <div class="title-wrap">
+                    <h1 class="hub-title">{$t.nav.board}</h1>
+                    <span class="hub-subtitle">{$t.board.subtitle}</span>
+                </div>
+            </div>
+        </header>
+
         <div class="week-calendar-section">
             <WeekCalendar {selectedDate} on:change={handleDateChange} />
         </div>
@@ -272,17 +281,46 @@
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
-        padding: 10px 14px 12px;
-        background: linear-gradient(
-            160deg,
-            color-mix(in srgb, var(--accent) 10%, var(--surface)) 0%,
-            var(--surface) 55%
-        );
-        border-radius: 0 0 28px 28px;
-        box-shadow:
-            0 1px 0 rgba(0, 0, 0, 0.04),
-            0 4px 20px rgba(0, 0, 0, 0.06);
+        gap: 10px;
+        padding: 12px 14px 14px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border-subtle);
+        border-radius: 0 0 var(--radius-modal, 28px) var(--radius-modal, 28px);
+        box-shadow: var(--shadow-ambient);
         z-index: 10;
+    }
+
+    .hub-header {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 0 2px;
+    }
+
+    .hub-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .title-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .hub-title {
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .hub-subtitle {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
     }
 
     .week-calendar-section {
@@ -360,16 +398,14 @@
         padding: 0 24px;
         border-radius: 999px;
         border: none;
-        background: linear-gradient(
+        background: var(--accent-gradient, linear-gradient(
             135deg,
             var(--accent) 0%,
             color-mix(in srgb, var(--accent) 88%, #000) 100%
-        );
+        ));
         color: #ffffff;
 
-        box-shadow:
-            0 10px 30px color-mix(in srgb, var(--accent) 36%, transparent),
-            0 2px 6px rgba(0, 0, 0, 0.08);
+        box-shadow: var(--shadow-floating);
 
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
@@ -467,10 +503,11 @@
     }
 
     h2 {
-        font-size: 12px;
-        font-weight: 800;
+        font-size: 11px;
+        font-weight: 700;
         color: var(--text-muted);
-        letter-spacing: 1.2px;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
         margin: 0;
     }
 
@@ -478,14 +515,16 @@
         font-size: 11px;
         font-weight: 700;
         color: var(--accent);
-        background: var(--accent-soft);
-        padding: 2px 8px;
-        border-radius: 10px;
+        background: color-mix(in srgb, var(--accent) 14%, transparent);
+        border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+        padding: 1px 8px;
+        border-radius: 999px;
     }
 
     .completed-count-badge {
         color: var(--success);
-        background: var(--success-soft);
+        background: color-mix(in srgb, var(--success) 14%, transparent);
+        border: 1px solid color-mix(in srgb, var(--success) 24%, transparent);
     }
 
     /* ── LISTS ───────────────────────────────────── */
@@ -501,10 +540,11 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 32px 16px;
+        padding: 32px 20px;
         background: var(--surface);
-        border: 1.5px dashed var(--border);
-        border-radius: 24px;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-card, 22px);
+        box-shadow: var(--shadow-card);
         text-align: center;
         box-sizing: border-box;
     }
@@ -520,8 +560,9 @@
     }
 
     .empty-state h3 {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 700;
+        letter-spacing: -0.3px;
         color: var(--text-primary);
         margin: 0 0 6px 0;
     }
@@ -535,7 +576,7 @@
     }
 
     .perfect-empty {
-        padding: 48px 20px;
-        margin-top: 10px;
+        padding: 48px 24px;
+        margin-top: 6px;
     }
 </style>

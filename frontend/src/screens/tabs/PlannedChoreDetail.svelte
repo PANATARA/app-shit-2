@@ -803,23 +803,21 @@
 
     .icon-glow {
         position: absolute;
-        inset: -20px;
+        inset: -14px;
         border-radius: 50%;
-        background: color-mix(in srgb, var(--accent) 18%, transparent);
-        filter: blur(28px);
+        background: radial-gradient(circle, color-mix(in srgb, var(--accent) 24%, transparent) 0%, transparent 70%);
         pointer-events: none;
         z-index: 0;
     }
 
     /* ── SUBTASKS DETAIL CARD ────────────────────── */
     .subtasks-detail-card {
-        margin: 12px 16px 4px;
+        margin: 12px 14px 4px;
         background: var(--surface);
-        border-radius: 22px;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-card, 22px);
         padding: 16px;
-        box-shadow:
-            0 1px 0 rgba(0, 0, 0, 0.04),
-            0 4px 12px rgba(0, 0, 0, 0.06);
+        box-shadow: var(--shadow-card);
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -842,6 +840,7 @@
     .subtasks-title {
         font-size: 16px;
         font-weight: 700;
+        letter-spacing: -0.3px;
         color: var(--text-primary);
     }
 
@@ -850,16 +849,16 @@
         align-items: center;
         gap: 6px;
         background: var(--surface-alt);
-        border: 1.5px solid var(--border);
-        padding: 7px 14px;
-        min-height: 36px;
-        border-radius: 12px;
-        font-size: 13.5px;
+        border: 1px solid var(--border-subtle);
+        padding: 6px 14px;
+        min-height: 34px;
+        border-radius: 999px;
+        font-size: 13px;
         font-weight: 600;
         color: var(--text-secondary);
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
-        transition: all 0.15s ease;
+        transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease, border-color 0.15s ease;
     }
 
     .subtasks-edit-toggle:active {
@@ -891,13 +890,12 @@
 
     /* ── DETAILS ─────────────────────────────────── */
     .details {
-        margin: 12px 16px 4px;
+        margin: 12px 14px 4px;
         background: var(--surface);
-        border-radius: 22px;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-card, 22px);
         overflow: hidden;
-        box-shadow:
-            0 1px 0 rgba(0, 0, 0, 0.04),
-            0 4px 12px rgba(0, 0, 0, 0.06);
+        box-shadow: var(--shadow-card);
     }
 
     .detail-row {
@@ -1092,8 +1090,8 @@
     .actions {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        padding: 12px 16px 4px;
+        gap: 10px;
+        padding: 14px 14px 24px;
     }
 
     .action-btn {
@@ -1102,21 +1100,22 @@
         justify-content: center;
         gap: 8px;
         width: 100%;
-        padding: 14px;
+        padding: 14px 20px;
         border: none;
-        border-radius: 18px;
+        border-radius: 999px;
         font-size: 15px;
         font-weight: 700;
         font-family: inherit;
         cursor: pointer;
         transition:
             opacity 0.15s ease,
-            transform 0.15s ease;
+            transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+            box-shadow 0.15s ease;
     }
 
     .action-btn:active {
-        opacity: 0.7;
-        transform: scale(0.98);
+        opacity: 0.88;
+        transform: scale(0.97);
     }
     .action-btn:disabled {
         opacity: 0.45;
@@ -1125,27 +1124,27 @@
     }
 
     .action-success {
-        background: color-mix(in srgb, var(--success) 14%, var(--surface));
-        color: var(--success);
-        box-shadow: 0 4px 14px
-            color-mix(in srgb, var(--success) 15%, transparent);
+        background: var(--success);
+        color: #ffffff;
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--success) 35%, transparent);
     }
 
     .action-warn {
-        background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+        background: color-mix(in srgb, var(--accent) 14%, var(--surface));
         color: var(--accent);
+        border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
     }
 
     .action-neutral {
         background: var(--surface);
         color: var(--text-primary);
-        box-shadow:
-            0 1px 0 rgba(0, 0, 0, 0.04),
-            0 4px 12px rgba(0, 0, 0, 0.06);
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-ambient);
     }
 
     .action-danger {
         background: rgba(232, 90, 90, 0.1);
         color: #e85a5a;
+        border: 1px solid rgba(232, 90, 90, 0.2);
     }
 </style>

@@ -33,10 +33,6 @@
     role="button"
     tabindex="0"
 >
-    {#if !done}
-        <span class="glow"></span>
-    {/if}
-
     <!-- Chore icon: distinct for regular and quick tasks -->
     {#if item.is_quick}
         <div class="quick-icon" style="background: {item.icon_bg}">
@@ -121,48 +117,27 @@
         align-items: center;
         gap: 14px;
         padding: 14px 16px;
-        border-radius: 24px;
-        background: linear-gradient(
-            160deg,
-            color-mix(in srgb, var(--accent) 5%, var(--surface)) 0%,
-            var(--surface) 50%
-        );
-        box-shadow:
-            0 1px 0 rgba(0, 0, 0, 0.04),
-            0 4px 12px rgba(0, 0, 0, 0.06),
-            0 12px 28px rgba(0, 0, 0, 0.05);
+        border-radius: var(--radius-card, 22px);
+        background: var(--surface);
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-card);
         transition:
             opacity 0.25s ease,
-            transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+            transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
             box-shadow 0.2s ease;
-        will-change: transform;
-        transform: translateZ(0);
-        backface-visibility: hidden;
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
     }
 
     .card:active {
-        transform: scale(0.98);
-    }
-
-    /* glow в правом верхнем углу */
-    .glow {
-        position: absolute;
-        width: 160px;
-        height: 160px;
-        right: -60px;
-        top: -70px;
-        border-radius: 50%;
-        background: color-mix(in srgb, var(--accent) 12%, transparent);
-        filter: blur(32px);
-        pointer-events: none;
+        transform: scale(0.97);
     }
 
     .card.card-done {
-        opacity: 0.55;
-        background: var(--surface);
+        opacity: 0.58;
+        background: var(--surface-alt);
         box-shadow: none;
+        border-color: transparent;
     }
 
     /* ── CONTENT ─────────────────────────────────── */
@@ -180,7 +155,7 @@
         font-size: 15px;
         font-weight: 700;
         color: var(--text-primary);
-        line-height: 1.2;
+        line-height: 1.25;
         transition: color 0.2s ease;
     }
 
@@ -195,20 +170,20 @@
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        padding: 3px 8px 3px 4px;
-        border-radius: 99px;
+        padding: 3px 9px 3px 4px;
+        border-radius: var(--radius-pill, 999px);
         align-self: flex-start;
-        margin-top: 5px;
+        margin-top: 4px;
     }
 
     .assignee-badge {
-        background: color-mix(in srgb, var(--accent) 8%, var(--surface-alt));
-        border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+        background: var(--surface-alt);
+        border: 1px solid var(--border-subtle);
     }
 
     .completed-badge {
-        background: rgba(34, 197, 94, 0.08);
-        border: 1px solid rgba(34, 197, 94, 0.2);
+        background: var(--success-soft);
+        border: 1px solid color-mix(in srgb, var(--success) 24%, transparent);
     }
 
     .name {
@@ -228,11 +203,11 @@
     }
 
     .check {
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         border: 2px solid var(--border);
-        background: transparent;
+        background: var(--surface);
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -240,26 +215,22 @@
         color: transparent;
         padding: 0;
         transition:
-            transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+            transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
             background-color 0.2s ease,
             border-color 0.2s ease,
             box-shadow 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
     }
 
     .check:active {
-        transform: scale(0.88);
+        transform: scale(0.86);
     }
 
     .check.checked {
         border-color: var(--success);
-        background: linear-gradient(
-            160deg,
-            color-mix(in srgb, var(--success) 80%, white),
-            var(--success)
-        );
+        background: var(--success);
         color: #fff;
-        box-shadow: 0 4px 12px
-            color-mix(in srgb, var(--success) 35%, transparent);
+        box-shadow: 0 3px 10px var(--success-soft);
     }
 
     .check-icon {

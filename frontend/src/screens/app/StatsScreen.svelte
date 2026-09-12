@@ -8,8 +8,8 @@
     import LeadersCard from "$features/family/LeadersCard.svelte";
     import EventsCard from "$features/family/EventsCard.svelte";
     import CompactUserProfile from "$features/users/UserInfoCard.svelte";
-    import UserStatsCard from "$features/users/UserStatsCard.svelte";
     import { swr } from "$lib/swr";
+    import { t } from "$lib/i18n";
 
     // ─── Data fetching ───────────────────────────────────────────────────────────
     const profile = swr("profile", getProfile);
@@ -27,6 +27,15 @@
 </script>
 
 <div class="screen">
+    <header class="hub-header">
+        <div class="hub-title-row">
+            <div class="title-wrap">
+                <h1 class="hub-title">{$t.nav.home}</h1>
+                <span class="hub-subtitle">Семейный очаг, дела и события</span>
+            </div>
+        </div>
+    </header>
+
     <!-- FAMILY CARD -->
 
     <CompactUserProfile
@@ -41,7 +50,6 @@
         onAddClick={() => console.log("открыть форму создания события")}
     />
 
-    <UserStatsCard user={meUser} {loading} />
     <LeadersCard {weekLeaders} {loading} />
 </div>
 
@@ -49,12 +57,42 @@
     .screen {
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        padding: 10px;
-        min-height: 100vh;
-        font-family:
-            system-ui,
-            -apple-system,
-            sans-serif;
+        gap: 14px;
+        padding: 12px 14px 24px;
+        box-sizing: border-box;
+    }
+
+    .hub-header {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-bottom: 2px;
+    }
+
+    .hub-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .title-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .hub-title {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: var(--text-primary);
+        line-height: 1.1;
+    }
+
+    .hub-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 500;
     }
 </style>

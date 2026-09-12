@@ -17,21 +17,18 @@
     box-sizing: border-box;
 
     background: var(--surface);
-    border-radius: 22px;
-    /*border: 1px solid var(--border);*/
-
-    /*box-shadow: var(--shadow);*/
-    box-shadow:
-        0 1px 0 rgba(0, 0, 0, 0.04),
-        0 2px 4px rgba(0, 0, 0, 0.04),
-        0 8px 16px rgba(0, 0, 0, 0.06);
+    border-radius: var(--radius-card, 22px);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
   }
 
   .title {
-    font-size: 20px;
+    font-size: 13px;
     font-weight: 700;
-    color: var(--text);
-
-    margin-bottom: 14px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin: 0 0 12px;
   }
 </style>

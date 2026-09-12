@@ -13,27 +13,35 @@
         dispatch("close");
     }
 
-    let currentTheme = get(theme) || "sunset";
+    let currentTheme = get(theme) || "warm";
+    if (currentTheme === "sunset") currentTheme = "warm";
+    if (currentTheme === "rose") currentTheme = "soft";
     let selectedTheme = currentTheme;
 
     $: themes = [
         {
-            id: "sunset",
-            name: $t.modals.themeSunset,
-            description: $t.modals.themeSunsetDesc,
-            colors: ["#fdf6ee", "#e05c3a", "#5a9e6f"],
+            id: "warm",
+            name: $t.modals.themeWarm || "Тёплый семейный уют",
+            description: $t.modals.themeWarmDesc || "Светлая, тёплая и домашняя атмосфера",
+            colors: ["#FAF7F2", "#E06A47", "#5A9E6F"],
         },
         {
-            id: "rose",
-            name: $t.modals.themeRose,
-            description: $t.modals.themeRoseDesc,
-            colors: ["#cce8f4", "#c2185b", "#0277bd"],
+            id: "soft",
+            name: $t.modals.themeSoft || "Нежность и забота",
+            description: $t.modals.themeSoftDesc || "Пастельные пудровые оттенки и гармония",
+            colors: ["#FDF7F8", "#E25275", "#6B8AF0"],
+        },
+        {
+            id: "night",
+            name: $t.modals.themeNight || "Уютный вечер дома",
+            description: $t.modals.themeNightDesc || "Мягкая тёмная тема для вечернего комфорта",
+            colors: ["#17151B", "#221E27", "#FF9A6C"],
         },
         {
             id: "royal",
-            name: $t.modals.themeRoyal,
-            description: $t.modals.themeRoyalDesc,
-            colors: ["#dff7ff", "#2457ff", "#0891b2"],
+            name: $t.modals.themeRoyal || "Свежесть и гармония",
+            description: $t.modals.themeRoyalDesc || "Чистая прохладная лазурная гамма",
+            colors: ["#F2F8FC", "#2D72D9", "#0891B2"],
         },
     ];
 

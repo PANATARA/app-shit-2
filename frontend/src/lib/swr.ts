@@ -15,6 +15,15 @@ const listeners = new Map<string, Set<MutateListener<any>>>();
  * Ручное обновление данных в SWR-кэше и оповещение всех активных подписчиков
  */
 export function mutate<T>(key: string, data?: T) {
+  if (key.endsWith("*")) {
+    const prefix = key.slice(0, -1);
+    for (const [k, set] of listeners.entries()) {
+      if (k.startsWith(prefix)) {
+        set.forEach((fn) => fn(data));
+      }
+    }
+    return;
+  }
   if (data !== undefined) {
     setCached(key, data);
   }

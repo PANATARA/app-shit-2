@@ -8,7 +8,6 @@
     import { swr } from "$lib/swr";
     import { t } from "$lib/i18n";
     import CompactUserProfile from "$features/users/UserInfoCard.svelte";
-    import UserStatsCard from "$features/users/UserStatsCard.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -54,11 +53,7 @@
         <CompactUserProfile
             {user}
             {loading}
-            unread={true}
-            onNotificationClick={() => console.log("notifications")}
         />
-
-        <UserStatsCard {user} {loading} />
 
         {#if $userSession.isFamilyAdmin && $userSession.userId != userId}
             <div class="actions-card">

@@ -146,33 +146,33 @@
     .create-new-item {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
 
-        width: calc(100% - 32px);
+        width: calc(100% - 28px);
 
-        padding: 13px 14px;
-        margin: 0 16px 12px;
+        padding: 12px 18px;
+        margin: 0 14px 12px;
 
-        background: var(--accent-soft);
-        border: 1.5px dashed var(--accent);
-        border-radius: 20px;
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+        border-radius: var(--radius-pill, 999px);
 
         color: var(--accent);
-        font-size: 15px;
-        font-weight: 600;
+        font-size: 14px;
+        font-weight: 700;
         font-family: inherit;
         text-align: left;
 
         cursor: pointer;
 
         transition:
-            transform 0.15s ease,
+            transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
             opacity 0.15s ease;
     }
 
     .create-new-item:active {
-        transform: scale(0.98);
-        opacity: 0.7;
+        transform: scale(0.97);
+        opacity: 0.85;
     }
 
     .create-new-icon {

@@ -180,40 +180,62 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 18px 6px;
-        border-radius: 25px;
+        gap: 3px;
+        padding: 14px 4px;
+        border-radius: 20px;
         background: var(--surface);
-        border: 1px solid var(--border);
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-ambient);
         cursor: pointer;
-        transition: 0.15s ease;
+        transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .day:active {
+        transform: scale(0.92);
     }
 
     .weekday {
         font-size: 11px;
+        font-weight: 500;
         color: var(--text-muted);
+        text-transform: capitalize;
+        transition: color 0.2s ease;
     }
 
     .date {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 700;
-        color: var(--text);
+        color: var(--text-primary);
+        transition: color 0.2s ease;
     }
 
     .day.selected {
-        background: var(--accent-soft);
-        border-color: var(--accent);
+        background: var(--accent-gradient, var(--accent));
+        border-color: transparent;
+        box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    .day.selected .weekday {
+        color: rgba(255, 255, 255, 0.88);
+        font-weight: 600;
     }
 
     .day.selected .date {
-        color: var(--accent);
+        color: #ffffff;
     }
 
     .day.today:not(.selected) {
-        border-color: var(--success);
-        box-shadow: 0 0 0 1px var(--success-soft);
+        border-color: var(--accent);
+        background: var(--accent-soft);
     }
 
     .day.today:not(.selected) .date {
-        color: var(--success);
+        color: var(--accent);
+    }
+
+    .day.today:not(.selected) .weekday {
+        color: var(--accent);
+        font-weight: 600;
     }
 </style>

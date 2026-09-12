@@ -73,9 +73,10 @@
 
 <style>
     .lb-subtitle {
-        padding: 5px 10px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.06);
+        padding: 4px 10px;
+        border-radius: var(--radius-pill, 999px);
+        background: var(--surface-alt);
+        border: 1px solid var(--border-subtle);
         font-size: 11px;
         font-weight: 600;
         color: var(--text-muted);
@@ -86,37 +87,28 @@
     .leader-list {
         position: relative;
         z-index: 1;
-
         display: flex;
         flex-direction: column;
-
-        gap: 10px;
+        gap: 8px;
     }
 
     .leader-row {
         position: relative;
-
         display: flex;
         align-items: center;
-
         gap: 12px;
-
         width: 100%;
-
-        padding: 12px;
-
-        border: none;
-
-        border-radius: 20px;
-
-        background: rgba(255, 255, 255, 0.035);
-
+        padding: 10px 12px;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-card, 18px);
+        background: var(--surface-alt);
         cursor: pointer;
-
         transition:
-            transform 0.18s ease,
+            transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
             background 0.2s ease,
-            box-shadow 0.2s ease;
+            box-shadow 0.2s ease,
+            border-color 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
     }
 
     .leader-row:active {
@@ -126,8 +118,8 @@
     /* CURRENT USER */
 
     .leader-row.is-me {
-        background: color-mix(in srgb, var(--accent) 12%, transparent);
-        box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
+        background: var(--accent-soft);
+        border-color: color-mix(in srgb, var(--accent) 35%, transparent);
     }
 
     /* TOP THREE */
@@ -135,19 +127,19 @@
     .leader-row.rank-1 {
         background: linear-gradient(
             135deg,
-            color-mix(in srgb, var(--accent) 20%, transparent),
-            rgba(255, 255, 255, 0.04)
+            var(--accent-soft) 0%,
+            var(--surface-alt) 100%
         );
-        box-shadow: 0 8px 24px
-            color-mix(in srgb, var(--accent) 18%, transparent);
+        border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+        box-shadow: 0 4px 16px var(--accent-soft);
     }
 
     .leader-row.rank-2 {
-        background: rgba(255, 255, 255, 0.055);
+        background: var(--surface-alt);
     }
 
     .leader-row.rank-3 {
-        background: rgba(255, 255, 255, 0.045);
+        background: var(--surface-alt);
     }
 
     /* RANK MEDALS */
@@ -156,19 +148,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
-
-        width: 30px;
-        height: 30px;
-
+        width: 28px;
+        height: 28px;
         flex-shrink: 0;
-
         border-radius: 50%;
-
-        background: rgba(255, 255, 255, 0.06);
-
+        background: var(--surface);
+        border: 1px solid var(--border-subtle);
         font-size: 13px;
-        font-weight: 900;
-
+        font-weight: 800;
         color: var(--text-muted);
     }
 

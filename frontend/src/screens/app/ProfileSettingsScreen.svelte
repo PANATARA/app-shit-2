@@ -93,6 +93,14 @@
 </script>
 
 <div class="screen">
+    <header class="hub-header">
+        <div class="hub-title-row">
+            <div class="title-wrap">
+                <h1 class="hub-title">{$t.nav.profile}</h1>
+                <span class="hub-subtitle">{$t.settings.manageAccount || "Семья, профиль и настройки"}</span>
+            </div>
+        </div>
+    </header>
 
     <!-- ПРОФИЛЬ -->
     {#if profileLoading}
@@ -242,20 +250,53 @@
     .screen {
         background: var(--bg);
         min-height: 100vh;
-        padding: 10px;
+        padding: 12px 14px 24px;
         display: flex;
         flex-direction: column;
-        gap: 4px;
-        font-family: system-ui, sans-serif;
+        gap: 14px;
+        font-family: inherit;
+    }
+
+    .hub-header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 2px;
+    }
+
+    .hub-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .title-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .hub-title {
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .hub-subtitle {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
     }
 
     .section-label {
         font-size: 11px;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: 0.8px;
         text-transform: uppercase;
         color: var(--text-muted);
-        margin: 12px 16px 4px;
+        margin: 8px 12px 2px;
     }
 
     /* PROFILE */
@@ -265,6 +306,7 @@
         flex-direction: column;
         align-items: center;
         gap: 12px;
+        padding: 8px 0;
     }
 
     .avatar-wrap {
@@ -274,19 +316,20 @@
 
     .edit-icon-btn {
         position: absolute;
-        bottom: -4px;
-        right: -4px;
-        width: 30px;
-        height: 30px;
-        border-radius: 9px;
-        background: var(--accent);
-        border: none;
+        bottom: -2px;
+        right: -2px;
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: var(--accent-gradient, var(--accent));
+        box-shadow: var(--shadow-ambient);
+        border: 2px solid var(--surface);
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         padding: 0;
-        transition: transform 0.2s ease;
+        transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     .edit-icon-btn:active { transform: scale(0.9); }
@@ -301,6 +344,7 @@
     .profile-name {
         font-size: 22px;
         font-weight: 800;
+        letter-spacing: -0.4px;
         color: var(--text-primary);
     }
 
@@ -335,57 +379,67 @@
 
     .field-input {
         background: var(--surface-alt);
-        border: 1.5px solid var(--border);
+        border: 1px solid var(--border-subtle);
         border-radius: 14px;
-        padding: 11px 14px;
+        padding: 12px 14px;
         color: var(--text-primary);
         font-size: 15px;
         font-family: inherit;
         outline: none;
         width: 100%;
         box-sizing: border-box;
-        transition: border-color 0.15s ease;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .field-input:focus { border-color: var(--accent); }
+    .field-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+    }
 
     .edit-actions {
         display: flex;
         gap: 10px;
-        margin-top: 8px;
+        margin-top: 12px;
     }
 
     .btn-cancel {
         flex: 1;
         padding: 13px;
         background: var(--surface-alt);
-        border: none;
-        border-radius: 20px;
+        border: 1px solid var(--border-subtle);
+        border-radius: 999px;
         color: var(--text-muted);
         font-size: 15px;
         font-weight: 600;
         font-family: inherit;
         cursor: pointer;
-        transition: opacity 0.15s ease;
+        transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
     }
 
-    .btn-cancel:active { opacity: 0.7; }
+    .btn-cancel:active {
+        transform: scale(0.97);
+        opacity: 0.8;
+    }
 
     .btn-save {
         flex: 2;
         padding: 13px;
-        background: var(--accent);
+        background: var(--accent-gradient, var(--accent));
         border: none;
-        border-radius: 20px;
-        color: #2a1800;
+        border-radius: 999px;
+        color: #ffffff;
         font-size: 15px;
         font-weight: 700;
         font-family: inherit;
         cursor: pointer;
-        transition: opacity 0.15s ease;
+        box-shadow: var(--shadow-floating);
+        transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
     }
 
-    .btn-save:active { opacity: 0.8; }
+    .btn-save:active {
+        transform: scale(0.97);
+        opacity: 0.9;
+    }
 
     /* ROWS */
 
@@ -397,23 +451,43 @@
         padding: 12px 14px;
         background: transparent;
         border: none;
+        border-bottom: 1px solid var(--border-subtle);
         text-align: left;
         cursor: pointer;
+        border-radius: 12px;
+        transition: background-color 0.15s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .btn-row:last-child {
+        border-bottom: none;
     }
 
     .btn-row:focus { outline: none; }
     .btn-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .btn-row:active {
+        background: var(--surface-alt);
+        transform: scale(0.985);
+    }
 
     .row {
         display: flex;
         align-items: center;
         gap: 12px;
         padding: 12px 14px;
+        border-bottom: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        transition: background-color 0.15s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .row:last-child {
+        border-bottom: none;
     }
 
     button.row {
         width: 100%;
-        border: none;
+        border-top: none;
+        border-left: none;
+        border-right: none;
         background: transparent;
         text-align: left;
         font-family: inherit;
@@ -421,16 +495,19 @@
 
     .clickable {
         cursor: pointer;
-        transition: opacity 0.15s ease;
     }
 
-    .clickable:active { opacity: 0.65; }
+    .clickable:active {
+        background: var(--surface-alt);
+        transform: scale(0.985);
+    }
 
     .row-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
         background: var(--surface-alt);
+        border: 1px solid var(--border-subtle);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -451,6 +528,7 @@
 
     .row-right {
         font-size: 13px;
+        font-weight: 500;
         color: var(--text-muted);
         flex-shrink: 0;
     }
@@ -465,15 +543,18 @@
     .you-badge {
         color: var(--text-muted);
         font-weight: 400;
+        font-size: 12px;
+        margin-left: 4px;
     }
 
     /* INVITE */
 
     .invite-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
-        background: color-mix(in srgb, var(--accent) 15%, transparent);
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: color-mix(in srgb, var(--accent) 14%, transparent);
+        border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -483,15 +564,18 @@
         flex-shrink: 0;
     }
 
-    .invite-title { color: var(--accent) !important; }
-    .invite-arrow { color: var(--accent) !important; opacity: 0.6; }
+    .invite-title {
+        color: var(--accent) !important;
+        font-weight: 700;
+    }
+    .invite-arrow { color: var(--accent) !important; opacity: 0.7; }
 
     /* DANGER */
 
     .danger-rows {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
         width: 100%;
     }
 </style>

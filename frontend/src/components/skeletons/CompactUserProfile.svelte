@@ -23,8 +23,13 @@
 
         <div class="progress-track skeleton"></div>
     </div>
-</div>
 
+    <!-- Stats Row Skeleton -->
+    <div class="stats-row">
+        <div class="stat-box-skeleton skeleton"></div>
+        <div class="stat-box-skeleton skeleton"></div>
+    </div>
+</div>
 
 <style>
     .container {
@@ -33,17 +38,27 @@
 
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 16px;
 
         padding: 18px;
 
-        border-radius: 24px;
+        border-radius: var(--radius-card, 22px);
 
         background: var(--surface);
 
-        box-shadow:
-            0 10px 30px rgba(0, 0, 0, 0.08),
-            inset 0 1px rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-card);
+    }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .stat-box-skeleton {
+        height: 68px;
+        border-radius: var(--radius-card, 18px);
     }
 
     .top-row {
