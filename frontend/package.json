@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:android": "vite build",
+    "build:pwa": "BUILD_TARGET=pwa vite build",
     "preview": "vite preview"
   },
   "devDependencies": {

@@ -10,7 +10,9 @@ try {
     console.warn('localStorage not available:', e);
 }
 
-let apiBaseUrl = savedUrl || import.meta.env.VITE_API_URL || 'http://192.168.1.192:8000';
+const isBrowser = typeof window !== 'undefined' && window.location && window.location.origin;
+const defaultUrl = (isBrowser && window.location.protocol.startsWith('http')) ? '' : 'http://192.168.1.192:8000';
+let apiBaseUrl = savedUrl || import.meta.env.VITE_API_URL || defaultUrl;
 export function getBaseUrl() {
     return apiBaseUrl;
 }
