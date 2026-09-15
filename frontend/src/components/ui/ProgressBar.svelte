@@ -4,6 +4,7 @@
     export let label: string = "";
     export let sublabel: string = "";
     export let shimmer: boolean = true;
+    export let height: number = 8;
 </script>
 
 {#if label || sublabel}
@@ -13,8 +14,11 @@
     </div>
 {/if}
 
-<div class="progress-track">
-    <div class="progress-fill" style="transform: scaleX({percent / 100})">
+<div class="progress-track" style="height: {height}px;">
+    <div
+        class="progress-fill"
+        style="transform: scaleX({Math.min(Math.max(percent ?? 0, 0), 100) / 100})"
+    >
         {#if shimmer}
             <div class="progress-shimmer"></div>
         {/if}
@@ -26,26 +30,26 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
 
     .progress-label {
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--text-primary);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        letter-spacing: -0.2px;
     }
 
     .progress-sublabel {
         font-size: 12px;
         font-weight: 600;
-        color: var(--text-secondary);
+        color: var(--text-muted);
     }
 
     .progress-track {
         position: relative;
-        height: 10px;
-        border-radius: 999px;
-        background: var(--surface-alt);
+        border-radius: var(--radius-pill, 999px);
+        background: color-mix(in srgb, var(--accent) 12%, var(--surface-alt));
         overflow: hidden;
     }
 
@@ -53,11 +57,8 @@
         position: absolute;
         inset: 0;
         border-radius: inherit;
-        background: linear-gradient(
-            90deg,
-            var(--accent) 0%,
-            var(--success) 100%
-        );
+        background: var(--accent-gradient, var(--accent));
+        box-shadow: 0 1px 4px color-mix(in srgb, var(--accent) 20%, transparent);
         transform-origin: left center;
         transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1);
         will-change: transform;
@@ -67,16 +68,15 @@
     .progress-shimmer {
         position: absolute;
         inset: 0;
-        /* Узкий, чёткий блик — как на iOS */
         background: linear-gradient(
             90deg,
             transparent 0%,
-            rgba(255, 255, 255, 0.0) 30%,
-            rgba(255, 255, 255, 0.45) 50%,
-            rgba(255, 255, 255, 0.0) 70%,
+            rgba(255, 255, 255, 0.0) 25%,
+            rgba(255, 255, 255, 0.22) 50%,
+            rgba(255, 255, 255, 0.0) 75%,
             transparent 100%
         );
-        animation: shimmer 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        animation: shimmer 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         will-change: transform;
     }
 

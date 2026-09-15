@@ -364,8 +364,9 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        height: 54px;
+        padding: 0 16px;
 
-        padding: 12px 16px;
         background: var(--bg-bar);
         border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
         -webkit-backdrop-filter: blur(12px);
@@ -375,23 +376,49 @@
     .header-left {
         display: flex;
         align-items: center;
-        min-width: 70px;
+        z-index: 2;
+        margin-left: -8px;
+    }
+
+    .header-left :global(.btn-back) {
+        padding: 6px 8px;
+        color: var(--accent);
+        font-size: 15px;
+        font-weight: 600;
+        gap: 4px;
+        border-radius: 10px;
+        letter-spacing: -0.2px;
+    }
+
+    .header-left :global(.btn-back svg) {
+        stroke: var(--accent);
+        width: 18px;
+        height: 18px;
     }
 
     .header-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
         margin: 0;
-        font-size: 18px;
-        font-weight: 800;
+        font-size: 17px;
+        font-weight: 700;
         color: var(--text-primary);
         text-align: center;
         letter-spacing: -0.3px;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 1;
+        max-width: 60%;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .header-right {
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        min-width: 70px;
+        z-index: 2;
     }
 
     .header-add-btn {

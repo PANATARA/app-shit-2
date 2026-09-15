@@ -104,13 +104,22 @@
             </div>
             <span class="empty-text">{$t.stats.noEvents}</span>
             <span class="empty-sub">{$t.stats.addEventHint}</span>
-            <button
-                class="empty-cta-btn"
-                on:click={() => activeTab.set("eventCreate")}
-            >
-                <Icon icon="material-symbols:add-rounded" width={18} />
-                <span>{$t.events.addEvent}</span>
-            </button>
+            <div class="empty-actions">
+                <button
+                    class="empty-cta-btn"
+                    on:click={() => activeTab.set("eventCreate")}
+                >
+                    <Icon icon="material-symbols:add-rounded" width={18} />
+                    <span>{$t.events.addEvent}</span>
+                </button>
+                <button
+                    class="view-all-footer"
+                    on:click={() => activeTab.set("eventsListScreen")}
+                >
+                    <span>{$t.events.viewAll}</span>
+                    <Icon icon="material-symbols:arrow-forward-rounded" width={18} />
+                </button>
+            </div>
         </div>
     {:else}
         <div class="list">
@@ -418,11 +427,19 @@
         line-height: 1.35;
     }
 
+    .empty-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
     .empty-cta-btn {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        margin-top: 8px;
         padding: 8px 16px;
 
         background: var(--accent);
@@ -441,6 +458,30 @@
     .empty-cta-btn:active {
         transform: scale(0.95);
         opacity: 0.9;
+    }
+
+    .empty-secondary-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+
+        background: var(--surface-alt);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+
+        transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    }
+
+    .empty-secondary-btn:active {
+        transform: scale(0.95);
+        background: var(--accent-soft);
+        color: var(--accent);
     }
 
     /* SKELETON */

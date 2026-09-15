@@ -10,7 +10,7 @@
         uncompleteQuickPlannedChore,
     } from "$api/chores";
     import { swr } from "$lib/swr";
-    import { formatDateKey, getFriendlyDate } from "$lib/utils";
+    import { formatDateKey } from "$lib/utils";
     import CardPlannedChore from "$features/chores/CardPlannedChore.svelte";
     import CardPlannedChoreSkeleton from "$skeletons/CardPlannedChoreSkeleton.svelte";
     import Icon from "@iconify/svelte";
@@ -84,10 +84,6 @@
     $: activePlannedChores = plannedChores.filter(c => c.completed_by === null);
     $: completedPlannedChores = plannedChores.filter(c => c.completed_by !== null);
     $: totalCount = plannedChores.length;
-    $: completedCount = completedPlannedChores.length;
-    $: progressPercentage = totalCount > 0
-        ? Math.round((completedCount / totalCount) * 100)
-        : 0;
 
     // ─── Handlers ────────────────────────────────────────────────────────────────
 
@@ -159,21 +155,6 @@
         <div class="week-calendar-section">
             <WeekCalendar {selectedDate} on:change={handleDateChange} />
         </div>
-
-        {#if totalCount > 0}
-            <div class="compact-progress-strip">
-                <span class="strip-date">{getFriendlyDate(selectedDate, $language)}</span>
-                <div class="strip-bar-track">
-                    <div
-                        class="strip-bar-fill"
-                        style="width: {progressPercentage}%;"
-                    ></div>
-                </div>
-                <span class="strip-count" class:done={progressPercentage === 100}>
-                    {completedCount}/{totalCount}
-                </span>
-            </div>
-        {/if}
     </div>
     <div class="screen" bind:this={screenEl} on:scroll={handleScroll}>
         <!-- MAIN LIST CONTROLLER -->
@@ -328,53 +309,6 @@
         z-index: 1;
     }
 
-    /* ── COMPACT PROGRESS STRIP ───────────────────── */
-    .compact-progress-strip {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 4px 6px 0;
-        margin-top: 2px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .strip-date {
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--text-secondary);
-        white-space: nowrap;
-    }
-
-    .strip-bar-track {
-        flex: 1;
-        height: 6px;
-        background: color-mix(in srgb, var(--accent) 15%, var(--surface-alt));
-        border-radius: 999px;
-        overflow: hidden;
-    }
-
-    .strip-bar-fill {
-        height: 100%;
-        border-radius: 999px;
-        background: linear-gradient(90deg, var(--accent) 0%, var(--success) 100%);
-        transition: width 0.35s ease;
-    }
-
-    .strip-count {
-        font-size: 11px;
-        font-weight: 800;
-        color: var(--accent);
-        background: var(--accent-soft);
-        padding: 2px 7px;
-        border-radius: 8px;
-        white-space: nowrap;
-    }
-
-    .strip-count.done {
-        color: var(--success);
-        background: var(--success-soft);
-    }
 
     /* ── FLOATING ACTION BUTTON (FAB) ────────────── */
     .fab-plan {

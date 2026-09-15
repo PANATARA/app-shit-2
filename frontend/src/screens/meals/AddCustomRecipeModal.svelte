@@ -1,12 +1,36 @@
 <script lang="ts">
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher, onMount, onDestroy } from "svelte";
     import Icon from "@iconify/svelte";
     import { addCustomRecipe, type Recipe } from "$lib/mealsStore";
+    import { registerModal } from "$lib/navigation";
 
     const dispatch = createEventDispatcher<{
         close: void;
         saved: Recipe;
     }>();
+
+    let portal: HTMLDivElement;
+    let unregisterModal: (() => void) | null = null;
+
+    function handleClose() {
+        dispatch("close");
+    }
+
+    onMount(() => {
+        if (typeof document !== "undefined" && portal) {
+            document.body.appendChild(portal);
+            unregisterModal = registerModal(handleClose);
+        }
+    });
+
+    onDestroy(() => {
+        if (unregisterModal) {
+            unregisterModal();
+        }
+        if (portal && portal.parentNode) {
+            portal.parentNode.removeChild(portal);
+        }
+    });
 
     let title = "";
     let description = "";
@@ -104,7 +128,7 @@
             const saved = await addCustomRecipe(recipePayload);
             isSubmitting = false;
             dispatch("saved", saved);
-            dispatch("close");
+            handleClose();
         } catch (e: any) {
             console.error("Failed to save recipe", e);
             errorMessage = e?.message || "Не удалось сохранить рецепт на сервере";
@@ -113,36 +137,37 @@
     }
 </script>
 
-<div
-    class="modal-backdrop"
-    on:click={() => dispatch("close")}
-    on:keydown={(e) => e.key === "Escape" && dispatch("close")}
-    role="button"
-    tabindex="0"
->
+<div bind:this={portal} class="modal-portal">
     <div
-        class="sheet-container"
-        on:click|stopPropagation
-        on:keydown|stopPropagation
-        role="dialog"
-        aria-modal="true"
-        tabindex="-1"
+        class="modal-backdrop"
+        on:click={handleClose}
+        on:keydown={(e) => e.key === "Escape" && handleClose()}
+        role="button"
+        tabindex="0"
     >
-        <!-- Sheet Handle -->
-        <div class="drag-handle-bar">
-            <div class="drag-pill"></div>
-        </div>
-
-        <!-- Header -->
-        <div class="sheet-header">
-            <div>
-                <h2 class="sheet-title">Новое блюдо</h2>
-                <span class="sheet-subtitle">Добавление рецепта в семейную книгу</span>
+        <div
+            class="sheet-container"
+            on:click|stopPropagation
+            on:keydown|stopPropagation
+            role="dialog"
+            aria-modal="true"
+            tabindex="-1"
+        >
+            <!-- Sheet Handle -->
+            <div class="drag-handle-bar">
+                <div class="drag-pill"></div>
             </div>
-            <button class="close-btn" on:click={() => dispatch("close")}>
-                <Icon icon="material-symbols:close-rounded" width={20} height={20} />
-            </button>
-        </div>
+
+            <!-- Header -->
+            <div class="sheet-header">
+                <div>
+                    <h2 class="sheet-title">Новое блюдо</h2>
+                    <span class="sheet-subtitle">Добавление рецепта в семейную книгу</span>
+                </div>
+                <button class="close-btn" on:click={handleClose}>
+                    <Icon icon="material-symbols:close-rounded" width={20} height={20} />
+                </button>
+            </div>
 
         <!-- Sheet Scroll Body -->
         <div class="sheet-body">
@@ -347,10 +372,10 @@
             <button
                 type="button"
                 class="btn-cancel"
-                on:click={() => dispatch("close")}
+                on:click={handleClose}
                 disabled={isSubmitting}
             >
-                Отмена
+                Отменить
             </button>
             <button
                 type="button"
@@ -358,27 +383,40 @@
                 on:click={handleSave}
                 disabled={isSubmitting}
             >
-                {isSubmitting ? "Сохранение..." : "Сохранить в книгу рецептов"}
+                {#if isSubmitting}
+                    <span>Создание...</span>
+                {:else}
+                    <Icon icon="material-symbols:add-rounded" width={20} height={20} />
+                    <span>Создать</span>
+                {/if}
             </button>
         </div>
     </div>
 </div>
+</div>
 
 <style>
+    .modal-portal {
+        position: relative;
+        z-index: 1000;
+    }
+
     .modal-backdrop {
         position: fixed;
         inset: 0;
         width: 100vw;
+        height: 100vh;
+        height: 100dvh;
         max-width: 100%;
         background: rgba(0, 0, 0, 0.45);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
-        z-index: 999;
+        z-index: 1000;
         display: flex;
         align-items: flex-end;
         justify-content: center;
         animation: fadeIn 0.2s ease-out;
-        overflow-x: hidden;
+        overflow: hidden;
         box-sizing: border-box;
     }
 
@@ -391,9 +429,10 @@
         box-shadow: var(--shadow-modal);
         display: flex;
         flex-direction: column;
-        max-height: 90vh;
-        overflow-x: hidden;
-        overflow-y: hidden;
+        max-height: 92vh;
+        max-height: 92dvh;
+        height: auto;
+        overflow: hidden;
         box-sizing: border-box;
         animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -402,6 +441,7 @@
         display: flex;
         justify-content: center;
         padding-top: 10px;
+        flex-shrink: 0;
     }
 
     .drag-pill {
@@ -419,6 +459,7 @@
         border-bottom: 1px solid var(--border-subtle);
         box-sizing: border-box;
         width: 100%;
+        flex-shrink: 0;
     }
 
     .sheet-title {
@@ -452,11 +493,14 @@
         padding: 14px 14px 20px;
         overflow-y: auto;
         overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
         display: flex;
         flex-direction: column;
         gap: 14px;
         box-sizing: border-box;
         width: 100%;
+        flex: 1 1 auto;
+        min-height: 0;
     }
 
     .error-banner {
@@ -783,43 +827,72 @@
 
     .sheet-footer {
         display: flex;
+        align-items: center;
         gap: 10px;
-        padding: 12px 14px 20px;
+        padding: 12px 14px;
+        padding-bottom: max(14px, env(safe-area-inset-bottom, 14px));
         border-top: 1px solid var(--border-subtle);
+        background: var(--surface);
         box-sizing: border-box;
         width: 100%;
+        flex-shrink: 0;
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
     }
 
     .btn-cancel {
         flex: 1;
-        padding: 13px;
+        height: 48px;
+        padding: 0 16px;
         background: var(--surface-alt);
         border: 1px solid var(--border-subtle);
-        border-radius: 999px;
-        color: var(--text-muted);
+        border-radius: var(--radius-pill, 999px);
+        color: var(--text-secondary);
         font-size: 14px;
         font-weight: 600;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         min-width: 0;
+        white-space: nowrap;
+        transition: background-color 0.15s ease;
+    }
+
+    .btn-cancel:active {
+        background: color-mix(in srgb, var(--surface-alt) 80%, black);
     }
 
     .btn-save {
-        flex: 2;
-        padding: 13px;
+        flex: 1.5;
+        height: 48px;
+        padding: 0 18px;
         background: var(--accent-gradient, var(--accent));
         border: none;
-        border-radius: 999px;
+        border-radius: var(--radius-pill, 999px);
         color: #ffffff;
         font-size: 14px;
         font-weight: 700;
-        box-shadow: var(--shadow-floating);
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
         min-width: 0;
-        transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+        white-space: nowrap;
+        transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
     }
 
     .btn-save:active {
         transform: scale(0.97);
+    }
+
+    .btn-save:disabled,
+    .btn-cancel:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
     }
 
     @keyframes fadeIn {
