@@ -1,5 +1,4 @@
-import type { ChoreItem } from "$types/index";
-import type { PlannedChore } from "$types/index";
+import type { ChoreItem, AnyPlannedChore, PlannedChore } from "$types/index";
 import { writable } from "svelte/store";
 
 export type Tab =
@@ -266,7 +265,7 @@ export const createPlannedChoreParams = writable<{
 }>({});
 
 export const detailPlannedChoreParams = writable<{
-  plannedChore?: PlannedChore;
+  plannedChore?: AnyPlannedChore;
 }>({});
 
 export const choreDetailParams = writable<{

@@ -95,7 +95,7 @@
         isScrolled = false;
     }
 
-    function openDetailScreen(plannedChore: PlannedChore) {
+    function openDetailScreen(plannedChore: AnyPlannedChore) {
         detailPlannedChoreParams.set({ plannedChore });
         activeTab.set("DetailPlannedChore");
     }

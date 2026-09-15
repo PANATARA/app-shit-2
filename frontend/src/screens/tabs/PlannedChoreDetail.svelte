@@ -20,9 +20,14 @@
         updateChoreSchedule,
         deleteChoreSchedule,
         updatePlannedChoreMessage,
+        deleteQuickPlannedChore,
+        completeQuickPlannedChore,
+        uncompleteQuickPlannedChore,
+        updateQuickPlannedChore,
     } from "$api/chores";
     import { userSession } from "$api/client";
     import { swr, mutate } from "$lib/swr";
+    import type { AnyPlannedChore, PlannedChore, QuickPlannedChore } from "$types/index";
 
     // Navigation & Localization
     import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
@@ -43,10 +48,20 @@
 
     // ─── Component State ─────────────────────────────────────────────────────
     // Planned chore details from navigation store
-    $: plannedChore = $detailPlannedChoreParams.plannedChore;
+    $: plannedChore = $detailPlannedChoreParams.plannedChore as AnyPlannedChore | undefined;
+    $: isQuick = !!plannedChore?.is_quick;
+    $: title = isQuick
+        ? (plannedChore as QuickPlannedChore)?.name
+        : (plannedChore as PlannedChore)?.chore?.name;
+    $: valuation = isQuick
+        ? (plannedChore as QuickPlannedChore)?.valuation
+        : (plannedChore as PlannedChore)?.chore?.valuation;
 
     // Local form state
     let newDate = plannedChore?.due_date;
+    $: if (plannedChore && (!newDate || newDate === "")) {
+        newDate = plannedChore.due_date;
+    }
     let loading = false;
 
     // Schedule management state
@@ -67,7 +82,7 @@
     };
 
     // ─── Reactive Declarations ───────────────────────────────────────────────
-    $: choreId = plannedChore?.chore?.id;
+    $: choreId = !isQuick ? (plannedChore as PlannedChore)?.chore?.id : null;
     $: scheduleStore = choreId
         ? swr(`chore-schedule:${choreId}`, () => getChoreSchedule(choreId))
         : null;
@@ -196,7 +211,7 @@
             if (typeof localStorage !== "undefined") {
                 for (let i = localStorage.length - 1; i >= 0; i--) {
                     const k = localStorage.key(i);
-                    if (k && k.startsWith("swr:planned-chores:")) {
+                    if (k && (k.startsWith("swr:planned-chores:") || k.startsWith("swr:quick-planned-chores:"))) {
                         localStorage.removeItem(k);
                     }
                 }
@@ -214,9 +229,14 @@
 
     /** Deletes the planned chore */
     async function handleDelete() {
+        if (!plannedChore) return;
         loading = true;
         try {
-            await deletePlannedChore(plannedChore.id);
+            if (isQuick) {
+                await deleteQuickPlannedChore(plannedChore.id);
+            } else {
+                await deletePlannedChore(plannedChore.id);
+            }
             clearPlannedChoresSwrCache();
             handleBack();
         } catch (e) {
@@ -228,11 +248,22 @@
 
     /** Toggles completion status of the planned chore */
     async function handleComplete() {
+        if (!plannedChore) return;
         loading = true;
         try {
-            const updated = plannedChore.completed_by
-                ? await unCompletePlannedChore(plannedChore.id)
-                : await completePlannedChore(plannedChore.id);
+            if (isQuick) {
+                if (plannedChore.completed_by) {
+                    await uncompleteQuickPlannedChore(plannedChore.id);
+                } else {
+                    await completeQuickPlannedChore(plannedChore.id);
+                }
+            } else {
+                if (plannedChore.completed_by) {
+                    await unCompletePlannedChore(plannedChore.id);
+                } else {
+                    await completePlannedChore(plannedChore.id);
+                }
+            }
             clearPlannedChoresSwrCache();
             handleBack();
         } catch (e) {
@@ -244,12 +275,18 @@
 
     /** Reschedules the planned chore to a new date */
     async function handleReschedule() {
-        if (!newDate || newDate === plannedChore.due_date) return;
+        if (!plannedChore || !newDate || newDate === plannedChore.due_date) return;
         loading = true;
         try {
-            await reschedulePlannedChore(plannedChore.id, {
-                reschedule_due_date: newDate,
-            });
+            if (isQuick) {
+                await updateQuickPlannedChore(plannedChore.id, {
+                    due_date: newDate,
+                });
+            } else {
+                await reschedulePlannedChore(plannedChore.id, {
+                    reschedule_due_date: newDate,
+                });
+            }
             clearPlannedChoresSwrCache();
             handleBack();
         } catch (e) {
@@ -358,7 +395,11 @@
     async function handleSubtasksSave(newMsg: string) {
         if (!plannedChore) return;
         try {
-            await updatePlannedChoreMessage(plannedChore.id, newMsg);
+            if (isQuick) {
+                await updateQuickPlannedChore(plannedChore.id, { message: newMsg });
+            } else {
+                await updatePlannedChoreMessage(plannedChore.id, newMsg);
+            }
             plannedChore.message = newMsg;
             subtaskErrorMessage = "";
             clearPlannedChoresSwrCache();
@@ -382,7 +423,7 @@
             {$t.common.back}
         </button>
 
-        <h1>{plannedChore?.chore.name}</h1>
+        <h1>{title}</h1>
 
         <div class="header-spacer"></div>
     </header>
@@ -391,7 +432,16 @@
     <div class="chore-header">
         <div class="chore-icon-wrap">
             <span class="icon-glow"></span>
-            <ChoreIcon chore={plannedChore.chore} size={68} />
+            {#if isQuick && plannedChore}
+                <div
+                    class="quick-icon-large"
+                    style="background: {(plannedChore as QuickPlannedChore).icon_bg}; color: {(plannedChore as QuickPlannedChore).icon_color};"
+                >
+                    <Icon icon={(plannedChore as QuickPlannedChore).icon} width={38} height={38} />
+                </div>
+            {:else if (plannedChore as PlannedChore)?.chore}
+                <ChoreIcon chore={(plannedChore as PlannedChore).chore} size={68} />
+            {/if}
         </div>
     </div>
 
@@ -427,6 +477,7 @@
             <PlannedChoreSubtasks
                 message={plannedChore.message}
                 choreId={plannedChore.id}
+                isQuick={isQuick}
                 isChoreDone={!!plannedChore.completed_by}
                 onUpdate={(newMsg) => {
                     plannedChore.message = newMsg;
@@ -540,121 +591,123 @@
             <div class="detail-icon">
                 <Icon
                     icon="material-symbols:paid-rounded"
-                    width="18"
-                    height="18"
+                    width={18}
+                    height={18}
                 />
             </div>
             <div class="detail-text">
                 <span class="detail-label">{$t.common.reward}</span>
                 <span class="detail-value"
-                    >🪙 {plannedChore.chore.valuation} {$t.common.coins}</span
+                    >🪙 {valuation} {$t.common.coins}</span
                 >
             </div>
         </div>
 
-        <div class="divider"></div>
+        {#if !isQuick}
+            <div class="divider"></div>
 
-        <div
-            class="detail-row schedule-row"
-            on:click={() => (isScheduleEditing = !isScheduleEditing)}
-            on:keydown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                    isScheduleEditing = !isScheduleEditing;
-                }
-            }}
-            role="button"
-            tabindex="0"
-        >
             <div
-                class="detail-icon"
-                class:active-schedule-icon={!!activeSchedule?.is_active}
+                class="detail-row schedule-row"
+                on:click={() => (isScheduleEditing = !isScheduleEditing)}
+                on:keydown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        isScheduleEditing = !isScheduleEditing;
+                    }
+                }}
+                role="button"
+                tabindex="0"
             >
-                <Icon
-                    icon="material-symbols:sync-rounded"
-                    width="18"
-                    height="18"
-                />
-            </div>
-            <div class="detail-text">
-                <span class="detail-label"
-                    >{$t.repeat?.title ||
-                        ($language === "en" ? "Repeat" : "Повторение")}</span
+                <div
+                    class="detail-icon"
+                    class:active-schedule-icon={!!activeSchedule?.is_active}
                 >
-                <span
-                    class="detail-value"
-                    class:muted={!activeSchedule?.is_active}
-                >
-                    {scheduleLoading
-                        ? $language === "en"
-                            ? "Loading..."
-                            : "Загрузка..."
-                        : getScheduleDisplayText(activeSchedule, $language)}
-                </span>
-            </div>
-            <div class="edit-hint">
-                <Icon
-                    icon={isScheduleEditing
-                        ? "material-symbols:expand-less-rounded"
-                        : "material-symbols:edit-rounded"}
-                    width="16"
-                    height="16"
-                />
-            </div>
-        </div>
-
-        {#if isScheduleEditing}
-            <div class="schedule-editor-wrap">
-                {#if scheduleErrorMessage}
-                    <div class="schedule-error">
-                        <Icon
-                            icon="material-symbols:error-rounded"
-                            width="16"
-                            height="16"
-                        />
-                        <span>{scheduleErrorMessage}</span>
-                    </div>
-                {/if}
-
-                <RepeatSelector bind:value={repeatConfig} />
-
-                <div class="schedule-editor-actions">
-                    <button
-                        type="button"
-                        class="schedule-btn schedule-save-btn"
-                        on:click={handleSaveSchedule}
-                        disabled={scheduleSaving}
+                    <Icon
+                        icon="material-symbols:sync-rounded"
+                        width="18"
+                        height="18"
+                    />
+                </div>
+                <div class="detail-text">
+                    <span class="detail-label"
+                        >{$t.repeat?.title ||
+                            ($language === "en" ? "Repeat" : "Повторение")}</span
                     >
-                        <Icon
-                            icon="material-symbols:check-rounded"
-                            width="16"
-                            height="16"
-                        />
-                        {scheduleSaving
-                            ? $t.common.saving
-                            : $language === "en"
-                              ? "Save repeat schedule"
-                              : "Сохранить расписание"}
-                    </button>
+                    <span
+                        class="detail-value"
+                        class:muted={!activeSchedule?.is_active}
+                    >
+                        {scheduleLoading
+                            ? $language === "en"
+                                ? "Loading..."
+                                : "Загрузка..."
+                            : getScheduleDisplayText(activeSchedule, $language)}
+                    </span>
+                </div>
+                <div class="edit-hint">
+                    <Icon
+                        icon={isScheduleEditing
+                            ? "material-symbols:expand-less-rounded"
+                            : "material-symbols:edit-rounded"}
+                        width="16"
+                        height="16"
+                    />
+                </div>
+            </div>
 
-                    {#if activeSchedule}
-                        <button
-                            type="button"
-                            class="schedule-btn schedule-delete-btn"
-                            on:click={handleDeleteSchedule}
-                            disabled={scheduleSaving}
-                        >
+            {#if isScheduleEditing}
+                <div class="schedule-editor-wrap">
+                    {#if scheduleErrorMessage}
+                        <div class="schedule-error">
                             <Icon
-                                icon="material-symbols:delete-outline-rounded"
+                                icon="material-symbols:error-rounded"
                                 width="16"
                                 height="16"
                             />
-                            {$language === "en"
-                                ? "Disable repeat"
-                                : "Отключить повторение"}
-                        </button>
+                            <span>{scheduleErrorMessage}</span>
+                        </div>
                     {/if}
+
+                    <RepeatSelector bind:value={repeatConfig} />
+
+                    <div class="schedule-editor-actions">
+                        <button
+                            type="button"
+                            class="schedule-btn schedule-save-btn"
+                            on:click={handleSaveSchedule}
+                            disabled={scheduleSaving}
+                        >
+                            <Icon
+                                icon="material-symbols:check-rounded"
+                                width="16"
+                                height="16"
+                            />
+                            {scheduleSaving
+                                ? $t.common.saving
+                                : $language === "en"
+                                  ? "Save repeat schedule"
+                                  : "Сохранить расписание"}
+                        </button>
+
+                        {#if activeSchedule}
+                            <button
+                                type="button"
+                                class="schedule-btn schedule-delete-btn"
+                                on:click={handleDeleteSchedule}
+                                disabled={scheduleSaving}
+                            >
+                                <Icon
+                                    icon="material-symbols:delete-outline-rounded"
+                                    width="16"
+                                    height="16"
+                                />
+                                {$language === "en"
+                                    ? "Disable repeat"
+                                    : "Отключить повторение"}
+                            </button>
+                        {/if}
+                    </div>
                 </div>
-            </div>
+            {/if}
         {/if}
     </div>
 
@@ -808,6 +861,18 @@
         background: radial-gradient(circle, color-mix(in srgb, var(--accent) 24%, transparent) 0%, transparent 70%);
         pointer-events: none;
         z-index: 0;
+    }
+
+    .quick-icon-large {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+        z-index: 1;
     }
 
     /* ── SUBTASKS DETAIL CARD ────────────────────── */

@@ -56,6 +56,8 @@
             <PlannedChoreSubtasks
                 {message}
                 choreId={item.id}
+                isQuick={item.is_quick}
+                previewMode={true}
                 isChoreDone={done}
                 onUpdate={(newMsg) => {
                     item.message = newMsg;
@@ -111,6 +113,9 @@
 
 <style>
     .card {
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
         position: relative;
         overflow: hidden;
         display: flex;

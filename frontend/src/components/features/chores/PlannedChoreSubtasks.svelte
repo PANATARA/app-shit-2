@@ -1,6 +1,6 @@
 <script lang="ts">
   import { parseMessage, serializeMessage, type Subtask } from "$lib/utils/checklist";
-  import { updatePlannedChoreMessage } from "$api/chores.js";
+  import { updatePlannedChoreMessage, updateQuickPlannedChore } from "$api/chores.js";
 
   // ─── Component Props ────────────────────────────────────────────────────────
   export let message: string | null = "";
@@ -8,6 +8,8 @@
   export let onUpdate: ((newMessage: string) => void | Promise<void>) | null = null;
   export let isChoreDone: boolean = false;
   export let readonly: boolean = false;
+  export let isQuick: boolean = false;
+  export let previewMode: boolean = false;
 
   // ─── Reactive State ────────────────────────────────────────────────────────
   $: parsed = parseMessage(message);
@@ -37,7 +39,11 @@
 
       if (choreId) {
         isUpdating = true;
-        await updatePlannedChoreMessage(String(choreId), newMessage);
+        if (isQuick) {
+          await updateQuickPlannedChore(String(choreId), { message: newMessage });
+        } else {
+          await updatePlannedChoreMessage(String(choreId), newMessage);
+        }
       }
     } catch (error) {
       // Revert optimistic update on failure
@@ -86,19 +92,30 @@
             {/if}
           </button>
 
-          <button
-            type="button"
-            class="subtask-text-btn"
-            disabled={readonly}
-            on:click={(e) => handleToggle(subtask, e)}
-          >
-            <span
-              class="subtask-text"
-              class:completed-text={subtask.done || isChoreDone}
+          {#if previewMode}
+            <div class="subtask-text-wrap">
+              <span
+                class="subtask-text"
+                class:completed-text={subtask.done || isChoreDone}
+              >
+                {subtask.text}
+              </span>
+            </div>
+          {:else}
+            <button
+              type="button"
+              class="subtask-text-btn"
+              disabled={readonly}
+              on:click={(e) => handleToggle(subtask, e)}
             >
-              {subtask.text}
-            </span>
-          </button>
+              <span
+                class="subtask-text"
+                class:completed-text={subtask.done || isChoreDone}
+              >
+                {subtask.text}
+              </span>
+            </button>
+          {/if}
         </div>
       {/each}
     </div>
@@ -222,6 +239,15 @@
 
   .subtask-text-btn:disabled {
     cursor: default;
+  }
+
+  .subtask-text-wrap {
+    padding: 4px 0;
+    margin: 0;
+    text-align: left;
+    flex: 1;
+    min-width: 0;
+    pointer-events: none;
   }
 
   .subtask-text {
