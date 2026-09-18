@@ -274,6 +274,7 @@ export async function addPlannedMeal(meal: Omit<PlannedMeal, "id">): Promise<Pla
     const normalized = normalizePlannedMeal(res);
     plannedMealsStore.update((list) => [...list, normalized]);
     mutate("family-planned-meals*");
+    mutate("planned-meals*");
     return normalized;
 }
 
@@ -285,6 +286,7 @@ export async function removePlannedMeal(mealId: string): Promise<void> {
         console.error("Failed to delete planned meal", e);
     }
     mutate("family-planned-meals*");
+    mutate("planned-meals*");
 }
 
 export async function togglePlannedMealStatus(mealId: string): Promise<void> {
@@ -297,6 +299,7 @@ export async function togglePlannedMealStatus(mealId: string): Promise<void> {
         console.error("Failed to toggle planned meal", e);
     }
     mutate("family-planned-meals*");
+    mutate("planned-meals*");
 }
 
 export async function addGroceryItem(item: { name: string; amount?: number; unit?: string; category?: string }): Promise<GroceryItem> {

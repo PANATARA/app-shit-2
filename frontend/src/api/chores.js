@@ -59,7 +59,7 @@ export async function getDefaultChores() {
  * @returns {Promise<any>}
  */
 export async function createChoresFromDefault(data) {
-  return apiFetch("/api/chores/from-defaults/", {
+  return apiFetch("/api/chores/from-defaults", {
     method: "POST",
     body: data,
   });
@@ -279,4 +279,3 @@ export async function deleteChoreSchedule(scheduleId, revokeCompletedAwards = fa
         }
     );
 }
-

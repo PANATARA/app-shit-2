@@ -41,10 +41,19 @@ export async function deleteRecipe(recipeId: string) {
 
 // ─── PLANNER ──────────────────────────────────────────────────────────
 
-export async function getPlannedMeals(startDate?: string, endDate?: string) {
+export async function getPlannedMeals(
+    filters?: { due_date?: string; start_date?: string; end_date?: string } | string,
+    legacyEndDate?: string
+) {
     const params: Record<string, string> = {};
-    if (startDate) params.start_date = startDate;
-    if (endDate) params.end_date = endDate;
+    if (typeof filters === "string") {
+        params.start_date = filters;
+        if (legacyEndDate) params.end_date = legacyEndDate;
+    } else if (filters) {
+        if (filters.due_date) params.due_date = filters.due_date;
+        if (filters.start_date) params.start_date = filters.start_date;
+        if (filters.end_date) params.end_date = filters.end_date;
+    }
     return apiFetch("/api/meals/planner", { params });
 }
 

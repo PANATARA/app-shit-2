@@ -8,6 +8,7 @@
     import { type Recipe, type MealSlot, useFamilyGroceries } from "$lib/mealsStore";
 
     let activeSegment: "planner" | "recipes" = "planner";
+    let plannerRef: any = null;
 
     // Modal states
     let detailRecipe: Recipe | null = null;
@@ -78,6 +79,7 @@
     <main class="hub-content">
         {#if activeSegment === "planner"}
             <WeeklyMealPlanner
+                bind:this={plannerRef}
                 on:addMeal={(e) => (addMealData = e.detail)}
                 on:openRecipe={(e) => (detailRecipe = e.detail)}
             />
@@ -102,7 +104,16 @@
             recipe={detailRecipe}
             on:close={() => (detailRecipe = null)}
             on:toast={(e) => triggerToast(e.detail)}
-            on:scheduled={() => (activeSegment = "planner")}
+            on:scheduled={async (e) => {
+                activeSegment = "planner";
+                if (e.detail?.date) {
+                    plannerRef?.setDateString?.(e.detail.date);
+                }
+                if (e.detail?.meal) {
+                    plannerRef?.addOptimisticMeal?.(e.detail.meal);
+                }
+                await plannerRef?.revalidate?.();
+            }}
         />
     {/if}
 
@@ -111,7 +122,13 @@
             targetDate={addMealData.date}
             defaultSlot={addMealData.slot}
             on:close={() => (addMealData = null)}
-            on:added={() => triggerToast("Блюдо успешно добавлено в план!")}
+            on:added={async (e) => {
+                triggerToast("Блюдо успешно добавлено в план!");
+                if (e.detail) {
+                    plannerRef?.addOptimisticMeal?.(e.detail);
+                }
+                await plannerRef?.revalidate?.();
+            }}
         />
     {/if}
 

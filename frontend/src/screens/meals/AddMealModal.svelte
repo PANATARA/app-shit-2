@@ -6,9 +6,12 @@
         type MealSlot,
         type Cook,
         type Recipe,
+        type PlannedMeal,
         useFamilyRecipes,
-        addPlannedMeal,
+        normalizePlannedMeal,
     } from "$lib/mealsStore";
+    import { createPlannedMeal } from "$api/meals";
+    import { mutate } from "$lib/swr";
     import { getFamilyMembers } from "$api/family";
 
     export let targetDate: string; // YYYY-MM-DD
@@ -16,7 +19,7 @@
 
     const dispatch = createEventDispatcher<{
         close: void;
-        added: void;
+        added: PlannedMeal;
     }>();
 
     let mode: "recipe" | "manual" = "recipe";
@@ -67,17 +70,19 @@
         isSaving = true;
         errorMessage = "";
         try {
-            await addPlannedMeal({
+            const res: any = await createPlannedMeal({
                 date: targetDate,
                 slot: selectedSlot,
                 title,
-                prepTimeMinutes: prepTime,
-                cook: selectedCook,
-                recipeId: mode === "recipe" && selectedRecipe ? selectedRecipe.id : undefined,
+                prep_time_minutes: prepTime,
                 servings,
+                recipe_id: mode === "recipe" && selectedRecipe ? selectedRecipe.id : null,
+                assigned_cook_id: selectedCook?.id ? String(selectedCook.id) : null,
             });
 
-            dispatch("added");
+            const normalized = normalizePlannedMeal(res);
+            mutate("planned-meals*");
+            dispatch("added", normalized);
             dispatch("close");
         } catch (e: any) {
             console.error("Failed to add planned meal", e);

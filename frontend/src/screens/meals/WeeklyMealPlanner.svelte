@@ -1,59 +1,115 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import Icon from "@iconify/svelte";
+    import WeekCalendar from "$ui/WeekCalendar.svelte";
+    import { swr } from "$lib/swr";
+    import { formatDateKey } from "$lib/utils";
     import {
+        getPlannedMeals,
+        deletePlannedMeal,
+        togglePlannedMeal,
+    } from "$api/meals";
+    import {
+        normalizePlannedMeal,
         type PlannedMeal,
         type MealSlot,
         type Recipe,
-        useWeeklyMealPlanner,
         useFamilyRecipes,
-        removePlannedMeal,
     } from "$lib/mealsStore";
-    import { formatDateKey } from "$lib/utils";
 
     const dispatch = createEventDispatcher<{
         addMeal: { date: string; slot: MealSlot };
         openRecipe: Recipe;
     }>();
 
+    // ─── State (BoardScreen architecture) ─────────────────────────────────────────
+
     let selectedDate = new Date();
+    let optimisticMeals: PlannedMeal[] | null = null;
 
-    function normalize(d: Date) {
-        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    $: dateKey = formatDateKey(selectedDate);
+
+    // Сбрасываем оптимистичные данные при смене даты
+    $: if (dateKey) optimisticMeals = null;
+
+    function handleDateChange(event: CustomEvent<Date>) {
+        selectedDate = event.detail;
     }
 
-    function isSameDay(a: Date, b: Date) {
-        return a.toDateString() === b.toDateString();
+    export function setDate(d: Date) {
+        selectedDate = d;
     }
 
-    const today = normalize(new Date());
-
-    // Compute current week (Mon-Sun)
-    function getWeekDays(refDate: Date): Date[] {
-        const d = normalize(refDate);
-        const day = d.getDay();
-        const diff = day === 0 ? -6 : 1 - day;
-        d.setDate(d.getDate() + diff);
-
-        return Array.from({ length: 7 }, (_, i) => {
-            const next = new Date(d);
-            next.setDate(d.getDate() + i);
-            return next;
-        });
+    export function setDateString(str: string) {
+        const parts = str.split("-").map(Number);
+        if (parts.length === 3 && !parts.some(isNaN)) {
+            selectedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        }
     }
 
-    $: weekDays = getWeekDays(selectedDate);
-    $: selectedDateKey = formatDateKey(selectedDate);
+    // ─── Data fetching (BoardScreen architecture) ─────────────────────────────────
 
-    $: startOfWeek = formatDateKey(weekDays[0]);
-    $: endOfWeek = formatDateKey(weekDays[6]);
+    $: meals = swr<PlannedMeal[]>(
+        `planned-meals:${dateKey}`,
+        async () => {
+            const res: any = await getPlannedMeals({ due_date: dateKey });
+            return (res?.meals || []).map(normalizePlannedMeal);
+        }
+    );
 
-    $: mealsSWR = useWeeklyMealPlanner(startOfWeek, endOfWeek);
     const recipesSWR = useFamilyRecipes();
 
-    $: allMeals = $mealsSWR.data ?? [];
+    $: loading = $meals.loading;
+    $: allMeals = $meals.data ?? [];
+    $: plannedMeals = optimisticMeals ?? allMeals;
     $: allRecipes = $recipesSWR.data ?? [];
-    $: dayMeals = allMeals.filter((m) => m.date === selectedDateKey);
+
+    export async function revalidate() {
+        await meals.revalidate();
+    }
+
+    export function addOptimisticMeal(meal: PlannedMeal) {
+        if (meal.date === dateKey) {
+            optimisticMeals = [...plannedMeals, meal];
+        }
+    }
+
+    // ─── Handlers ────────────────────────────────────────────────────────────────
+
+    async function toggleMeal(meal: PlannedMeal) {
+        const previous = plannedMeals;
+        const isCompleted = !meal.isCompleted;
+
+        // Оптимистичное обновление
+        optimisticMeals = plannedMeals.map((m) =>
+            m.id === meal.id ? { ...m, isCompleted } : m
+        );
+
+        try {
+            await togglePlannedMeal(meal.id);
+            await meals.revalidate();
+            optimisticMeals = null;
+        } catch (e) {
+            optimisticMeals = previous;
+            console.error(e);
+        }
+    }
+
+    async function deleteMeal(meal: PlannedMeal) {
+        const previous = plannedMeals;
+
+        // Оптимистичное удаление
+        optimisticMeals = plannedMeals.filter((m) => m.id !== meal.id);
+
+        try {
+            await deletePlannedMeal(meal.id);
+            await meals.revalidate();
+            optimisticMeals = null;
+        } catch (e) {
+            optimisticMeals = previous;
+            console.error(e);
+        }
+    }
 
     const slotDefinitions: {
         id: MealSlot;
@@ -92,14 +148,10 @@
         },
     ];
 
-    function getMealsForSlot(slot: MealSlot): PlannedMeal[] {
-        return dayMeals.filter((m) => m.slot === slot);
-    }
-
-    function hasMealsOnDate(d: Date): boolean {
-        const key = formatDateKey(d);
-        return allMeals.some((m) => m.date === key);
-    }
+    $: slotsWithMeals = slotDefinitions.map((slotDef) => ({
+        ...slotDef,
+        meals: plannedMeals.filter((m) => m.slot === slotDef.id),
+    }));
 
     function handleMealClick(meal: PlannedMeal) {
         if (meal.recipeId) {
@@ -112,30 +164,9 @@
 </script>
 
 <div class="planner-view">
-    <!-- Weekday Strip -->
-    <div class="week-strip">
-        {#each weekDays as day}
-            {@const isSel = isSameDay(day, selectedDate)}
-            {@const isTod = isSameDay(day, today)}
-            {@const hasMeal = hasMealsOnDate(day)}
-
-            <button
-                class="day-pill"
-                class:selected={isSel}
-                class:today={isTod}
-                on:click={() => (selectedDate = day)}
-            >
-                <span class="day-name">
-                    {day.toLocaleDateString("ru-RU", { weekday: "short" })}
-                </span>
-                <span class="day-num">{day.getDate()}</span>
-                {#if isTod && !isSel}
-                    <span class="today-dot"></span>
-                {:else if hasMeal}
-                    <span class="meal-dot" class:active-dot={isSel}></span>
-                {/if}
-            </button>
-        {/each}
+    <!-- Week Calendar -->
+    <div class="calendar-card">
+        <WeekCalendar {selectedDate} on:change={handleDateChange} />
     </div>
 
     <!-- Day Header Info -->
@@ -145,13 +176,13 @@
                 {selectedDate.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" })}
             </h3>
             <span class="meal-count-badge">
-                {dayMeals.length === 0 ? "Меню не составлено" : `Запланировано блюд: ${dayMeals.length}`}
+                {plannedMeals.length === 0 ? "Меню не составлено" : `Запланировано блюд: ${plannedMeals.length}`}
             </span>
         </div>
 
         <button
             class="quick-add-btn"
-            on:click={() => dispatch("addMeal", { date: selectedDateKey, slot: "dinner" })}
+            on:click={() => dispatch("addMeal", { date: dateKey, slot: "dinner" })}
             aria-label="Добавить блюдо"
         >
             <Icon icon="material-symbols:add-rounded" width={20} height={20} />
@@ -161,8 +192,7 @@
 
     <!-- Meal Slots -->
     <div class="slots-list">
-        {#each slotDefinitions as slotDef}
-            {@const slotMeals = getMealsForSlot(slotDef.id)}
+        {#each slotsWithMeals as slotDef (slotDef.id)}
             <div class="slot-card">
                 <!-- Slot Header -->
                 <div class="slot-head">
@@ -173,7 +203,7 @@
 
                     <button
                         class="slot-add-trigger"
-                        on:click={() => dispatch("addMeal", { date: selectedDateKey, slot: slotDef.id })}
+                        on:click={() => dispatch("addMeal", { date: dateKey, slot: slotDef.id })}
                         aria-label="Добавить в {slotDef.name}"
                     >
                         <Icon icon="material-symbols:add-rounded" width={18} height={18} />
@@ -181,20 +211,34 @@
                 </div>
 
                 <!-- Slot Items -->
-                {#if slotMeals.length > 0}
+                {#if slotDef.meals.length > 0}
                     <div class="meals-in-slot">
-                        {#each slotMeals as meal (meal.id)}
+                        {#each slotDef.meals as meal (meal.id)}
                             <div
                                 class="meal-item"
+                                class:meal-completed={meal.isCompleted}
                                 class:clickable={!!meal.recipeId}
                                 on:click={() => handleMealClick(meal)}
                                 on:keydown={(e) => e.key === "Enter" && handleMealClick(meal)}
                                 role="button"
                                 tabindex="0"
                             >
+                                <button
+                                    class="check-meal-btn"
+                                    class:checked={meal.isCompleted}
+                                    on:click|stopPropagation={() => toggleMeal(meal)}
+                                    aria-label={meal.isCompleted ? "Отметить неприготовленным" : "Отметить приготовленным"}
+                                >
+                                    <Icon
+                                        icon={meal.isCompleted ? "material-symbols:check-circle-rounded" : "material-symbols:radio-button-unchecked"}
+                                        width={22}
+                                        height={22}
+                                    />
+                                </button>
+
                                 <div class="meal-main">
                                     <div class="meal-title-row">
-                                        <span class="meal-title">{meal.title}</span>
+                                        <span class="meal-title" class:completed-text={meal.isCompleted}>{meal.title}</span>
                                         {#if meal.recipeId}
                                             <span class="recipe-tag" title="Смотреть рецепт">
                                                 <Icon icon="material-symbols:menu-book-rounded" width={14} height={14} />
@@ -222,7 +266,7 @@
 
                                 <button
                                     class="delete-meal-btn"
-                                    on:click|stopPropagation={() => removePlannedMeal(meal.id)}
+                                    on:click|stopPropagation={() => deleteMeal(meal)}
                                     aria-label="Удалить из меню"
                                 >
                                     <Icon icon="material-symbols:delete-outline-rounded" width={18} height={18} />
@@ -234,7 +278,7 @@
                     <!-- Empty Slot Placeholder -->
                     <button
                         class="slot-empty"
-                        on:click={() => dispatch("addMeal", { date: selectedDateKey, slot: slotDef.id })}
+                        on:click={() => dispatch("addMeal", { date: dateKey, slot: slotDef.id })}
                     >
                         <Icon icon="material-symbols:add-circle-outline-rounded" width={18} height={18} />
                         <span>Нажмите, чтобы запланировать {slotDef.name.toLowerCase()}</span>
@@ -252,89 +296,15 @@
         gap: 16px;
     }
 
-    /* Weekday Strip */
-    .week-strip {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 6px;
-        padding: 4px 2px;
-    }
-
-    .day-pill {
+    /* Week Calendar Card */
+    .calendar-card {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 3px;
-        padding: 12px 2px;
-        border-radius: 20px;
         background: var(--surface);
+        border-radius: var(--radius-card, 20px);
         border: 1px solid var(--border-subtle);
-        box-shadow: var(--shadow-ambient);
-        cursor: pointer;
-        transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, border-color 0.2s ease;
-        -webkit-tap-highlight-color: transparent;
-        position: relative;
-    }
-
-    .day-pill:active {
-        transform: scale(0.92);
-    }
-
-    .day-name {
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-transform: capitalize;
-    }
-
-    .day-num {
-        font-size: 16px;
-        font-weight: 800;
-        color: var(--text-primary);
-    }
-
-    .day-pill.selected {
-        background: var(--accent-gradient, var(--accent));
-        border-color: transparent;
-        box-shadow: 0 4px 14px var(--accent-glow);
-    }
-
-    .day-pill.selected .day-name {
-        color: rgba(255, 255, 255, 0.88);
-    }
-
-    .day-pill.selected .day-num {
-        color: #ffffff;
-    }
-
-    .day-pill.today:not(.selected) {
-        border-color: var(--accent);
-        background: var(--accent-soft);
-    }
-
-    .day-pill.today:not(.selected) .day-num,
-    .day-pill.today:not(.selected) .day-name {
-        color: var(--accent);
-    }
-
-    .today-dot {
-        width: 4px;
-        height: 4px;
-        border-radius: 50%;
-        background: var(--accent);
-        margin-top: 1px;
-    }
-
-    .meal-dot {
-        width: 4px;
-        height: 4px;
-        border-radius: 50%;
-        background: var(--success);
-        margin-top: 1px;
-    }
-
-    .meal-dot.active-dot {
-        background: #ffffff;
+        padding: 8px 4px 10px;
+        box-shadow: var(--shadow-card);
     }
 
     /* Day Banner */
@@ -456,7 +426,11 @@
         background: var(--surface-alt);
         border: 1px solid var(--border-subtle);
         gap: 12px;
-        transition: transform 0.16s ease;
+        transition: transform 0.16s ease, opacity 0.2s ease;
+    }
+
+    .meal-item.meal-completed {
+        opacity: 0.65;
     }
 
     .meal-item.clickable {
@@ -465,6 +439,34 @@
 
     .meal-item.clickable:active {
         transform: scale(0.98);
+    }
+
+    .check-meal-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px;
+        border-radius: 50%;
+        transition: color 0.15s ease, transform 0.15s ease;
+        -webkit-tap-highlight-color: transparent;
+        flex-shrink: 0;
+    }
+
+    .check-meal-btn:active {
+        transform: scale(0.85);
+    }
+
+    .check-meal-btn.checked {
+        color: var(--success, #10B981);
+    }
+
+    .completed-text {
+        text-decoration: line-through;
+        color: var(--text-muted) !important;
     }
 
     .meal-main {

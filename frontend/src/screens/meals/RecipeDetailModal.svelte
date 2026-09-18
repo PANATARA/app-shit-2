@@ -7,10 +7,13 @@
         type Recipe,
         type Cook,
         type MealSlot,
+        type PlannedMeal,
         addIngredientsToGrocery,
-        addPlannedMeal,
         toggleRecipeFavorite,
+        normalizePlannedMeal,
     } from "$lib/mealsStore";
+    import { createPlannedMeal } from "$api/meals";
+    import { mutate } from "$lib/swr";
     import { getFamilyMembers } from "$api/family";
     import { onMount } from "svelte";
     import { formatDateKey } from "$lib/utils";
@@ -19,7 +22,7 @@
 
     const dispatch = createEventDispatcher<{
         close: void;
-        scheduled: { date: string; slot: MealSlot };
+        scheduled: { date: string; slot: MealSlot; meal?: PlannedMeal };
         toast: string;
     }>();
 
@@ -92,18 +95,20 @@
 
     async function handleSchedule() {
         try {
-            await addPlannedMeal({
+            const res: any = await createPlannedMeal({
                 date: selectedDate,
                 slot: selectedSlot,
                 title: recipe.title,
-                prepTimeMinutes: recipe.prepTimeMinutes + recipe.cookTimeMinutes,
-                cook: selectedCook,
-                recipeId: recipe.id,
+                prep_time_minutes: recipe.prepTimeMinutes + recipe.cookTimeMinutes,
                 servings,
+                recipe_id: recipe.id,
+                assigned_cook_id: selectedCook?.id ? String(selectedCook.id) : null,
             });
 
+            const normalized = normalizePlannedMeal(res);
+            mutate("planned-meals*");
             dispatch("toast", `«${recipe.title}» добавлено в меню!`);
-            dispatch("scheduled", { date: selectedDate, slot: selectedSlot });
+            dispatch("scheduled", { date: selectedDate, slot: selectedSlot, meal: normalized });
             dispatch("close");
         } catch (e) {
             console.error("Failed to schedule meal", e);
