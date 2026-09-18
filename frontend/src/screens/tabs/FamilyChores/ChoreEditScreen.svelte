@@ -137,18 +137,6 @@
                 />
             </div>
 
-            <div class="field">
-                <span class="field-label">{$t.chores.reward}</span>
-
-                <CustomInput
-                    bind:value={form.valuation}
-                    inputType="number"
-                    min={0}
-                    max={999}
-                    disabled={deleting}
-                />
-            </div>
-
             <div class="form-actions">
                 <button
                     class="btn-cancel"

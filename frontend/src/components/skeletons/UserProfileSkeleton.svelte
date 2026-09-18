@@ -8,23 +8,6 @@
     </div>
 </div>
 
-<div class="exp-card">
-    <div class="exp-header">
-        <div class="exp-level-wrap">
-            <div class="skeleton level-label"></div>
-            <div class="skeleton level"></div>
-        </div>
-
-        <div class="exp-numbers">
-            <div class="skeleton current"></div>
-            <div class="skeleton divider"></div>
-            <div class="skeleton max"></div>
-        </div>
-    </div>
-
-    <div class="skeleton progress"></div>
-</div>
-
 <style>
     /* ---------- Общие ---------- */
 
@@ -89,70 +72,5 @@
         width: 85px;
         height: 24px;
         border-radius: 999px;
-    }
-
-    /* ---------- Card ---------- */
-
-    .exp-card {
-        background: var(--bg-card);
-        border-radius: 18px;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-    }
-
-    .exp-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-    }
-
-    .exp-level-wrap {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .level-label {
-        width: 56px;
-        height: 10px;
-        border-radius: 4px;
-    }
-
-    .level {
-        width: 42px;
-        height: 34px;
-        border-radius: 8px;
-    }
-
-    .exp-numbers {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .current {
-        width: 48px;
-        height: 16px;
-        border-radius: 6px;
-    }
-
-    .divider {
-        width: 8px;
-        height: 12px;
-        border-radius: 4px;
-    }
-
-    .max {
-        width: 48px;
-        height: 14px;
-        border-radius: 6px;
-    }
-
-    .progress {
-        width: 100%;
-        height: 8px;
-        border-radius: 4px;
     }
 </style>

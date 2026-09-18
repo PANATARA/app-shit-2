@@ -1,7 +1,6 @@
 <script lang="ts">
     import UserAvatar from "$ui/UserAvatar.svelte";
     import UserProfileSkeleton from "$skeletons/CompactUserProfile.svelte";
-    import ProgressBar from "$ui/ProgressBar.svelte";
     import Card from "$ui/Card.svelte";
     import Icon from "@iconify/svelte";
     import { t } from "$lib/i18n";
@@ -25,10 +24,6 @@
                 </div>
                 <div class="user-info">
                     <span class="name">{user.name}</span>
-                    <span class="level-badge">
-                        <Icon icon="material-symbols:award-star-rounded" width={14} height={14} />
-                        {$t.stats.level} {user.level}
-                    </span>
                 </div>
             </div>
 
@@ -44,16 +39,6 @@
                     {/if}
                 </button>
             {/if}
-        </div>
-
-        <!-- XP Progress -->
-        <div class="xp-row">
-            <ProgressBar
-                percent={user.progress_percent}
-                label={$t.stats.xp}
-                sublabel="{user.experience} / {user.exp_to_next_total} XP"
-                shimmer={true}
-            />
         </div>
 
         <!-- Unified Stats: Total & Weekly Completed -->
@@ -127,20 +112,6 @@
         line-height: 1.2;
     }
 
-    .level-badge {
-        width: fit-content;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 3px 9px 3px 7px;
-        border-radius: var(--radius-pill, 999px);
-        background: var(--accent-soft);
-        color: var(--accent);
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.2px;
-    }
-
     /* Notification */
     .notification-btn {
         width: 42px;
@@ -171,13 +142,6 @@
         border-radius: 50%;
         background: var(--accent);
         box-shadow: 0 0 6px var(--accent-glow);
-    }
-
-    /* XP */
-    .xp-row {
-        position: relative;
-        z-index: 1;
-        padding-top: 2px;
     }
 
     /* Dual Stats Section */

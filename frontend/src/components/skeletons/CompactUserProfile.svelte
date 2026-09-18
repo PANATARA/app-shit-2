@@ -6,22 +6,11 @@
 
             <div class="user-info">
                 <div class="name skeleton"></div>
-                <div class="level skeleton"></div>
             </div>
         </div>
 
         <!-- Notification -->
         <div class="notification skeleton"></div>
-    </div>
-
-    <!-- XP -->
-    <div class="xp-row">
-        <div class="xp-label">
-            <div class="text skeleton"></div>
-            <div class="text small skeleton"></div>
-        </div>
-
-        <div class="progress-track skeleton"></div>
     </div>
 
     <!-- Stats Row Skeleton -->
@@ -100,14 +89,6 @@
         border-radius: 8px;
     }
 
-    .level {
-        width: 85px;
-        height: 18px;
-
-        border-radius: 999px;
-    }
-
-
     /* Notification */
 
     .notification {
@@ -115,40 +96,6 @@
         height: 48px;
 
         border-radius: 16px;
-    }
-
-
-    /* XP */
-
-    .xp-row {
-        display: flex;
-        flex-direction: column;
-
-        gap: 8px;
-    }
-
-    .xp-label {
-        display: flex;
-        justify-content: space-between;
-
-        align-items: center;
-    }
-
-    .text {
-        width: 45px;
-        height: 14px;
-
-        border-radius: 6px;
-    }
-
-    .text.small {
-        width: 90px;
-    }
-
-    .progress-track {
-        height: 10px;
-
-        border-radius: 999px;
     }
 
 

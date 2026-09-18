@@ -61,7 +61,7 @@ export const translations = {
     },
     onboarding: {
       welcomeTitle: "Вместе проще",
-      welcomeSubtitle: "Организуйте быт вместе — задания, привычки и награды для всей семьи",
+      welcomeSubtitle: "Организуйте быт вместе — задания, привычки и забота о доме для всей семьи",
       familyCircle: "Семейный круг",
       upTo10: "До 10 участников",
       onlyFamily: "Только для своих",
@@ -350,7 +350,7 @@ export const translations = {
     },
     onboarding: {
       welcomeTitle: "Simpler together",
-      welcomeSubtitle: "Organize household life together — chores, habits, and rewards for the whole family",
+      welcomeSubtitle: "Organize household life together — chores, habits, and care for the whole family",
       familyCircle: "Family Circle",
       upTo10: "Up to 10 members",
       onlyFamily: "Only for family",

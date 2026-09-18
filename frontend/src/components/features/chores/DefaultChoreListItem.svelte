@@ -18,8 +18,6 @@
                 <span class="chore-desc">{chore.description}</span>
             {/if}
         </div>
-
-        <span class="chore-valuation">🪙 {chore.valuation}</span>
     </div>
 
     <button
@@ -85,15 +83,6 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-    }
-
-    .chore-valuation {
-        flex-shrink: 0;
-
-        font-size: 13px;
-        font-weight: 700;
-
-        color: var(--text-muted);
     }
 
     .add-button {

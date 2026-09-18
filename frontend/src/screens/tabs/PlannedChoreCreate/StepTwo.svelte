@@ -42,8 +42,6 @@
     const dispatch = createEventDispatcher();
 
     // ─── Component State ─────────────────────────────────────────────────────
-    const VALUATION_OPTIONS = [1, 2, 3, 5, 8, 10, 15, 20];
-
     // Standard chore form fields
     let comment = "";
     let dueDate = getTodayIso();
@@ -238,22 +236,6 @@
                     maxlength={100}
                 />
             </div>
-
-            <!-- Награда -->
-            <div class="section">
-                <div class="section-label">{$t.common.reward}</div>
-                <div class="valuation-row">
-                    {#each VALUATION_OPTIONS as v}
-                        <button
-                            class="val-btn"
-                            class:val-active={quickTaskValuation === v}
-                            on:click={() => (quickTaskValuation = v)}
-                        >
-                            🪙 {v}
-                        </button>
-                    {/each}
-                </div>
-            </div>
         {/if}
 
         <!-- Кому назначить -->
@@ -391,36 +373,6 @@
     /* ── Шапка быстрой задачи ─────────────────────── */
     .quick-header {
         padding: 0 8px 4px;
-    }
-
-    /* ── Награда ──────────────────────────────────── */
-    .valuation-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .val-btn {
-        padding: 7px 14px;
-        border-radius: 20px;
-        border: 1.5px solid var(--border);
-        background: none;
-        font-size: 13px;
-        font-weight: 700;
-        font-family: inherit;
-        color: var(--text-muted);
-        cursor: pointer;
-        transition: all 0.15s;
-    }
-
-    .val-btn:active {
-        transform: scale(0.94);
-    }
-
-    .val-active {
-        background: var(--accent-soft);
-        border-color: var(--accent);
-        color: var(--accent);
     }
 
     /* ── Форма ────────────────────────────────────── */

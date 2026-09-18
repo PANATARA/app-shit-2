@@ -53,9 +53,6 @@
     $: title = isQuick
         ? (plannedChore as QuickPlannedChore)?.name
         : (plannedChore as PlannedChore)?.chore?.name;
-    $: valuation = isQuick
-        ? (plannedChore as QuickPlannedChore)?.valuation
-        : (plannedChore as PlannedChore)?.chore?.valuation;
 
     // Local form state
     let newDate = plannedChore?.due_date;
@@ -582,24 +579,6 @@
                 {:else}
                     <span class="detail-value muted">{$t.common.notYet}</span>
                 {/if}
-            </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="detail-row">
-            <div class="detail-icon">
-                <Icon
-                    icon="material-symbols:paid-rounded"
-                    width={18}
-                    height={18}
-                />
-            </div>
-            <div class="detail-text">
-                <span class="detail-label">{$t.common.reward}</span>
-                <span class="detail-value"
-                    >🪙 {valuation} {$t.common.coins}</span
-                >
             </div>
         </div>
 
