@@ -18,7 +18,7 @@
         </div>
         <ButtonPrimaryGlow
             label={$t.onboarding.continue}
-            on:click={() => activeTab.set("onboardingChoose")}
+            on:click={() => activeTab.set("onboardingProfile")}
         />
     </div>
 </div>
@@ -26,11 +26,16 @@
 <style>
     .onboarding-screen {
         width: 100%;
-        min-height: 100dvh;
+        height: 100dvh;
+        max-height: 100dvh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box;
         display: flex;
         flex-direction: column;
         justify-content: center;
         background: var(--bg);
+        padding: max(20px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
     }
     .first-info {
         display: flex;

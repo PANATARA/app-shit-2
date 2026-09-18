@@ -176,13 +176,17 @@
   }
 
   .page {
-    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px 16px;
+    padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
     background: var(--bg);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-family: inherit;
   }
 
   .card {

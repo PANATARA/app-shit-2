@@ -1,5 +1,6 @@
 <script lang="ts">
     import { activeTab } from "$lib/navigation";
+    import BackButton from "$ui/backbtn.svelte";
     import Icon from "@iconify/svelte";
     import { t } from "$lib/i18n";
 
@@ -8,85 +9,97 @@
             type === "create" ? "onboardingCreateStep1" : "onboardingJoin",
         );
     }
+
+    function handleBack() {
+        activeTab.set("onboardingProfile");
+    }
 </script>
 
 <div class="onboarding-screen">
+    <!-- Header -->
+    <header class="onboarding-header">
+        <BackButton on:click={handleBack} />
+        <div class="header-info">
+            <span class="header-step">{$t.onboarding.familyCircle || "Семейный круг"}</span>
+            <h2 class="screen-title">{$t.onboarding.chooseTitle || "Как начнём?"}</h2>
+        </div>
+    </header>
+
     <main class="content">
         <section class="intro">
             <div class="intro-icon">
                 <Icon
                     icon="material-symbols:family-home-rounded"
-                    width="34"
-                    height="34"
+                    width="36"
+                    height="36"
                 />
             </div>
 
             <div class="intro-text">
                 <h1>{$t.onboarding.chooseTitle}</h1>
-
-                <p>
-                    {$t.onboarding.chooseSubtitle}
-                </p>
+                <p>{$t.onboarding.chooseSubtitle}</p>
             </div>
         </section>
 
         <section class="choose-options">
             <button
-                class="choose-card"
+                class="choose-card create"
                 type="button"
                 on:click={() => choose("create")}
             >
-                <div class="choose-icon">
-                    <Icon
-                        icon="material-symbols:add-home-rounded"
-                        width="28"
-                        height="28"
-                    />
+                <div class="card-top">
+                    <div class="choose-icon create-icon">
+                        <Icon
+                            icon="material-symbols:add-home-rounded"
+                            width="28"
+                            height="28"
+                        />
+                    </div>
+                    <span class="choose-label">{$t.onboarding.newFamily}</span>
                 </div>
 
                 <div class="choose-content">
-                    <span class="choose-label">{$t.onboarding.newFamily}</span>
-
-                    <strong>{$t.onboarding.createFamily}</strong>
-
-                    <p>{$t.onboarding.createFamilyDesc}</p>
+                    <strong class="card-title">{$t.onboarding.createFamily}</strong>
+                    <p class="card-desc">{$t.onboarding.createFamilyDesc}</p>
                 </div>
 
-                <div class="arrow">
+                <div class="card-footer">
+                    <span class="action-text">Начать создание</span>
                     <Icon
-                        icon="material-symbols:chevron-right-rounded"
-                        width="23"
-                        height="23"
+                        icon="material-symbols:arrow-forward-rounded"
+                        width="18"
+                        height="18"
                     />
                 </div>
             </button>
 
             <button
-                class="choose-card"
+                class="choose-card join"
                 type="button"
                 on:click={() => choose("join")}
             >
-                <div class="choose-icon">
-                    <Icon
-                        icon="material-symbols:handshake-rounded"
-                        width="30"
-                        height="30"
-                    />
+                <div class="card-top">
+                    <div class="choose-icon join-icon">
+                        <Icon
+                            icon="material-symbols:handshake-rounded"
+                            width="28"
+                            height="28"
+                        />
+                    </div>
+                    <span class="choose-label">{$t.onboarding.alreadyHaveFamily}</span>
                 </div>
 
                 <div class="choose-content">
-                    <span class="choose-label">{$t.onboarding.alreadyHaveFamily}</span>
-
-                    <strong>{$t.onboarding.joinFamily}</strong>
-
-                    <p>{$t.onboarding.joinFamilyDesc}</p>
+                    <strong class="card-title">{$t.onboarding.joinFamily}</strong>
+                    <p class="card-desc">{$t.onboarding.joinFamilyDesc}</p>
                 </div>
 
-                <div class="arrow">
+                <div class="card-footer">
+                    <span class="action-text">Ввести код</span>
                     <Icon
-                        icon="material-symbols:chevron-right-rounded"
-                        width="23"
-                        height="23"
+                        icon="material-symbols:arrow-forward-rounded"
+                        width="18"
+                        height="18"
                     />
                 </div>
             </button>
@@ -98,10 +111,7 @@
                 width="16"
                 height="16"
             />
-
-            <span
-                >{$t.onboarding.privateHint}</span
-            >
+            <span>{$t.onboarding.privateHint}</span>
         </div>
     </main>
 </div>
@@ -109,7 +119,11 @@
 <style>
     .onboarding-screen {
         width: 100%;
-        min-height: 100dvh;
+        height: 100dvh;
+        max-height: 100dvh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
         box-sizing: border-box;
 
         display: flex;
@@ -119,302 +133,200 @@
         color: var(--text-primary);
     }
 
-    /* ───────────────── Content ───────────────── */
+    /* ── Header ── */
+    .onboarding-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: max(12px, env(safe-area-inset-top)) 16px 0;
+    }
 
+    .header-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .header-step {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--accent);
+    }
+
+    .screen-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+        color: var(--text-primary);
+    }
+
+    /* ── Content ── */
     .content {
         width: 100%;
-        max-width: 520px;
+        max-width: 480px;
         box-sizing: border-box;
+        margin: 0 auto;
+        padding: 20px 18px max(24px, env(safe-area-inset-bottom));
 
         display: flex;
         flex-direction: column;
-
-        margin: 0 auto;
-        padding: 28px 20px 28px;
+        gap: 24px;
+        flex: 1;
     }
 
-    /* ───────────────── Intro ───────────────── */
-
+    /* ── Intro ── */
     .intro {
         display: flex;
         flex-direction: column;
         align-items: center;
-
         text-align: center;
-
-        margin-bottom: 30px;
+        padding-top: 4px;
     }
 
     .intro-icon {
         width: 68px;
         height: 68px;
-
+        border-radius: 22px;
         display: flex;
         align-items: center;
         justify-content: center;
-
-        margin-bottom: 18px;
-
-        border-radius: 21px;
-
         color: var(--accent);
-
-        background: color-mix(in srgb, var(--accent) 13%, transparent);
-
-        border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
-
-        box-shadow:
-            0 10px 28px color-mix(in srgb, var(--accent) 10%, transparent),
-            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        background: var(--accent-soft);
+        border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+        box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 15%, transparent);
+        margin-bottom: 16px;
     }
 
     .intro-text h1 {
         margin: 0 0 8px;
-
-        font-size: 27px;
+        font-size: 26px;
         line-height: 1.15;
         font-weight: 800;
-        letter-spacing: -0.7px;
-
+        letter-spacing: -0.6px;
         color: var(--text-primary);
     }
 
     .intro-text p {
-        max-width: 370px;
-
-        margin: 0 auto;
-
+        margin: 0;
         font-size: 14px;
-        line-height: 1.55;
-
+        line-height: 1.5;
         color: var(--text-secondary);
+        max-width: 360px;
     }
 
-    /* ───────────────── Cards ───────────────── */
-
+    /* ── Choose Options ── */
     .choose-options {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 14px;
+        width: 100%;
     }
 
     .choose-card {
-        position: relative;
-
-        width: 100%;
-        min-height: 128px;
-
-        box-sizing: border-box;
-
         display: flex;
-        align-items: center;
+        flex-direction: column;
         gap: 14px;
-
-        padding: 16px;
-
-        border: 1px solid var(--border);
-        border-radius: 20px;
-
-        background: var(--surface-secondary);
-
-        color: inherit;
-
+        padding: 18px;
+        border-radius: var(--radius-card, 22px);
+        background: var(--surface);
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-card);
         cursor: pointer;
         text-align: left;
-
+        font-family: inherit;
+        transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease, box-shadow 0.2s ease;
         -webkit-tap-highlight-color: transparent;
-
-        transition:
-            transform 0.18s ease,
-            border-color 0.18s ease,
-            background 0.18s ease,
-            box-shadow 0.18s ease;
-    }
-
-    .choose-card:hover {
-        border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
-
-        background: color-mix(
-            in srgb,
-            var(--surface-secondary) 94%,
-            var(--accent)
-        );
-
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     }
 
     .choose-card:active {
-        transform: scale(0.985);
+        transform: scale(0.98);
+        border-color: var(--accent);
     }
 
-    /* ───────────────── Card Icon ───────────────── */
+    .choose-card.create {
+        border-color: color-mix(in srgb, var(--accent) 28%, var(--border-subtle));
+    }
+
+    .card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
 
     .choose-icon {
-        flex: 0 0 52px;
-
-        width: 52px;
-        height: 52px;
-
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-
-        border-radius: 16px;
-
-        color: white;
-
-        background: linear-gradient(
-            145deg,
-            var(--accent),
-            color-mix(in srgb, var(--accent) 72%, white)
-        );
-
-        box-shadow: 0 6px 16px
-            color-mix(in srgb, var(--accent) 18%, transparent);
     }
 
-    /* ───────────────── Card Content ───────────────── */
+    .create-icon {
+        background: var(--accent-soft);
+        color: var(--accent);
+    }
 
-    .choose-content {
-        min-width: 0;
-        flex: 1;
-
-        display: flex;
-        flex-direction: column;
+    .join-icon {
+        background: color-mix(in srgb, var(--success) 14%, transparent);
+        color: var(--success);
     }
 
     .choose-label {
-        margin-bottom: 3px;
-
-        font-size: 10px;
-        line-height: 1.2;
+        font-size: 11px;
         font-weight: 700;
-
-        letter-spacing: 0.07em;
+        letter-spacing: 0.04em;
         text-transform: uppercase;
-
-        color: var(--accent);
+        color: var(--text-muted);
+        background: var(--surface-alt);
+        padding: 4px 10px;
+        border-radius: var(--radius-pill, 999px);
     }
 
-    .choose-content strong {
-        display: block;
+    .choose-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
 
-        margin-bottom: 5px;
-
-        font-size: 16px;
-        line-height: 1.2;
-        font-weight: 750;
-
+    .card-title {
+        font-size: 18px;
+        font-weight: 800;
         color: var(--text-primary);
+        letter-spacing: -0.3px;
     }
 
-    .choose-content p {
+    .card-desc {
         margin: 0;
-
-        font-size: 12px;
-        line-height: 1.4;
-
+        font-size: 13px;
+        line-height: 1.45;
         color: var(--text-secondary);
     }
 
-    /* ───────────────── Arrow ───────────────── */
-
-    .arrow {
-        flex: 0 0 30px;
-
-        width: 30px;
-        height: 30px;
-
+    .card-footer {
         display: flex;
         align-items: center;
-        justify-content: center;
-
-        border-radius: 10px;
-
+        justify-content: space-between;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-subtle);
         color: var(--accent);
-
-        background: color-mix(in srgb, var(--accent) 8%, transparent);
-
-        transition:
-            transform 0.18s ease,
-            background 0.18s ease;
+        font-size: 13px;
+        font-weight: 700;
     }
 
-    .choose-card:hover .arrow {
-        transform: translateX(2px);
-
-        background: color-mix(in srgb, var(--accent) 14%, transparent);
-    }
-
-    /* ───────────────── Bottom hint ───────────────── */
-
+    /* ── Bottom Hint ── */
     .bottom-hint {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
-
-        margin-top: 22px;
-        padding: 0 12px;
-
+        gap: 8px;
+        color: var(--text-muted);
+        font-size: 12px;
         text-align: center;
-
-        font-size: 11px;
-        line-height: 1.4;
-
-        color: var(--text-secondary);
-        opacity: 0.55;
-    }
-
-    .bottom-hint :global(svg) {
-        flex-shrink: 0;
-    }
-
-    /* ───────────────── Small screens ───────────────── */
-
-    @media (max-width: 380px) {
-        .content {
-            padding: 24px 16px 24px;
-        }
-
-        .intro {
-            margin-bottom: 24px;
-        }
-
-        .intro-icon {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 15px;
-            border-radius: 19px;
-        }
-
-        .intro-text h1 {
-            font-size: 25px;
-        }
-
-        .intro-text p {
-            font-size: 13px;
-        }
-
-        .choose-card {
-            min-height: 118px;
-            padding: 14px;
-            border-radius: 18px;
-        }
-
-        .choose-icon {
-            flex-basis: 48px;
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
-        }
-
-        .choose-content strong {
-            font-size: 15px;
-        }
-
-        .choose-content p {
-            font-size: 11px;
-        }
+        margin-top: auto;
+        padding: 8px 0;
     }
 </style>

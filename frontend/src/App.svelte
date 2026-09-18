@@ -24,6 +24,7 @@
     import ChoreTemplatesScreen from "$screens/tabs/FamilyChores/ChoreTemplatesScreen.svelte";
 
     import OnboardingWelcomeScreen from "$screens/onBoarding/OnboardingWelcomeScreen.svelte";
+    import OnboardingProfileScreen from "$screens/onBoarding/OnboardingProfileScreen.svelte";
     import OnboardingChooseScreen from "$screens/onBoarding/OnboardingChooseScreen.svelte";
     import OnboardingCreateStep1Screen from "$screens/onBoarding/OnboardingCreateStep1Screen.svelte";
     import OnboardingCreateStep2Screen from "$screens/onBoarding/OnboardingCreateStep2Screen.svelte";
@@ -80,7 +81,11 @@
             isAuthed = true;
             isInFamily = !!profile.is_family_member;
             if (!isInFamily) {
-                activeTab.set("onboardingWelcome"); // ← стартуем онбординг
+                if (!profile.name) {
+                    activeTab.set("onboardingProfile");
+                } else {
+                    activeTab.set("onboardingChoose");
+                }
             }
         } catch (err) {
             clearTokens();
@@ -124,7 +129,9 @@
     {:else if !isAuthed}
         <AuthScreen on:auth={handleAuth} />
     {:else if !isInFamily}
-        {#if $activeTab === "onboardingWelcome"}
+        {#if $activeTab === "onboardingProfile"}
+            <OnboardingProfileScreen />
+        {:else if $activeTab === "onboardingWelcome"}
             <OnboardingWelcomeScreen />
         {:else if $activeTab === "onboardingChoose"}
             <OnboardingChooseScreen />
@@ -135,7 +142,7 @@
         {:else if $activeTab === "onboardingJoin"}
             <OnboardingJoinScreen onSuccess={handleFamilySuccess} />
         {:else}
-            <OnboardingWelcomeScreen />
+            <OnboardingProfileScreen />
         {/if}
     {:else}
         <div class="content" bind:this={contentEl}>

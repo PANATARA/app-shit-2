@@ -14,6 +14,7 @@ export type Tab =
   | "choreCreateScreen"
   | "choreTemplatesScreen"
   | "onboardingWelcome"
+  | "onboardingProfile"
   | "onboardingChoose"
   | "onboardingCreateStep1"
   | "onboardingCreateStep2"
@@ -46,7 +47,8 @@ export const screenParents: Partial<Record<Tab, Tab>> = {
   onboardingCreateStep2: "onboardingCreateStep1",
   onboardingCreateStep1: "onboardingChoose",
   onboardingJoin: "onboardingChoose",
-  onboardingChoose: "onboardingWelcome",
+  onboardingChoose: "onboardingProfile",
+  onboardingProfile: "onboardingProfile",
 };
 
 /**

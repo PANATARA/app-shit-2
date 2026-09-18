@@ -31,7 +31,6 @@
 
     function handleInput(event: Event) {
         const input = event.target as HTMLInputElement;
-
         codeInputRaw = formatCode(input.value);
 
         if (errorMessage) {
@@ -39,11 +38,23 @@
         }
     }
 
+    async function handlePaste() {
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text) {
+                codeInputRaw = formatCode(text);
+                if (errorMessage) errorMessage = "";
+            }
+        } catch {
+            // Clipboard not allowed
+        }
+    }
+
     async function handleJoinByCode() {
         const clean = codeInputRaw.replace("-", "").trim();
 
         if (clean.length < 6) {
-            errorMessage = $t.onboarding.enterFullCodeError;
+            errorMessage = $t.onboarding.enterFullCodeError || "Введите полный 6-значный код (например, ABC-123)";
             return;
         }
 
@@ -55,175 +66,117 @@
                 joinFamily({
                     invite_code: clean,
                 }),
-                new Promise((resolve) => setTimeout(resolve, 1400)),
+                new Promise((resolve) => setTimeout(resolve, 1000)),
             ]);
 
             successData = profile;
             isSuccess = true;
         } catch {
-            errorMessage = $t.onboarding.familyNotFoundError;
+            errorMessage = $t.onboarding.familyNotFoundError || "Семья с таким кодом не найдена";
         } finally {
             isLoading = false;
         }
+    }
+
+    function handleBack() {
+        activeTab.set("onboardingChoose");
     }
 </script>
 
 <div class="onboarding-screen">
     {#if isSuccess && successData}
         <!-- SUCCESS -->
-
-        <div
-            class="success-container"
-            in:scale={{ duration: 450, start: 0.92 }}
-        >
+        <div class="state-container" in:scale={{ duration: 400, start: 0.94 }}>
             <div class="success-card">
-                <div class="success-glow"></div>
-
-                <div
-                    class="success-avatar"
-                    style={`background: ${successData.icon_bg}`}
-                >
+                <div class="success-avatar" style="background: {successData.icon_bg}">
                     <Icon
                         icon={successData.icon}
-                        width="58"
-                        height="58"
+                        width="54"
+                        height="54"
                         color={successData.icon_color}
                     />
-
                     <div class="success-check">
-                        <Icon
-                            icon="material-symbols:check-rounded"
-                            width="17"
-                            height="17"
-                        />
+                        <Icon icon="material-symbols:check-rounded" width="16" height="16" />
                     </div>
                 </div>
 
-                <span class="success-label">
-                    {$t.onboarding.allDone}
-                </span>
+                <span class="success-label">{$t.onboarding.allDone || "Всё готово"}</span>
+                <h1 class="success-title">{$t.onboarding.youAreInCircle || "Вы в семейном круге!"}</h1>
+                <p class="success-subtitle">{$t.onboarding.familyCreatedSubtitle || "Добро пожаловать домой"}</p>
 
-                <h1 class="success-title">
-                    {$t.onboarding.youAreInCircle}
-                </h1>
-
-                <p class="success-subtitle">
-                    {$t.onboarding.familyCreatedSubtitle}
-                </p>
-
-                <div class="family-name">
+                <div class="family-name-pill">
                     «{successData.name}»
                 </div>
 
-                <ButtonPrimaryGlow
-                    label={$t.onboarding.enterFamily}
-                    on:click={() => onSuccess(successData)}
-                />
+                <div class="state-action">
+                    <ButtonPrimaryGlow
+                        label={$t.onboarding.enterFamily || "Войти в семейный круг"}
+                        on:click={() => onSuccess(successData)}
+                    />
+                </div>
             </div>
         </div>
-
     {:else if isLoading}
         <!-- LOADING -->
-
-        <div
-            class="loader-container"
-            in:fade={{ duration: 220 }}
-        >
-            <div class="loader-content">
+        <div class="state-container" in:fade={{ duration: 200 }}>
+            <div class="loader-card">
                 <div class="loader-avatar">
-                    <div class="loader-ring loader-ring-outer"></div>
-                    <div class="loader-ring loader-ring-inner"></div>
-
-                    <div class="loader-icon">
-                        <Icon
-                            icon="material-symbols:family-home-rounded"
-                            width="34"
-                            height="34"
-                        />
-                    </div>
+                    <Icon
+                        icon="material-symbols:family-home-rounded"
+                        width="40"
+                        height="40"
+                    />
+                    <div class="spin-ring"></div>
                 </div>
 
-                <div class="loader-text">
-                    <h2>{$t.onboarding.searchingFamily}</h2>
-
-                    <p>
-                        {$t.onboarding.checkingCode}
-                    </p>
-                </div>
-
-                <div class="loader-progress">
-                    <div class="loader-progress-fill"></div>
-                </div>
+                <h2 class="loader-title">{$t.onboarding.searchingFamily || "Ищем семью..."}</h2>
+                <p class="loader-subtitle">{$t.onboarding.checkingCode || "Проверяем код приглашения"}</p>
             </div>
         </div>
-
     {:else}
         <!-- FORM -->
-
         <header class="onboarding-header">
-            <BackButton
-                on:click={() => activeTab.set("onboardingChoose")}
-            />
+            <BackButton on:click={handleBack} />
 
             <div class="header-info">
-                <span class="header-step">
-                    {$t.onboarding.joining}
-                </span>
-
-                <h2 class="screen-title">
-                    {$t.onboarding.enterFamilyCircle}
-                </h2>
+                <span class="header-step">{$t.onboarding.joining || "Присоединение"}</span>
+                <h2 class="screen-title">{$t.onboarding.enterFamilyCircle || "Вход в семью"}</h2>
             </div>
         </header>
 
         <main class="content">
-            <div class="form-header">
-                <div class="form-icon">
+            <section class="intro">
+                <div class="intro-icon">
                     <Icon
                         icon="material-symbols:group-add-rounded"
-                        width="24"
-                        height="24"
+                        width="36"
+                        height="36"
                     />
                 </div>
 
-                <div>
-                    <h1>{$t.onboarding.inviteCodeHeader}</h1>
-
-                    <p>
-                        {$t.onboarding.inviteCodeSubtitle}
-                    </p>
+                <div class="intro-text">
+                    <h1>{$t.onboarding.inviteCodeHeader || "Код приглашения"}</h1>
+                    <p>{$t.onboarding.inviteCodeSubtitle || "Введите код, который вам отправил член вашей семьи."}</p>
                 </div>
-            </div>
+            </section>
 
-            {#if errorMessage}
-                <div
-                    class="error-message"
-                    transition:slide={{ duration: 180 }}
-                >
-                    <Icon
-                        icon="material-symbols:error-rounded"
-                        width="18"
-                        height="18"
-                    />
-
-                    <span>{errorMessage}</span>
+            <section class="code-card">
+                <div class="code-card-header">
+                    <label for="invite-code-input" class="code-label">
+                        {$t.onboarding.inviteCodeLabel || "Код приглашения"}
+                    </label>
+                    <button type="button" class="paste-btn" on:click={handlePaste}>
+                        <Icon icon="material-symbols:content-paste-rounded" width="14" height="14" />
+                        <span>Вставить</span>
+                    </button>
                 </div>
-            {/if}
-
-            <section class="code-entry-box">
-                <label
-                    for="invite-code-input"
-                    class="code-input-label"
-                >
-                    {$t.onboarding.inviteCodeLabel}
-                </label>
 
                 <input
                     id="invite-code-input"
                     type="text"
                     placeholder="AAA-000"
                     bind:value={codeInputRaw}
-                    class="monospaced-code-input"
+                    class="code-input"
                     autocomplete="off"
                     autocapitalize="characters"
                     spellcheck="false"
@@ -232,29 +185,28 @@
                     on:input={handleInput}
                 />
 
-                <span class="code-subtext">
-                    {$t.onboarding.codeSubtext}
-                </span>
-            </section>
+                <span class="code-subtext">{$t.onboarding.codeSubtext || "Формат: 6 символов, например ABC-123"}</span>
 
-            <div class="hint">
-                <div class="hint-icon">
-                    <Icon
-                        icon="material-symbols:info-rounded"
-                        width="16"
-                        height="16"
-                    />
+                {#if errorMessage}
+                    <div class="error-message" transition:slide={{ duration: 180 }}>
+                        <Icon icon="material-symbols:error-rounded" width="18" height="18" />
+                        <span>{errorMessage}</span>
+                    </div>
+                {/if}
+
+                <div class="hint">
+                    <div class="hint-icon">
+                        <Icon icon="material-symbols:info-rounded" width="15" height="15" />
+                    </div>
+                    <span>{$t.onboarding.codeHint || "Код можно узнать у администратора вашей семьи в настройках."}</span>
                 </div>
-
-                <span>
-                    {$t.onboarding.codeHint}
-                </span>
-            </div>
+            </section>
 
             <div class="actions">
                 <ButtonPrimaryGlow
-                    label={$t.onboarding.joinFamily}
+                    label={$t.onboarding.joinFamily || "Присоединиться"}
                     on:click={handleJoinByCode}
+                    disabled={codeInputRaw.replace("-", "").trim().length < 6}
                 />
             </div>
         </main>
@@ -262,12 +214,13 @@
 </div>
 
 <style>
-    /* ───────────────── Screen ───────────────── */
-
     .onboarding-screen {
         width: 100%;
-        min-height: 100dvh;
-
+        height: 100dvh;
+        max-height: 100dvh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
         box-sizing: border-box;
 
         display: flex;
@@ -277,14 +230,12 @@
         color: var(--text-primary);
     }
 
-    /* ───────────────── Header ───────────────── */
-
+    /* ── Header ── */
     .onboarding-header {
         display: flex;
         align-items: center;
         gap: 12px;
-
-        padding: 8px 10px 0;
+        padding: max(12px, env(safe-area-inset-top)) 16px 0;
     }
 
     .header-info {
@@ -294,651 +245,335 @@
     }
 
     .header-step {
-        font-size: 10px;
-        line-height: 1;
-
+        font-size: 11px;
         font-weight: 700;
-        letter-spacing: 0.08em;
         text-transform: uppercase;
-
+        letter-spacing: 0.08em;
         color: var(--accent);
     }
 
     .screen-title {
         margin: 0;
-
-        font-size: 19px;
-        line-height: 1.2;
+        font-size: 18px;
         font-weight: 800;
-        letter-spacing: -0.35px;
-
+        letter-spacing: -0.3px;
         color: var(--text-primary);
     }
 
-    /* ───────────────── Content ───────────────── */
-
+    /* ── Content ── */
     .content {
         width: 100%;
-        max-width: 520px;
-
+        max-width: 480px;
         box-sizing: border-box;
+        margin: 0 auto;
+        padding: 20px 18px max(24px, env(safe-area-inset-bottom));
 
         display: flex;
         flex-direction: column;
-
-        margin: 0 auto;
-        padding: 26px 20px 28px;
+        gap: 20px;
+        flex: 1;
     }
 
-    /* ───────────────── Form Header ───────────────── */
-
-    .form-header {
+    /* ── Intro ── */
+    .intro {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 13px;
-
-        margin-bottom: 20px;
+        text-align: center;
+        padding-top: 4px;
     }
 
-    .form-icon {
-        flex: 0 0 46px;
-
-        width: 46px;
-        height: 46px;
-
+    .intro-icon {
+        width: 68px;
+        height: 68px;
+        border-radius: 22px;
         display: flex;
         align-items: center;
         justify-content: center;
-
-        border-radius: 14px;
-
         color: var(--accent);
-
-        background: color-mix(
-            in srgb,
-            var(--accent) 10%,
-            var(--surface)
-        );
-
-        border: 1px solid color-mix(
-            in srgb,
-            var(--accent) 12%,
-            var(--border)
-        );
+        background: var(--accent-soft);
+        border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+        box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 15%, transparent);
+        margin-bottom: 16px;
     }
 
-    .form-header h1 {
-        margin: 0 0 4px;
-
-        font-size: 17px;
-        line-height: 1.2;
+    .intro-text h1 {
+        margin: 0 0 8px;
+        font-size: 26px;
+        line-height: 1.15;
         font-weight: 800;
+        letter-spacing: -0.6px;
+        color: var(--text-primary);
     }
 
-    .form-header p {
-        max-width: 350px;
-
+    .intro-text p {
         margin: 0;
-
-        font-size: 12px;
-        line-height: 1.4;
-
+        font-size: 14px;
+        line-height: 1.5;
         color: var(--text-secondary);
+        max-width: 360px;
     }
 
-    /* ───────────────── Error ───────────────── */
+    /* ── Code Card ── */
+    .code-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: var(--surface);
+        padding: 20px;
+        border-radius: var(--radius-card, 22px);
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-card);
+    }
 
+    .code-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .code-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-secondary);
+        letter-spacing: 0.2px;
+    }
+
+    .paste-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: var(--radius-pill, 999px);
+        background: var(--surface-alt);
+        border: 1px solid var(--border-subtle);
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.15s ease;
+    }
+
+    .paste-btn:active {
+        transform: scale(0.95);
+    }
+
+    .code-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 16px 14px;
+        border-radius: 16px;
+        background: var(--surface-alt);
+        border: 1.5px solid var(--border-subtle);
+        color: var(--accent);
+        font-family: "SF Mono", Monaco, "Cascadia Code", monospace, sans-serif;
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: 4px;
+        text-align: center;
+        text-transform: uppercase;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .code-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    .code-input::placeholder {
+        color: var(--text-muted);
+        opacity: 0.4;
+        letter-spacing: 3px;
+    }
+
+    .code-subtext {
+        font-size: 11px;
+        color: var(--text-muted);
+        text-align: center;
+    }
+
+    /* ── Error ── */
     .error-message {
         display: flex;
         align-items: center;
         gap: 8px;
-
-        margin-bottom: 12px;
         padding: 10px 12px;
-
         border-radius: 12px;
-
-        color: #ef7777;
-
-        background: rgba(239, 68, 68, 0.09);
-        border: 1px solid rgba(239, 68, 68, 0.16);
-
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
         font-size: 12px;
-        line-height: 1.35;
+        font-weight: 600;
     }
 
-    .error-message :global(svg) {
-        flex-shrink: 0;
-    }
-
-    /* ───────────────── Code ───────────────── */
-
-    .code-entry-box {
-        width: 100%;
-
-        box-sizing: border-box;
-
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-
-        padding: 16px;
-
-        border-radius: 16px;
-
-        background: var(--surface-alt);
-        border: 1px solid var(--border);
-    }
-
-    .code-input-label {
-        font-size: 11px;
-        line-height: 1;
-
-        font-weight: 700;
-        letter-spacing: 0.07em;
-        text-transform: uppercase;
-
-        color: var(--text-muted);
-    }
-
-    .monospaced-code-input {
-        width: 100%;
-
-        box-sizing: border-box;
-
-        padding: 14px 12px;
-
-        border: 1.5px solid var(--border);
-        border-radius: 12px;
-
-        background: var(--surface);
-
-        color: var(--accent);
-
-        font-family:
-            "Courier New",
-            Courier,
-            monospace;
-
-        font-size: 24px;
-        line-height: 1;
-
-        font-weight: 900;
-
-        letter-spacing: 4px;
-        text-align: center;
-        text-transform: uppercase;
-
-        transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
-    }
-
-    .monospaced-code-input::placeholder {
-        color: var(--text-muted);
-        opacity: 0.5;
-    }
-
-    .monospaced-code-input:focus {
-        outline: none;
-
-        border-color: var(--accent);
-
-        box-shadow:
-            0 0 0 3px var(--nav-active-bg);
-    }
-
-    .code-subtext {
-        font-size: 10px;
-        line-height: 1.3;
-
-        color: var(--text-muted);
-
-        text-align: center;
-    }
-
-    /* ───────────────── Hint ───────────────── */
-
+    /* ── Hint ── */
     .hint {
         display: flex;
         align-items: center;
         gap: 9px;
-
-        margin-top: 14px;
+        margin-top: 4px;
         padding: 10px 12px;
-
         border-radius: 12px;
-
-        background: rgba(255, 255, 255, 0.025);
-        border: 1px solid rgba(255, 255, 255, 0.045);
+        background: var(--surface-alt);
+        border: 1px solid var(--border-subtle);
     }
 
     .hint-icon {
-        flex: 0 0 27px;
-
-        width: 27px;
-        height: 27px;
-
+        flex: 0 0 24px;
+        width: 24px;
+        height: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
-
-        border-radius: 8px;
-
+        border-radius: 7px;
         color: var(--accent);
-
-        background: color-mix(
-            in srgb,
-            var(--accent) 9%,
-            transparent
-        );
+        background: var(--accent-soft);
     }
 
     .hint span {
         font-size: 11px;
         line-height: 1.4;
-
         color: var(--text-secondary);
     }
 
-    /* ───────────────── Actions ───────────────── */
-
+    /* ── Actions ── */
     .actions {
-        width: 100%;
-
         display: flex;
         flex-direction: column;
         align-items: center;
-
-        margin-top: 25px;
+        margin-top: auto;
+        padding-top: 8px;
     }
 
-    /* ───────────────── Loader ───────────────── */
-
-    .loader-container {
+    /* ── States (Success / Loader) ── */
+    .state-container {
         flex: 1;
-
         display: flex;
         align-items: center;
         justify-content: center;
-
-        padding: 24px;
+        padding: 24px 20px;
     }
 
-    .loader-content {
+    .success-card, .loader-card {
         width: 100%;
-        max-width: 300px;
-
+        max-width: 360px;
         display: flex;
         flex-direction: column;
         align-items: center;
-
         text-align: center;
-    }
-
-    .loader-avatar {
-        position: relative;
-
-        width: 88px;
-        height: 88px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        margin-bottom: 28px;
-    }
-
-    .loader-ring {
-        position: absolute;
-
-        border-radius: 50%;
-        box-sizing: border-box;
-    }
-
-    .loader-ring-outer {
-        inset: 0;
-
-        border: 2px solid color-mix(
-            in srgb,
-            var(--accent) 20%,
-            transparent
-        );
-
-        animation: ping 2s ease-out infinite;
-    }
-
-    .loader-ring-inner {
-        inset: 7px;
-
-        border: 3px solid var(--surface-alt);
-        border-top-color: var(--accent);
-
-        animation: spin 1.1s linear infinite;
-    }
-
-    .loader-icon {
-        width: 50px;
-        height: 50px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 16px;
-
-        color: var(--accent);
-
-        background: color-mix(
-            in srgb,
-            var(--accent) 10%,
-            var(--surface)
-        );
-    }
-
-    .loader-text h2 {
-        margin: 0 0 7px;
-
-        font-size: 18px;
-        line-height: 1.2;
-        font-weight: 800;
-    }
-
-    .loader-text p {
-        margin: 0;
-
-        font-size: 12px;
-        line-height: 1.4;
-
-        color: var(--text-secondary);
-    }
-
-    .loader-progress {
-        width: 130px;
-        height: 4px;
-
-        overflow: hidden;
-
-        margin-top: 22px;
-
-        border-radius: 99px;
-
-        background: var(--surface-alt);
-    }
-
-    .loader-progress-fill {
-        width: 100%;
-        height: 100%;
-
-        transform-origin: left;
-
-        border-radius: inherit;
-
-        background: var(--accent);
-
-        animation: loadFill 1.4s ease-in-out infinite;
-    }
-
-    /* ───────────────── Success ───────────────── */
-
-    .success-container {
-        flex: 1;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        padding: 24px;
-    }
-
-    .success-card {
-        position: relative;
-
-        width: 100%;
-        max-width: 390px;
-
-        box-sizing: border-box;
-
-        padding: 38px 24px 28px;
-
-        overflow: hidden;
-
-        text-align: center;
-
-        border: 1px solid var(--border);
-        border-radius: 28px;
-
+        padding: 32px 24px;
+        border-radius: var(--radius-card, 28px);
         background: var(--surface);
-
-        box-shadow: var(--shadow);
-    }
-
-    .success-glow {
-        position: absolute;
-
-        width: 180px;
-        height: 180px;
-
-        top: -110px;
-        left: 50%;
-
-        transform: translateX(-50%);
-
-        border-radius: 50%;
-
-        background: color-mix(
-            in srgb,
-            var(--accent) 16%,
-            transparent
-        );
-
-        filter: blur(25px);
-
-        pointer-events: none;
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-card);
     }
 
     .success-avatar {
         position: relative;
-
-        width: 88px;
-        height: 88px;
-
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-
-        margin: 0 auto 18px;
-
-        border-radius: 50%;
-
-        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
-
-        animation:
-            popIn 0.55s
-            cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        margin-bottom: 20px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
     }
 
     .success-check {
         position: absolute;
-
-        right: -2px;
-        bottom: -1px;
-
-        width: 27px;
-        height: 27px;
-
+        bottom: 2px;
+        right: 2px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--success);
+        color: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
-
-        box-sizing: border-box;
-
-        border-radius: 50%;
-
-        color: var(--bg);
-        background: var(--success);
-
         border: 3px solid var(--surface);
-
-        animation:
-            checkScale 0.35s
-            cubic-bezier(0.175, 0.885, 0.32, 1.5)
-            0.45s both;
     }
 
     .success-label {
-        display: block;
-
-        margin-bottom: 5px;
-
-        font-size: 10px;
-        line-height: 1;
-
+        font-size: 11px;
         font-weight: 700;
-
-        letter-spacing: 0.08em;
         text-transform: uppercase;
-
+        letter-spacing: 0.08em;
         color: var(--accent);
+        margin-bottom: 6px;
     }
 
     .success-title {
-        margin: 0 0 7px;
-
-        font-size: 23px;
-        line-height: 1.2;
-
-        font-weight: 850;
+        margin: 0 0 6px;
+        font-size: 24px;
+        font-weight: 800;
         letter-spacing: -0.5px;
+        color: var(--text-primary);
     }
 
     .success-subtitle {
-        margin: 0;
-
-        font-size: 13px;
-        line-height: 1.45;
-
+        margin: 0 0 18px;
+        font-size: 14px;
         color: var(--text-secondary);
     }
 
-    .family-name {
-        max-width: 100%;
-
-        margin: 6px 0 25px;
-
-        font-size: 18px;
-        line-height: 1.3;
-
-        font-weight: 800;
-
+    .family-name-pill {
+        padding: 8px 18px;
+        border-radius: var(--radius-pill, 999px);
+        background: var(--surface-alt);
+        border: 1px solid var(--border-subtle);
         color: var(--accent);
-
-        overflow-wrap: anywhere;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 24px;
     }
 
-    /* ───────────────── Animations ───────────────── */
+    .state-action {
+        width: 100%;
+    }
+
+    /* ── Loader ── */
+    .loader-avatar {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--accent-soft);
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+    }
+
+    .spin-ring {
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        border-top-color: var(--accent);
+        border-right-color: var(--accent);
+        animation: spin 1s linear infinite;
+    }
 
     @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
     }
 
-    @keyframes ping {
-        0% {
-            transform: scale(0.8);
-            opacity: 0.6;
-        }
-
-        100% {
-            transform: scale(1.65);
-            opacity: 0;
-        }
+    .loader-title {
+        margin: 0 0 6px;
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text-primary);
     }
 
-    @keyframes loadFill {
-        0% {
-            transform: scaleX(0);
-        }
-
-        50% {
-            transform: scaleX(0.72);
-        }
-
-        100% {
-            transform: scaleX(1);
-        }
-    }
-
-    @keyframes popIn {
-        from {
-            transform: scale(0.55);
-            opacity: 0;
-        }
-
-        to {
-            transform: scale(1);
-            opacity: 1;
-        }
-    }
-
-    @keyframes checkScale {
-        from {
-            transform: scale(0);
-        }
-
-        to {
-            transform: scale(1);
-        }
-    }
-
-    /* ───────────────── Small screens ───────────────── */
-
-    @media (max-height: 650px) {
-        .content {
-            padding-top: 18px;
-            padding-bottom: 20px;
-        }
-
-        .success-card {
-            padding: 28px 20px 24px;
-        }
-
-        .success-avatar {
-            width: 76px;
-            height: 76px;
-
-            margin-bottom: 15px;
-        }
-
-        .success-title {
-            font-size: 21px;
-        }
-
-        .family-name {
-            margin-bottom: 20px;
-        }
-    }
-
-    @media (max-width: 360px) {
-        .content {
-            padding-left: 16px;
-            padding-right: 16px;
-        }
-
-        .success-container {
-            padding-left: 16px;
-            padding-right: 16px;
-        }
-
-        .success-card {
-            padding-left: 18px;
-            padding-right: 18px;
-        }
-
-        .monospaced-code-input {
-            font-size: 21px;
-            letter-spacing: 3px;
-        }
+    .loader-subtitle {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-secondary);
     }
 </style>
