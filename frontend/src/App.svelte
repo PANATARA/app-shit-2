@@ -11,6 +11,7 @@
     import { isLoggedInStore, clearTokens } from "$api/client.js";
     import { getProfile } from "$api/me.js";
     import { getCached, setCached } from "$lib/cache";
+    import { mutate } from "$lib/swr";
 
     import UserProfileModal from "$screens/modal/UserProfileModal.svelte";
     import { profileModal, closeProfile } from "$lib/settings";
@@ -107,8 +108,23 @@
         checkingAuth = false;
     }
 
-    function handleFamilySuccess() {
+    async function handleFamilySuccess() {
         isInFamily = true;
+        activeTab.set("statsScreen");
+        try {
+            const freshProfile = await getProfile();
+            if (freshProfile) {
+                setCached("profile", freshProfile);
+                mutate("profile", freshProfile);
+            }
+            mutate("family-leaders");
+            mutate("family-stats");
+            mutate("family-events");
+            mutate("family");
+            mutate("family-members");
+        } catch (e) {
+            console.error("Failed to revalidate after family setup:", e);
+        }
     }
 
     let contentEl: HTMLElement;
@@ -181,6 +197,8 @@
                 <EventCreateScreen />
             {:else if $activeTab === "eventsListScreen"}
                 <EventsListScreen />
+            {:else}
+                <StatsScreen />
             {/if}
         </div>
 
