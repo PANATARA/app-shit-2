@@ -1,4 +1,5 @@
 import { apiFetch, setTokens, clearTokens } from './client.js';
+import { registerPushToken, unregisterPushToken } from '../lib/pushNotifications';
 
 /**
  * Send an authentication code to the specified email
@@ -28,6 +29,10 @@ export async function verifyCode(email, code) {
     // Store tokens automatically on success
     if (data && data.access_token) {
         setTokens(data.access_token, data.refresh_token);
+        // Register device push token if available
+        registerPushToken().catch((err) => {
+            console.warn('Auto-registering push token after login failed:', err);
+        });
     }
     return data;
 }
@@ -46,13 +51,24 @@ export async function debugAuth(email) {
     // Store tokens automatically on success
     if (data && data.access_token) {
         setTokens(data.access_token, data.refresh_token);
+        // Register device push token if available
+        registerPushToken().catch((err) => {
+            console.warn('Auto-registering push token after debug auth failed:', err);
+        });
     }
     return data;
 }
 
 /**
- * Logs out the user by clearing the stored tokens and Svelte stores
+ * Logs out the user by unregistering device push token and clearing stored tokens
  */
-export function logout() {
-    clearTokens();
+export async function logout() {
+    try {
+        await unregisterPushToken();
+    } catch (e) {
+        console.warn('Could not unregister push token during logout:', e);
+    } finally {
+        clearTokens();
+    }
 }
+

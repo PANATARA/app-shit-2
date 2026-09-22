@@ -19,6 +19,12 @@
     import { swr, mutate } from "$lib/swr";
     import { activeTab } from "$lib/navigation";
     import { t } from "$lib/i18n";
+    import {
+        sendTestPush,
+        unregisterPushToken,
+        registerPushToken,
+        getStoredFcmToken,
+    } from "$lib/pushNotifications";
 
     const dispatch = createEventDispatcher();
 
@@ -32,6 +38,10 @@
     let editName = "";
     let editSurname = "";
     let editAvatar = { icon: "", icon_color: "", icon_bg: "" };
+
+    // ─── NOTIFICATION TEST ─────────────────────────
+    let isSendingPush = false;
+    let pushResult: { success: boolean; message: string } | null = null;
 
     const appVersion = "1.0.0";
 
@@ -85,10 +95,57 @@
         }
     }
 
-    function handleLogout() {
+    async function handleLogout() {
         if (!confirm($t.settings.logoutConfirm)) return;
+        try {
+            await unregisterPushToken();
+        } catch (e) {
+            console.warn("Unregister push token on logout failed:", e);
+        }
         clearTokens();
         dispatch("logout");
+    }
+
+    async function handleSendTestPush() {
+        if (isSendingPush) return;
+        isSendingPush = true;
+        pushResult = null;
+        try {
+            const existingToken = getStoredFcmToken();
+            if (!existingToken) {
+                const mockToken = `fcm_dev_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+                await registerPushToken(mockToken);
+            }
+            const res = await sendTestPush();
+            if (res.fcm_available && res.delivery?.success > 0) {
+                pushResult = {
+                    success: true,
+                    message: `${$t.settings.testNotificationSuccess} (${res.delivery.success}/${res.delivery.total})`,
+                };
+            } else if (!res.fcm_available) {
+                pushResult = {
+                    success: false,
+                    message: $t.settings.fcmNotConfigured,
+                };
+            } else if (res.delivery?.total === 0) {
+                pushResult = {
+                    success: false,
+                    message: $t.settings.noDevicesRegistered,
+                };
+            } else {
+                pushResult = {
+                    success: false,
+                    message: `${$t.settings.testNotificationFailed} (${res.delivery?.failure || 0} failed)`,
+                };
+            }
+        } catch (e: any) {
+            pushResult = {
+                success: false,
+                message: e?.data?.serviceError || e?.message || $t.settings.testNotificationFailed,
+            };
+        } finally {
+            isSendingPush = false;
+        }
     }
 </script>
 
@@ -224,6 +281,44 @@
             </div>
             <div class="row-text"><div class="row-title">{$t.settings.version}</div></div>
             <div class="row-right">{appVersion}</div>
+        </div>
+    </Block>
+
+    <!-- ТЕСТ УВЕДОМЛЕНИЙ (DEV) -->
+    <div class="section-label">{$t.settings.notificationsTest}</div>
+    <Block padding={12}>
+        <div class="test-push-wrap">
+            <button
+                type="button"
+                class="btn-row test-push-btn clickable"
+                onclick={handleSendTestPush}
+                disabled={isSendingPush}
+            >
+                <div class="row-icon notification-icon">
+                    <Icon icon="material-symbols:notifications-active-rounded" width={22} height={22} />
+                </div>
+                <div class="row-text">
+                    <div class="row-title">
+                        {isSendingPush ? $t.settings.sendingNotification : $t.settings.sendTestNotification}
+                    </div>
+                </div>
+                {#if isSendingPush}
+                    <div class="push-spinner"></div>
+                {:else}
+                    <span class="arrow">›</span>
+                {/if}
+            </button>
+
+            {#if pushResult}
+                <div class="push-status-card {pushResult.success ? 'status-success' : 'status-warning'}">
+                    <div class="status-icon">
+                        <Icon icon={pushResult.success ? "material-symbols:check-circle-rounded" : "material-symbols:info-rounded"} width={20} height={20} />
+                    </div>
+                    <div class="status-content">
+                        <div class="status-msg">{pushResult.message}</div>
+                    </div>
+                </div>
+            {/if}
         </div>
     </Block>
 
@@ -577,5 +672,79 @@
         flex-direction: column;
         gap: 10px;
         width: 100%;
+    }
+
+    /* PUSH NOTIFICATIONS TEST */
+    .test-push-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .test-push-btn {
+        background: transparent;
+        border: none;
+        padding: 4px 0;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .notification-icon {
+        color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 15%, transparent);
+        border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+    }
+
+    .push-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--border-subtle);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        flex-shrink: 0;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .push-status-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .status-success {
+        background: color-mix(in srgb, #10B981 12%, transparent);
+        border: 1px solid color-mix(in srgb, #10B981 30%, transparent);
+        color: #10B981;
+    }
+
+    .status-warning {
+        background: color-mix(in srgb, #F59E0B 12%, transparent);
+        border: 1px solid color-mix(in srgb, #F59E0B 30%, transparent);
+        color: #F59E0B;
+    }
+
+    .status-icon {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .status-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .status-msg {
+        font-weight: 500;
+        word-break: break-word;
     }
 </style>

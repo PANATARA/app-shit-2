@@ -12,6 +12,7 @@
     import { getProfile } from "$api/me.js";
     import { getCached, setCached } from "$lib/cache";
     import { mutate } from "$lib/swr";
+    import { initPushNotifications, registerPushToken } from "$lib/pushNotifications";
 
     import UserProfileModal from "$screens/modal/UserProfileModal.svelte";
     import { profileModal, closeProfile } from "$lib/settings";
@@ -68,6 +69,7 @@
         })();
 
         notifyNativeNavigation();
+        initPushNotifications();
 
         return () => {
             unsubActiveTab();
@@ -81,6 +83,12 @@
             setCached("profile", profile);
             isAuthed = true;
             isInFamily = !!profile.is_family_member;
+
+            // Sync push token for authenticated user
+            registerPushToken().catch((e) => {
+                console.warn("Failed to sync push token:", e);
+            });
+
             if (!isInFamily) {
                 if (!profile.name) {
                     activeTab.set("onboardingProfile");
