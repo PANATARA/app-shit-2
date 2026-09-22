@@ -9,7 +9,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "io.github.giwih.heatmap"
+        applicationId = "com.panatara.household"
         minSdk = 21
         targetSdk = 36
         versionCode = 4
@@ -37,8 +37,7 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".debug"
-            resValue("string", "app_name", "(Debug) Heatmap")
+            resValue("string", "app_name", "(Debug) Household")
         }
         release {
             isMinifyEnabled = true

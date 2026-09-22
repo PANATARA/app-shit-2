@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { onMount, tick } from "svelte";
   import { createEventDispatcher } from "svelte";
-  import { requestCode, verifyCode, debugAuth } from "$api/auth";
+  import { requestCode, verifyCode, debugAuth, loginWithGoogle } from "$api/auth";
+  import { renderGoogleButton, promptGoogleOneTap } from "$lib/googleAuth";
   import { t } from "$lib/i18n";
 
   const dispatch = createEventDispatcher();
@@ -12,6 +14,41 @@
   let code = "";
   let loading = false;
   let error = "";
+  let googleBtnContainer: HTMLElement | null = null;
+
+  async function setupGoogleButton() {
+    await tick();
+    if (googleBtnContainer) {
+      try {
+        await renderGoogleButton(googleBtnContainer, handleGoogleCredential);
+        promptGoogleOneTap();
+      } catch (err) {
+        console.warn("Could not render Google Sign-In button:", err);
+      }
+    }
+  }
+
+  onMount(() => {
+    setupGoogleButton();
+  });
+
+  $: if (step === "email") {
+    setupGoogleButton();
+  }
+
+  async function handleGoogleCredential(credential: string) {
+    if (!credential) return;
+    error = "";
+    loading = true;
+    try {
+      await loginWithGoogle(credential);
+      dispatch("auth");
+    } catch (e: any) {
+      error = e?.data?.detail ?? e?.message ?? $t.auth.googleAuthError;
+    } finally {
+      loading = false;
+    }
+  }
 
   async function handleRequestCode() {
     if (!email.trim()) {
@@ -101,6 +138,14 @@
       >
         {loading ? $t.auth.sending : $t.auth.sendCode}
       </button>
+
+      <div class="or-divider">
+        <span>{$t.auth.orDivider}</span>
+      </div>
+
+      <div class="google-btn-wrapper">
+        <div class="google-btn-container" bind:this={googleBtnContainer}></div>
+      </div>
     {:else}
       <h1 class="title">{$t.auth.checkEmail}</h1>
       <p class="subtitle">{$t.auth.codeSentTo} <strong>{email}</strong></p>
@@ -311,6 +356,43 @@
   .btn-ghost:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+
+  .or-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 14px 0 10px 0;
+  }
+
+  .or-divider::before,
+  .or-divider::after {
+    content: "";
+    flex: 1;
+    height: 0.5px;
+    background: var(--border);
+  }
+
+  .or-divider span {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+
+  .google-btn-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+    margin-bottom: 4px;
+  }
+
+  .google-btn-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
   }
 
   .debug-block {

@@ -60,6 +60,29 @@ export async function debugAuth(email) {
 }
 
 /**
+ * Authenticate with Google ID Token (response.credential)
+ * @param {string} credential
+ * @returns {Promise<any>}
+ */
+export async function loginWithGoogle(credential) {
+    const data = await apiFetch('/api/auth/google', {
+        method: 'POST',
+        body: { credential },
+        skipAuth: true
+    });
+    // Store tokens automatically on success
+    if (data && data.access_token) {
+        setTokens(data.access_token, data.refresh_token);
+        // Register device push token if available
+        registerPushToken().catch((err) => {
+            console.warn('Auto-registering push token after Google auth failed:', err);
+        });
+    }
+    return data;
+}
+
+
+/**
  * Logs out the user by unregistering device push token and clearing stored tokens
  */
 export async function logout() {

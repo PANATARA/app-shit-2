@@ -58,6 +58,9 @@ export const translations = {
       codeError: "Неверный код",
       sendError: "Ошибка отправки кода",
       debugAuth: "Быстрый вход (Dev)",
+      orDivider: "или",
+      googleSignIn: "Войти через Google",
+      googleAuthError: "Ошибка входа через Google",
     },
     onboarding: {
       welcomeTitle: "Вместе проще",
@@ -365,6 +368,9 @@ export const translations = {
       codeError: "Invalid code",
       sendError: "Failed to send code",
       debugAuth: "Quick Sign In (Dev)",
+      orDivider: "or",
+      googleSignIn: "Sign in with Google",
+      googleAuthError: "Google sign-in failed",
     },
     onboarding: {
       welcomeTitle: "Simpler together",
