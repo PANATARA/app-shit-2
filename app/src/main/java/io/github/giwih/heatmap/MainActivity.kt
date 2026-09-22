@@ -1,14 +1,21 @@
 package io.github.giwih.heatmap
 
+import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : ComponentActivity() {
     private lateinit var myWebView: WebView
@@ -19,16 +26,33 @@ class MainActivity : ComponentActivity() {
     private var canGoBack: Boolean = false
 
     companion object {
+        private const val TAG = "MainActivity"
         private const val OPEN_IMAGE_REQUEST = 2
-        // Имя домашней / главной вкладки
         private const val MAIN_TAB = "statsScreen"
+        private var activeInstance: MainActivity? = null
+
+        fun sendTokenToWeb(token: String) {
+            activeInstance?.runOnUiThread {
+                activeInstance?.myWebView?.evaluateJavascript(
+                    "window.onNativeFcmToken && window.onNativeFcmToken('$token')",
+                    null
+                )
+            }
+        }
+    }
+
+    private val requestNotificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            Log.d(TAG, "POST_NOTIFICATIONS permission granted")
+        } else {
+            Log.w(TAG, "POST_NOTIFICATIONS permission denied")
+        }
     }
 
     /**
      * Обратный вызов OnBackPressedCallback из AndroidX.
-     * Активен (isEnabled = true) только когда есть что закрыть (модалка, подэкран или история).
-     * Когда экранов для возврата нет (isEnabled = false), система выполняет
-     * стандартное системное действие выхода / сворачивания (с поддержкой Predictive Back).
      */
     private val backPressedCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
@@ -38,11 +62,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        activeInstance = this
 
-        // Регистрация колбэка с автоматической привязкой к LifecycleOwner (ComponentActivity)
-        // Исключает утечки памяти (Memory Leaks) при уничтожении активити
+        // Регистрация колбэка
         onBackPressedDispatcher.addCallback(this, backPressedCallback)
         updateBackCallbackState()
+
+        // Запрос разрешения на уведомления для Android 13+
+        askNotificationPermission()
 
         myWebView = WebView(this)
         myWebView.settings.apply {
@@ -54,11 +81,57 @@ class MainActivity : ComponentActivity() {
             mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
 
-        myWebView.webViewClient = WebViewClient()
+        myWebView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                // Отправляем токен в веб сразу после загрузки страницы
+                val savedToken = MyFirebaseMessagingService.getSavedToken(this@MainActivity)
+                if (!savedToken.isNullOrEmpty()) {
+                    sendTokenToWeb(savedToken)
+                }
+            }
+        }
         myWebView.addJavascriptInterface(WebAppInterface(), "AndroidBridge")
 
         setContentView(myWebView)
         myWebView.loadUrl("file:///android_asset/index.html")
+
+        // Запрашиваем актуальный FCM токен у Firebase
+        fetchFcmToken()
+    }
+
+    private fun askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    private fun fetchFcmToken() {
+        try {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    Log.d(TAG, "FCM token fetched: $token")
+                    MyFirebaseMessagingService.saveToken(this, token)
+                    sendTokenToWeb(token)
+                } else {
+                    Log.w(TAG, "Fetching FCM registration token failed", task.exception)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing FirebaseMessaging token retrieval: ${e.message}")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (activeInstance == this) {
+            activeInstance = null
+        }
     }
 
     /**
@@ -70,7 +143,6 @@ class MainActivity : ComponentActivity() {
 
     /**
      * Динамическое переключение флага isEnabled:
-     * Колбэк перехватывает жест только при открытой модалке, возможности вернуться назад или неосновной вкладке.
      */
     private fun updateBackCallbackState() {
         val shouldIntercept = isModalOpen || canGoBack || !isMainTab(activeTab)
@@ -106,11 +178,11 @@ class MainActivity : ComponentActivity() {
 
     inner class WebAppInterface {
 
-        /**
-         * Метод синхронизации состояния открытых окон и текущей вкладки из веб-интерфейса.
-         * @param isModalOpen флаг наличия хотя бы одного открытого модального окна
-         * @param activeTab идентификатор активной вкладки
-         */
+        @JavascriptInterface
+        fun getFcmToken(): String {
+            return MyFirebaseMessagingService.getSavedToken(this@MainActivity) ?: ""
+        }
+
         @JavascriptInterface
         fun updateNavigationState(isModalOpen: Boolean, activeTab: String, canGoBack: Boolean) {
             runOnUiThread {
@@ -126,9 +198,6 @@ class MainActivity : ComponentActivity() {
             updateNavigationState(isModalOpen, activeTab, isModalOpen || !isMainTab(activeTab))
         }
 
-        /**
-         * Уведомление об изменении состояния модального окна.
-         */
         @JavascriptInterface
         fun setModalState(isOpen: Boolean) {
             runOnUiThread {
@@ -137,9 +206,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        /**
-         * Уведомление об изменении активной вкладки.
-         */
         @JavascriptInterface
         fun setActiveTab(tab: String) {
             runOnUiThread {

@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
 }
 
 
@@ -67,4 +68,7 @@ configurations.all {
 
 dependencies {
     implementation("androidx.activity:activity-ktx:1.9.3")
+    implementation("androidx.core:core-ktx:1.15.0")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 }
