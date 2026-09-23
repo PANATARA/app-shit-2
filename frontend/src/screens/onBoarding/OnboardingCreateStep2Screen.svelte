@@ -66,6 +66,14 @@
         selectedChoreIds = new Set(selectedChoreIds);
     }
 
+    function toggleSelectAll() {
+        if (selectedChoreIds.size === defaultChores.length) {
+            selectedChoreIds = new Set();
+        } else {
+            selectedChoreIds = new Set(defaultChores.map((c: any) => String(c.id)));
+        }
+    }
+
     async function handleAddChoresAndEnter() {
         if (selectedChoreIds.size > 0) {
             isAddingChores = true;
@@ -118,92 +126,108 @@
 
 <div class="onboarding-screen">
     {#if isSuccess && successData}
-        <!-- SUCCESS & INITIAL CHORES -->
-        <div class="state-container" in:scale={{ duration: 400, start: 0.94 }}>
-            <div class="success-card">
-                <div class="success-avatar" style="background: {successData.icon_bg}">
-                    <Icon
-                        icon={successData.icon}
-                        width="54"
-                        height="54"
-                        color={successData.icon_color}
-                    />
-                    <div class="success-check">
-                        <Icon icon="material-symbols:check-rounded" width="16" height="16" />
+        <!-- SUCCESS & INITIAL CHORES (FULLSCREEN EXPANDED) -->
+        <div class="initial-chores-screen" in:fade={{ duration: 250 }}>
+            <header class="chores-header">
+                <div class="family-success-badge">
+                    <div class="family-mini-avatar" style="background: {successData.icon_bg}">
+                        <Icon
+                            icon={successData.icon}
+                            width="20"
+                            height="20"
+                            color={successData.icon_color}
+                        />
+                    </div>
+                    <div class="family-badge-text">
+                        <span class="family-badge-name">«{successData.name}»</span>
+                        <span class="family-badge-sub">
+                            <Icon icon="material-symbols:check-circle-rounded" width="13" height="13" />
+                            {$t.onboarding.familyCreatedTitle || "Семья создана!"}
+                        </span>
                     </div>
                 </div>
 
-                <span class="success-label">{$t.onboarding.allDone || "Всё готово"}</span>
-                <h1 class="success-title">{$t.onboarding.familyCreatedTitle || "Семья создана!"}</h1>
-                <div class="family-name-pill">
-                    «{successData.name}»
+                <div class="chores-title-block">
+                    <h1 class="chores-heading">{$t.onboarding.addInitialChoresTitle || "Добавьте первые задачи"}</h1>
+                    <p class="chores-subheading">{$t.onboarding.addInitialChoresSubtitle || "Выберите типовые домашние дела, чтобы сразу начать пользоваться"}</p>
                 </div>
 
-                <div class="initial-chores-section">
-                    <h3 class="chores-section-title">
-                        {$t.onboarding.addInitialChoresTitle || "Добавьте первые задачи"}
-                    </h3>
-                    <p class="chores-section-subtitle">
-                        {$t.onboarding.addInitialChoresSubtitle || "Выберите типовые домашние дела, чтобы сразу начать пользоваться"}
-                    </p>
-
-                    {#if loadingDefaultChores}
-                        <ChoreSelectionSkeleton count={3} />
-                    {:else if defaultChores.length > 0}
-                        <div class="chores-selection-list">
-                            {#each defaultChores as chore (chore.id)}
-                                {@const isSelected = selectedChoreIds.has(String(chore.id))}
-                                <button
-                                    type="button"
-                                    class="chore-select-item"
-                                    class:selected={isSelected}
-                                    on:click={() => toggleChoreSelection(chore.id)}
-                                >
-                                    <div
-                                        class="chore-icon-pill"
-                                        style="background: {chore.icon_bg || 'var(--surface-alt)'}; color: {chore.icon_color || 'var(--text-primary)'}"
-                                    >
-                                        <Icon icon={chore.icon || "material-symbols:task-alt-rounded"} width={20} height={20} />
-                                    </div>
-                                    <div class="chore-select-info">
-                                        <span class="chore-title">{chore.name}</span>
-                                        {#if chore.valuation}
-                                            <span class="chore-xp">+{chore.valuation} XP</span>
-                                        {/if}
-                                    </div>
-                                    <div class="checkbox-circle" class:checked={isSelected}>
-                                        {#if isSelected}
-                                            <Icon icon="material-symbols:check-rounded" width={14} height={14} />
-                                        {/if}
-                                    </div>
-                                </button>
-                            {/each}
-                        </div>
-                    {/if}
-                </div>
-
-                <div class="state-action">
-                    <ButtonPrimaryGlow
-                        label={isAddingChores
-                            ? ($t.onboarding.addingChores || "Добавление задач...")
-                            : (selectedChoreIds.size > 0
-                                ? ($t.onboarding.addSelectedChores ? $t.onboarding.addSelectedChores.replace('{count}', String(selectedChoreIds.size)) : `Добавить задачи (${selectedChoreIds.size}) и войти`)
-                                : ($t.onboarding.enterFamily || "Войти в семейный круг"))}
-                        on:click={handleAddChoresAndEnter}
-                        disabled={isAddingChores}
-                    />
-                    {#if defaultChores.length > 0}
-                        <button
-                            type="button"
-                            class="skip-btn"
-                            on:click={handleSkipAndEnter}
-                            disabled={isAddingChores}
-                        >
-                            {$t.onboarding.skipChores || "Пропустить и войти"}
+                {#if !loadingDefaultChores && defaultChores.length > 0}
+                    <div class="chores-toolbar">
+                        <span class="toolbar-count">
+                            {$t.onboarding.selectedCount
+                                ? $t.onboarding.selectedCount.replace('{selected}', String(selectedChoreIds.size)).replace('{total}', String(defaultChores.length))
+                                : `Выбрано: ${selectedChoreIds.size} из ${defaultChores.length}`}
+                        </span>
+                        <button type="button" class="toolbar-toggle-btn" on:click={toggleSelectAll}>
+                            {selectedChoreIds.size === defaultChores.length
+                                ? ($t.onboarding.deselectAll || "Снять все")
+                                : ($t.onboarding.selectAll || "Выбрать все")}
                         </button>
-                    {/if}
-                </div>
-            </div>
+                    </div>
+                {/if}
+            </header>
+
+            <main class="chores-scroll-area">
+                {#if loadingDefaultChores}
+                    <ChoreSelectionSkeleton count={5} />
+                {:else if defaultChores.length > 0}
+                    <div class="chores-selection-list">
+                        {#each defaultChores as chore (chore.id)}
+                            {@const isSelected = selectedChoreIds.has(String(chore.id))}
+                            <button
+                                type="button"
+                                class="chore-select-item"
+                                class:selected={isSelected}
+                                on:click={() => toggleChoreSelection(chore.id)}
+                            >
+                                <div
+                                    class="chore-icon-pill"
+                                    style="background: {chore.icon_bg || 'var(--surface-alt)'}; color: {chore.icon_color || 'var(--text-primary)'}"
+                                >
+                                    <Icon icon={chore.icon || "material-symbols:task-alt-rounded"} width={22} height={22} />
+                                </div>
+                                <div class="chore-select-info">
+                                    <span class="chore-title">{chore.name}</span>
+                                    {#if chore.description}
+                                        <span class="chore-desc">{chore.description}</span>
+                                    {/if}
+                                    {#if chore.valuation}
+                                        <span class="chore-xp">+{chore.valuation} XP</span>
+                                    {/if}
+                                </div>
+                                <div class="checkbox-circle" class:checked={isSelected}>
+                                    {#if isSelected}
+                                        <Icon icon="material-symbols:check-rounded" width={15} height={15} />
+                                    {/if}
+                                </div>
+                            </button>
+                        {/each}
+                    </div>
+                {/if}
+            </main>
+
+            <footer class="chores-bottom-actions">
+                <ButtonPrimaryGlow
+                    label={isAddingChores
+                        ? ($t.onboarding.addingChores || "Добавление задач...")
+                        : (selectedChoreIds.size > 0
+                            ? ($t.onboarding.addSelectedChores ? $t.onboarding.addSelectedChores.replace('{count}', String(selectedChoreIds.size)) : `Добавить задачи (${selectedChoreIds.size}) и войти`)
+                            : ($t.onboarding.enterFamily || "Войти в семейный круг"))}
+                    on:click={handleAddChoresAndEnter}
+                    disabled={isAddingChores}
+                />
+                {#if defaultChores.length > 0}
+                    <button
+                        type="button"
+                        class="skip-btn"
+                        on:click={handleSkipAndEnter}
+                        disabled={isAddingChores}
+                    >
+                        {$t.onboarding.skipChores || "Пропустить и войти"}
+                    </button>
+                {/if}
+            </footer>
         </div>
     {:else if isLoading}
         <!-- LOADING -->
@@ -397,127 +421,148 @@
         padding-top: 8px;
     }
 
-    /* ── States (Success / Loader) ── */
-    .state-container {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 24px 20px;
-    }
-
-    .success-card, .loader-card {
+    /* ── Initial Chores Screen (Full-Screen) ── */
+    .initial-chores-screen {
         width: 100%;
-        max-width: 360px;
+        height: 100%;
+        max-width: 520px;
+        margin: 0 auto;
         display: flex;
         flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        box-sizing: border-box;
+    }
+
+    .chores-header {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: max(14px, env(safe-area-inset-top)) 18px 10px;
+        flex-shrink: 0;
+    }
+
+    .family-success-badge {
+        display: inline-flex;
         align-items: center;
-        text-align: center;
-        padding: 32px 24px;
-        border-radius: var(--radius-card, 28px);
+        gap: 10px;
+        align-self: flex-start;
+        padding: 5px 12px 5px 5px;
+        border-radius: var(--radius-pill, 999px);
         background: var(--surface);
         border: 1px solid var(--border-subtle);
-        box-shadow: var(--shadow-card);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
 
-    .success-avatar {
-        position: relative;
-        width: 96px;
-        height: 96px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 20px;
-        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
-    }
-
-    .success-check {
-        position: absolute;
-        bottom: 2px;
-        right: 2px;
+    .family-mini-avatar {
         width: 28px;
         height: 28px;
         border-radius: 50%;
-        background: var(--success);
-        color: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 3px solid var(--surface);
+        flex-shrink: 0;
     }
 
-    .success-label {
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--accent);
-        margin-bottom: 6px;
-    }
-
-    .success-title {
-        margin: 0 0 6px;
-        font-size: 24px;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        color: var(--text-primary);
-    }
-
-    .family-name-pill {
-        padding: 8px 18px;
-        border-radius: var(--radius-pill, 999px);
-        background: var(--surface-alt);
-        border: 1px solid var(--border-subtle);
-        color: var(--accent);
-        font-size: 16px;
-        font-weight: 700;
-        margin-bottom: 20px;
-    }
-
-    /* ── Initial Chores Selection ── */
-    .initial-chores-section {
-        width: 100%;
+    .family-badge-text {
         display: flex;
         flex-direction: column;
-        align-items: stretch;
-        margin-bottom: 20px;
-        text-align: left;
+        line-height: 1.2;
     }
 
-    .chores-section-title {
-        margin: 0 0 4px;
-        font-size: 16px;
-        font-weight: 800;
-        color: var(--text-primary);
-        text-align: center;
-    }
-
-    .chores-section-subtitle {
-        margin: 0 0 14px;
+    .family-badge-name {
         font-size: 13px;
-        color: var(--text-muted);
-        text-align: center;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .family-badge-sub {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--success, #22c55e);
+    }
+
+    .chores-title-block {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .chores-heading {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.4px;
+        color: var(--text-primary);
+    }
+
+    .chores-subheading {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-secondary);
         line-height: 1.35;
+    }
+
+    .chores-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 2px;
+    }
+
+    .toolbar-count {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--accent);
+    }
+
+    .toolbar-toggle-btn {
+        background: none;
+        border: none;
+        padding: 4px 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.15s ease;
+    }
+
+    .toolbar-toggle-btn:hover {
+        color: var(--accent);
+        background: var(--surface-alt);
+    }
+
+    /* ── Chores Scroll Area ── */
+    .chores-scroll-area {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 4px 18px 16px;
+        display: flex;
+        flex-direction: column;
     }
 
     .chores-selection-list {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        max-height: 230px;
-        overflow-y: auto;
-        padding-right: 2px;
+        gap: 9px;
+        width: 100%;
+        padding-bottom: 8px;
     }
 
     .chore-select-item {
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 10px 12px;
-        border-radius: 16px;
-        background: var(--surface-alt);
-        border: 1.5px solid transparent;
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: var(--surface);
+        border: 1.5px solid var(--border-subtle);
         cursor: pointer;
         transition: all 0.16s ease;
         text-align: left;
@@ -525,16 +570,20 @@
         box-sizing: border-box;
     }
 
+    .chore-select-item:active {
+        transform: scale(0.99);
+    }
+
     .chore-select-item.selected {
         background: var(--surface);
         border-color: var(--accent);
-        box-shadow: 0 3px 12px var(--accent-glow, rgba(232, 106, 71, 0.15));
+        box-shadow: 0 3px 12px var(--accent-glow, rgba(232, 106, 71, 0.14));
     }
 
     .chore-icon-pill {
-        width: 38px;
-        height: 38px;
-        border-radius: 12px;
+        width: 42px;
+        height: 42px;
+        border-radius: 13px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -558,6 +607,14 @@
         text-overflow: ellipsis;
     }
 
+    .chore-desc {
+        font-size: 11px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     .chore-xp {
         font-size: 11px;
         font-weight: 700;
@@ -565,8 +622,8 @@
     }
 
     .checkbox-circle {
-        width: 22px;
-        height: 22px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         border: 2px solid var(--border);
         display: flex;
@@ -575,6 +632,7 @@
         flex-shrink: 0;
         color: #fff;
         transition: all 0.15s ease;
+        background: var(--surface-alt);
     }
 
     .checkbox-circle.checked {
@@ -582,11 +640,16 @@
         border-color: var(--accent);
     }
 
-    .state-action {
-        width: 100%;
+    /* ── Bottom Actions ── */
+    .chores-bottom-actions {
+        flex-shrink: 0;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
+        padding: 12px 18px max(18px, env(safe-area-inset-bottom));
+        background: var(--surface);
+        border-top: 1px solid var(--border-subtle);
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.04);
     }
 
     .skip-btn {
@@ -598,10 +661,34 @@
         cursor: pointer;
         padding: 6px 12px;
         transition: color 0.15s ease;
+        align-self: center;
     }
 
     .skip-btn:hover {
         color: var(--text-primary);
+    }
+
+    /* ── Loading State ── */
+    .state-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 20px;
+    }
+
+    .loader-card {
+        width: 100%;
+        max-width: 360px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 32px 24px;
+        border-radius: var(--radius-card, 28px);
+        background: var(--surface);
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-card);
     }
 
     /* ── Loader ── */

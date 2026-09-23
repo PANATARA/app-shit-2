@@ -147,6 +147,9 @@ export const translations = {
       startCreating: "Начать создание",
       enterCode: "Ввести код",
       hints: "Подсказки:",
+      selectedCount: "Выбрано: {selected} из {total}",
+      selectAll: "Выбрать все",
+      deselectAll: "Снять все",
     },
     stats: {
       level: "Уровень",
@@ -518,6 +521,9 @@ export const translations = {
       startCreating: "Start creating",
       enterCode: "Enter code",
       hints: "Hints:",
+      selectedCount: "Selected: {selected} of {total}",
+      selectAll: "Select all",
+      deselectAll: "Deselect all",
     },
     stats: {
       level: "Level",
