@@ -39,8 +39,68 @@
     let cookTimeMinutes = 20;
     let baseServings = 4;
     let selectedEmoji = "🍲";
+    let selectedEmojiCategory = "all";
 
-    const emojiChoices = ["🍲", "🍝", "🍕", "🥞", "🥣", "🥗", "🥩", "🥧", "🍛", "🍣", "🥪", "🍰", "🍔", "🌮", "🍮", "🍪"];
+    const emojiCategories = [
+        {
+            id: "all",
+            label: "Все",
+            emojis: [] as string[],
+        },
+        {
+            id: "hot",
+            label: "Горячее и супы",
+            emojis: ["🍲", "🥣", "🍜", "🥘", "🫕", "🥟", "🍛", "🧆", "🫔"],
+        },
+        {
+            id: "meat_fish",
+            label: "Мясо и рыба",
+            emojis: ["🥩", "🍗", "🍖", "🥓", "🌭", "🍢", "🐟", "🍣", "🍤", "🦞", "🦀", "🦑", "🦪"],
+        },
+        {
+            id: "pasta_pizza",
+            label: "Паста и гарниры",
+            emojis: ["🍝", "🍕", "🍚", "🥔", "🍠", "🌽"],
+        },
+        {
+            id: "breakfast",
+            label: "Завтраки",
+            emojis: ["🍳", "🥚", "🥞", "🧇", "🧀", "🥐", "🥯", "🥑"],
+        },
+        {
+            id: "fastfood",
+            label: "Стритфуд",
+            emojis: ["🍔", "🥪", "🌮", "🌯", "🥙", "🍟", "🥨", "🥖", "🍞"],
+        },
+        {
+            id: "salads_veg",
+            label: "Салаты и овощи",
+            emojis: ["🥗", "🥒", "🍅", "🥦", "🥕", "🫑", "🍆", "🧄", "🧅", "🍄"],
+        },
+        {
+            id: "fruits",
+            label: "Фрукты и ягоды",
+            emojis: ["🍎", "🍏", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍒", "🍑", "🥭", "🍍", "🥝"],
+        },
+        {
+            id: "desserts",
+            label: "Десерты",
+            emojis: ["🥧", "🍰", "🎂", "🧁", "🍪", "🍩", "🍮", "🍨", "🍦", "🍫", "🍬", "🍭"],
+        },
+        {
+            id: "drinks",
+            label: "Напитки",
+            emojis: ["☕", "🍵", "🧃", "🥤", "🥛", "🧋", "🫖", "🍹", "🍺"],
+        },
+    ];
+
+    const allFoodEmojis = Array.from(
+        new Set(emojiCategories.filter((c) => c.id !== "all").flatMap((c) => c.emojis))
+    );
+
+    $: displayedEmojis = selectedEmojiCategory === "all"
+        ? allFoodEmojis
+        : (emojiCategories.find((c) => c.id === selectedEmojiCategory)?.emojis || allFoodEmojis);
 
     const categoryChoices: { id: typeof category; label: string }[] = [
         { id: "quick", label: "Быстро" },
@@ -178,18 +238,45 @@
             <!-- Emoji Selector & Title -->
             <div class="main-info-group">
                 <div class="emoji-selector-section">
-                    <span class="field-label">Иконка блюда</span>
-                    <div class="emoji-strip">
-                        {#each emojiChoices as em}
+                    <div class="emoji-header-row">
+                        <div class="emoji-preview-box">
+                            <span class="preview-emoji">{selectedEmoji}</span>
+                        </div>
+                        <div class="emoji-header-meta">
+                            <span class="field-label">Иконка блюда</span>
+                            <span class="emoji-hint">Нажмите на подходящую иконку</span>
+                        </div>
+                    </div>
+
+                    <!-- Category Tabs -->
+                    <div class="emoji-cat-tabs">
+                        {#each emojiCategories as cat}
                             <button
                                 type="button"
-                                class="emoji-btn"
-                                class:active={selectedEmoji === em}
-                                on:click={() => (selectedEmoji = em)}
+                                class="cat-tab-btn"
+                                class:active={selectedEmojiCategory === cat.id}
+                                on:click={() => (selectedEmojiCategory = cat.id)}
                             >
-                                {em}
+                                {cat.label}
                             </button>
                         {/each}
+                    </div>
+
+                    <!-- Emoji Grid -->
+                    <div class="emoji-grid-container">
+                        <div class="emoji-grid">
+                            {#each displayedEmojis as em}
+                                <button
+                                    type="button"
+                                    class="emoji-btn"
+                                    class:active={selectedEmoji === em}
+                                    on:click={() => (selectedEmoji = em)}
+                                    aria-label="Выбрать эмодзи {em}"
+                                >
+                                    {em}
+                                </button>
+                            {/each}
+                        </div>
                     </div>
                 </div>
 
@@ -562,41 +649,138 @@
         box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
     }
 
-    .emoji-strip {
+    .emoji-selector-section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .emoji-header-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .emoji-preview-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: color-mix(in srgb, var(--accent) 15%, transparent);
+        border: 2px solid var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 4px 14px var(--accent-glow, rgba(232, 106, 71, 0.2));
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .preview-emoji {
+        font-size: 26px;
+        line-height: 1;
+    }
+
+    .emoji-header-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .emoji-hint {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    .emoji-cat-tabs {
         display: flex;
         gap: 6px;
         overflow-x: auto;
-        padding: 4px 2px 6px;
-        max-width: 100%;
-        width: 100%;
-        box-sizing: border-box;
+        padding-bottom: 2px;
         scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
+        width: 100%;
+        box-sizing: border-box;
     }
 
-    .emoji-strip::-webkit-scrollbar {
+    .emoji-cat-tabs::-webkit-scrollbar {
         display: none;
     }
 
-    .emoji-btn {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
+    .cat-tab-btn {
+        padding: 5px 11px;
+        border-radius: 999px;
         background: var(--surface-alt);
+        border: 1px solid var(--border-subtle);
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: all 0.15s ease;
+    }
+
+    .cat-tab-btn:hover {
+        color: var(--text-primary);
+        border-color: var(--border);
+    }
+
+    .cat-tab-btn.active {
+        background: var(--text-primary);
+        color: var(--bg);
+        border-color: var(--text-primary);
+    }
+
+    .emoji-grid-container {
+        max-height: 168px;
+        overflow-y: auto;
+        padding: 6px 8px;
+        background: var(--surface-alt);
+        border: 1px solid var(--border-subtle);
+        border-radius: 16px;
+        box-sizing: border-box;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .emoji-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+        gap: 6px;
+        width: 100%;
+    }
+
+    .emoji-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        background: var(--surface);
         border: 1px solid var(--border-subtle);
         font-size: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        flex-shrink: 0;
-        transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease, border-color 0.15s ease;
+        padding: 0;
+        margin: 0;
+    }
+
+    .emoji-btn:hover {
+        transform: scale(1.1);
+        border-color: var(--accent);
+    }
+
+    .emoji-btn:active {
+        transform: scale(0.95);
     }
 
     .emoji-btn.active {
-        background: color-mix(in srgb, var(--accent) 15%, transparent);
+        background: color-mix(in srgb, var(--accent) 18%, transparent);
         border-color: var(--accent);
-        transform: scale(1.1);
+        transform: scale(1.12);
+        box-shadow: 0 2px 8px var(--accent-glow, rgba(232, 106, 71, 0.25));
     }
 
     .chips-wrap {
