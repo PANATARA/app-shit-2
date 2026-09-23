@@ -115,7 +115,7 @@ export function normalizeRecipe(r: any): Recipe {
 export function normalizePlannedMeal(m: any): PlannedMeal {
     let cookObj: Cook | undefined = undefined;
     if (m.cook) {
-        const cookName = [m.cook.name, m.cook.surname].filter(Boolean).join(" ") || m.cook.name || "Член семьи";
+        const cookName = m.cook.name || "Член семьи";
         cookObj = {
             id: String(m.cook.id),
             name: cookName,

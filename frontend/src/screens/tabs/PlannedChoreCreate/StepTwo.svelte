@@ -21,6 +21,7 @@
     import { getFamilyMembers } from "$api/family";
     import { userSession } from "$api/client";
     import { swr } from "$lib/swr";
+    import MemberAvatarRowSkeleton from "$skeletons/MemberAvatarRowSkeleton.svelte";
 
     // Navigation & Localization
     import { createPlannedChoreParams, activeTab } from "$lib/navigation";
@@ -255,21 +256,25 @@
                     </div>
                     <span>{$t.common.none}</span>
                 </button>
-                {#each familyMembers?.members ?? [] as user}
-                    <button
-                        class="user-btn"
-                        class:user-active={assignedTo === user.id}
-                        on:click={() => (assignedTo = user.id)}
-                    >
-                        <div
-                            class="user-avatar-wrap"
-                            class:active={assignedTo === user.id}
+                {#if loading}
+                    <MemberAvatarRowSkeleton count={3} />
+                {:else}
+                    {#each familyMembers?.members ?? [] as user}
+                        <button
+                            class="user-btn"
+                            class:user-active={assignedTo === user.id}
+                            on:click={() => (assignedTo = user.id)}
                         >
-                            <UserAvatar {user} size={44} />
-                        </div>
-                        <span>{user.name}</span>
-                    </button>
-                {/each}
+                            <div
+                                class="user-avatar-wrap"
+                                class:active={assignedTo === user.id}
+                            >
+                                <UserAvatar {user} size={44} />
+                            </div>
+                            <span>{user.name}</span>
+                        </button>
+                    {/each}
+                {/if}
             </div>
         </div>
 

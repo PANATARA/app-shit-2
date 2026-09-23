@@ -1,20 +1,31 @@
 <script lang="ts">
   import { onMount, tick } from "svelte";
   import { createEventDispatcher } from "svelte";
-  import { requestCode, verifyCode, debugAuth, loginWithGoogle } from "$api/auth";
+  import { slide } from "svelte/transition";
+  import Icon from "@iconify/svelte";
+  import AvatarBuilder from "$features/settings/AvatarBuilder.svelte";
+  import { login, register, debugAuth, loginWithGoogle } from "$api/auth";
   import { renderGoogleButton, promptGoogleOneTap } from "$lib/googleAuth";
   import { t } from "$lib/i18n";
 
   const dispatch = createEventDispatcher();
 
-  type Step = "email" | "code";
+  type Mode = "login" | "register";
 
-  let step: Step = "email";
-  let email = "";
-  let code = "";
+  let mode: Mode = "login";
+  let username = "";
+  let password = "";
+  let name = "";
   let loading = false;
   let error = "";
   let googleBtnContainer: HTMLElement | null = null;
+
+  let avatar = {
+    icon: "material-symbols:person-rounded",
+    icon_color: "#ffffff",
+    icon_bg: "linear-gradient(135deg, #F97316 0%, #FB7185 100%)",
+  };
+  let showAvatarPicker = false;
 
   async function setupGoogleButton() {
     await tick();
@@ -32,7 +43,7 @@
     setupGoogleButton();
   });
 
-  $: if (step === "email") {
+  $: if (mode) {
     setupGoogleButton();
   }
 
@@ -50,49 +61,57 @@
     }
   }
 
-  async function handleRequestCode() {
-    if (!email.trim()) {
-      error = $t.auth.enterEmailError;
+  async function handleLogin() {
+    if (!username.trim()) {
+      error = $t.auth.enterUsername;
+      return;
+    }
+    if (!password) {
+      error = $t.auth.enterPassword;
       return;
     }
     error = "";
     loading = true;
     try {
-      await requestCode(email.trim());
-      step = "code";
+      await login(username.trim(), password);
+      dispatch("auth");
     } catch (e: any) {
-      error = e?.message ?? $t.auth.sendCodeError;
+      error = e?.data?.detail ?? e?.message ?? $t.auth.authError;
     } finally {
       loading = false;
     }
   }
 
-  async function handleVerifyCode() {
-    if (!code.trim()) {
-      error = $t.auth.enterCode;
+  async function handleRegister() {
+    if (!username.trim()) {
+      error = $t.auth.enterUsername;
+      return;
+    }
+    if (!password || password.length < 6) {
+      error = $t.auth.passwordMinLength;
       return;
     }
     error = "";
     loading = true;
     try {
-      await verifyCode(email.trim(), parseInt(code.trim(), 10));
+      await register(username.trim(), password, name.trim() || null, avatar);
       dispatch("auth");
     } catch (e: any) {
-      error = e?.message ?? $t.auth.invalidCodeError;
+      error = e?.data?.detail ?? e?.message ?? $t.auth.authError;
     } finally {
       loading = false;
     }
   }
 
   async function handleDebugAuth() {
-    const debugEmail = email.trim() || "debug@dev.local";
+    const debugUser = username.trim() || "debug_user";
     error = "";
     loading = true;
     try {
-      await debugAuth(debugEmail);
+      await debugAuth(debugUser);
       dispatch("auth");
     } catch (e: any) {
-      error = e?.message ?? $t.auth.debugAuthError;
+      error = e?.data?.detail ?? e?.message ?? $t.auth.authError;
     } finally {
       loading = false;
     }
@@ -100,7 +119,7 @@
 
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Enter") {
-      step === "email" ? handleRequestCode() : handleVerifyCode();
+      mode === "login" ? handleLogin() : handleRegister();
     }
   }
 </script>
@@ -109,59 +128,57 @@
   <div class="card">
     <div class="logo">🏠</div>
 
-    {#if step === "email"}
-      <h1 class="title">{$t.auth.welcome}</h1>
-      <p class="subtitle">{$t.auth.enterEmail}</p>
+    <div class="tabs">
+      <button
+        class="tab-btn"
+        class:active={mode === "login"}
+        on:click={() => { mode = "login"; error = ""; }}
+        type="button"
+        disabled={loading}
+      >
+        {$t.auth.signIn}
+      </button>
+      <button
+        class="tab-btn"
+        class:active={mode === "register"}
+        on:click={() => { mode = "register"; error = ""; }}
+        type="button"
+        disabled={loading}
+      >
+        {$t.auth.signUp}
+      </button>
+    </div>
+
+    {#if mode === "login"}
+      <h1 class="title">{$t.auth.loginTitle}</h1>
+      <p class="subtitle">{$t.auth.loginSubtitle}</p>
 
       <div class="field">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="field-label">{$t.auth.emailLabel}</label>
+        <label class="field-label">{$t.auth.usernameLabel}</label>
         <input
           class="field-input"
-          type="email"
-          placeholder={$t.auth.emailPlaceholder}
-          bind:value={email}
+          type="text"
+          placeholder={$t.auth.usernamePlaceholder}
+          bind:value={username}
           on:keydown={handleKeydown}
-          autocomplete="email"
+          autocomplete="username"
+          maxlength="60"
           disabled={loading}
         />
       </div>
-
-      {#if error}
-        <p class="error">{error}</p>
-      {/if}
-
-      <button
-        class="btn-primary"
-        on:click={handleRequestCode}
-        disabled={loading}
-      >
-        {loading ? $t.auth.sending : $t.auth.sendCode}
-      </button>
-
-      <div class="or-divider">
-        <span>{$t.auth.orDivider}</span>
-      </div>
-
-      <div class="google-btn-wrapper">
-        <div class="google-btn-container" bind:this={googleBtnContainer}></div>
-      </div>
-    {:else}
-      <h1 class="title">{$t.auth.checkEmail}</h1>
-      <p class="subtitle">{$t.auth.codeSentTo} <strong>{email}</strong></p>
 
       <div class="field">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="field-label">{$t.auth.codeLabel}</label>
+        <label class="field-label">{$t.auth.passwordLabel}</label>
         <input
-          class="field-input code-input"
-          type="text"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          placeholder="000000"
-          bind:value={code}
+          class="field-input"
+          type="password"
+          placeholder={$t.auth.passwordPlaceholder}
+          bind:value={password}
           on:keydown={handleKeydown}
-          maxlength="6"
+          autocomplete="current-password"
+          maxlength="100"
           disabled={loading}
         />
       </div>
@@ -172,24 +189,131 @@
 
       <button
         class="btn-primary"
-        on:click={handleVerifyCode}
+        on:click={handleLogin}
         disabled={loading}
       >
-        {loading ? $t.auth.verifying : $t.auth.getCode}
+        {loading ? $t.auth.loggingIn : $t.auth.signIn}
       </button>
 
       <button
-        class="btn-ghost"
-        on:click={() => {
-          step = "email";
-          code = "";
-          error = "";
-        }}
+        class="btn-link"
+        type="button"
+        on:click={() => { mode = "register"; error = ""; }}
         disabled={loading}
       >
-        {$t.auth.changeEmail}
+        {$t.auth.noAccount}
+      </button>
+    {:else}
+      <h1 class="title">{$t.auth.registerTitle}</h1>
+      <p class="subtitle">{$t.auth.registerSubtitle}</p>
+
+      <div class="field">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="field-label">{$t.auth.usernameLabel} <span class="required">*</span></label>
+        <input
+          class="field-input"
+          type="text"
+          placeholder={$t.auth.usernamePlaceholder}
+          bind:value={username}
+          on:keydown={handleKeydown}
+          autocomplete="username"
+          maxlength="60"
+          disabled={loading}
+        />
+      </div>
+
+      <div class="field">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="field-label">{$t.auth.nameLabel}</label>
+        <input
+          class="field-input"
+          type="text"
+          placeholder={$t.auth.namePlaceholder}
+          bind:value={name}
+          on:keydown={handleKeydown}
+          autocomplete="given-name"
+          maxlength="50"
+          disabled={loading}
+        />
+      </div>
+
+      <div class="field">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="field-label">{$t.auth.avatarOptional}</label>
+        <div class="avatar-selector-row">
+          <div class="reg-avatar-preview" style="background: {avatar.icon_bg}">
+            <Icon icon={avatar.icon} width={26} height={26} color={avatar.icon_color} />
+          </div>
+          <button
+            type="button"
+            class="btn-choose-avatar"
+            on:click={() => (showAvatarPicker = !showAvatarPicker)}
+            disabled={loading}
+          >
+            <Icon icon="material-symbols:palette-outline" width={18} height={18} />
+            <span>{showAvatarPicker ? $t.common.close : $t.auth.chooseAvatar}</span>
+          </button>
+        </div>
+        {#if showAvatarPicker}
+          <div class="reg-avatar-builder" transition:slide={{ duration: 180 }}>
+            <AvatarBuilder
+              initialIcon={avatar.icon}
+              initialIconColor={avatar.icon_color}
+              initialBg={avatar.icon_bg}
+              allowIcon={true}
+              allowIconColor={false}
+              allowBg={true}
+              iconCategories={["people", "pets", "nature", "misc"]}
+              onchange={(v) => { avatar = v; }}
+            />
+          </div>
+        {/if}
+      </div>
+
+      <div class="field">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="field-label">{$t.auth.passwordLabel} <span class="required">*</span></label>
+        <input
+          class="field-input"
+          type="password"
+          placeholder={$t.auth.passwordPlaceholder}
+          bind:value={password}
+          on:keydown={handleKeydown}
+          autocomplete="new-password"
+          maxlength="100"
+          disabled={loading}
+        />
+      </div>
+
+      {#if error}
+        <p class="error">{error}</p>
+      {/if}
+
+      <button
+        class="btn-primary"
+        on:click={handleRegister}
+        disabled={loading}
+      >
+        {loading ? $t.auth.registering : $t.auth.signUp}
+      </button>
+
+      <button
+        class="btn-link"
+        type="button"
+        on:click={() => { mode = "login"; error = ""; }}
+        disabled={loading}
+      >
+        {$t.auth.haveAccount}
       </button>
     {/if}
+
+    <div class="or-divider">
+      <span>{$t.auth.orDivider}</span>
+    </div>
+
+    <div class="google-btn-wrapper">
+      <div class="google-btn-container" bind:this={googleBtnContainer}></div>
+    </div>
 
     <div class="debug-block">
       <div class="debug-divider">
@@ -207,7 +331,7 @@
           <path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z" />
           <path d="M12 8v4l3 3" />
         </svg>
-        {$t.auth.loginWithoutCode} {email ? `(${email})` : "(debug@dev.local)"}
+        {$t.auth.loginWithoutCode} {username ? `(${username})` : "(debug_user)"}
       </button>
     </div>
   </div>
@@ -245,37 +369,61 @@
   .logo {
     font-size: 48px;
     text-align: center;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+  }
+
+  .tabs {
+    display: flex;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 3px;
+    margin-bottom: 2px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 9px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 11px;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   }
 
   .title {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--text-primary);
     text-align: center;
   }
 
   .subtitle {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-muted);
     text-align: center;
-    line-height: 1.5;
-  }
-
-  .subtitle strong {
-    color: var(--text-secondary);
-    font-weight: 600;
+    line-height: 1.4;
   }
 
   .field {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin-top: 4px;
+    gap: 5px;
+    margin-top: 2px;
   }
 
   .field-label {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -286,9 +434,9 @@
     background: var(--surface-alt);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 13px 16px;
+    padding: 12px 16px;
     color: var(--text-primary);
-    font-size: 16px;
+    font-size: 15px;
     font-family: inherit;
     outline: none;
     width: 100%;
@@ -302,13 +450,6 @@
     opacity: 0.5;
   }
 
-  .code-input {
-    text-align: center;
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: 8px;
-  }
-
   .error {
     font-size: 13px;
     color: #ff3b30;
@@ -317,17 +458,17 @@
 
   .btn-primary {
     width: 100%;
-    padding: 15px;
+    padding: 14px;
     background: var(--accent);
     border: none;
-    border-radius: 16px;
+    border-radius: 14px;
     color: #fff;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
     transition: opacity 0.15s;
-    margin-top: 4px;
+    margin-top: 2px;
   }
 
   .btn-primary:active {
@@ -338,22 +479,23 @@
     cursor: not-allowed;
   }
 
-  .btn-ghost {
-    width: 100%;
-    padding: 12px;
+  .btn-link {
     background: none;
     border: none;
     color: var(--accent);
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 500;
     font-family: inherit;
     cursor: pointer;
+    padding: 4px 0;
+    text-align: center;
     transition: opacity 0.15s;
   }
 
-  .btn-ghost:active {
+  .btn-link:active {
     opacity: 0.6;
   }
-  .btn-ghost:disabled {
+  .btn-link:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }
@@ -362,7 +504,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 14px 0 10px 0;
+    margin: 8px 0 4px 0;
   }
 
   .or-divider::before,
@@ -386,7 +528,6 @@
     justify-content: center;
     width: 100%;
     min-height: 44px;
-    margin-bottom: 4px;
   }
 
   .google-btn-container {
@@ -396,10 +537,10 @@
   }
 
   .debug-block {
-    margin-top: 8px;
+    margin-top: 4px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
 
   .debug-divider {
@@ -426,7 +567,7 @@
 
   .btn-debug {
     width: 100%;
-    padding: 11px 14px;
+    padding: 10px 14px;
     background: var(--surface-alt);
     border: 1px dashed var(--border);
     border-radius: 12px;
@@ -442,8 +583,56 @@
   }
 
   .btn-debug:active {
-    opacity: 0.6;
+    opacity: 0.7;
   }
+
+  .avatar-selector-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .reg-avatar-preview {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-choose-avatar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-choose-avatar:hover {
+    border-color: var(--accent);
+  }
+
+  .reg-avatar-builder {
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--surface-alt);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+
   .btn-debug:disabled {
     opacity: 0.4;
     cursor: not-allowed;

@@ -10,6 +10,7 @@
     } from "$lib/mealsStore";
     import { formatDateKey } from "$lib/utils";
     import AddCustomRecipeModal from "./AddCustomRecipeModal.svelte";
+    import RecipeGridSkeleton from "$skeletons/RecipeGridSkeleton.svelte";
 
     const dispatch = createEventDispatcher<{
         selectRecipe: Recipe;
@@ -120,10 +121,7 @@
 
     <!-- Recipe Grid -->
     {#if loading}
-        <div class="empty-state">
-            <div class="empty-icon">⏳</div>
-            <span class="empty-title">Загрузка рецептов...</span>
-        </div>
+        <RecipeGridSkeleton count={4} />
     {:else if allRecipes.length === 0}
         <div class="empty-state">
             <div class="empty-icon">📖</div>

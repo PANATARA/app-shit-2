@@ -11,7 +11,6 @@
     import Icon from "@iconify/svelte";
 
     let name = "";
-    let surname = "";
     let avatar = {
         icon: "material-symbols:person-rounded",
         icon_color: "#ffffff",
@@ -27,7 +26,6 @@
             const profile = cached || (await getProfile());
             if (profile) {
                 if (profile.name) name = profile.name;
-                if (profile.surname) surname = profile.surname;
                 if (profile.icon) avatar.icon = profile.icon;
                 if (profile.icon_color) avatar.icon_color = profile.icon_color;
                 if (profile.icon_bg) avatar.icon_bg = profile.icon_bg;
@@ -49,7 +47,6 @@
         try {
             const updated = await updateProfile({
                 name: name.trim(),
-                surname: surname.trim(),
                 icon: avatar.icon,
                 icon_color: avatar.icon_color,
                 icon_bg: avatar.icon_bg,
@@ -79,7 +76,7 @@
             </p>
         </header>
 
-        <!-- Name Inputs -->
+        <!-- Name Input -->
         <section class="form-section">
             <div class="input-group">
                 <label class="field-label" for="profile-first-name">
@@ -94,26 +91,8 @@
                         placeholder={$t.onboarding.firstNamePlaceholder || "Ваше имя (например, Анна)"}
                         bind:value={name}
                         on:input={() => { if (errorMessage) errorMessage = ""; }}
-                        maxlength={40}
+                        maxlength={50}
                         autocomplete="given-name"
-                    />
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label class="field-label" for="profile-last-name">
-                    {$t.onboarding.lastName || "Фамилия"}
-                </label>
-                <div class="input-wrapper">
-                    <span class="input-icon">🏷️</span>
-                    <input
-                        id="profile-last-name"
-                        class="field-input"
-                        type="text"
-                        placeholder={$t.onboarding.lastNamePlaceholder || "Необязательно"}
-                        bind:value={surname}
-                        maxlength={40}
-                        autocomplete="family-name"
                     />
                 </div>
             </div>

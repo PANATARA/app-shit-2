@@ -121,6 +121,7 @@
                 <CustomInput
                     bind:value={form.name}
                     placeholder={$t.chores.namePlaceholder}
+                    maxlength={100}
                     disabled={isDefaultChore || deleting}
                 />
             </div>

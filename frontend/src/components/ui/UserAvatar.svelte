@@ -6,7 +6,7 @@
   export let size = 40;
 
   $: initials = user
-    ? `${user.name?.[0] ?? ""}${user.surname?.[0] ?? ""}`.toUpperCase()
+    ? (user.name?.[0] ?? "").toUpperCase()
     : "";
 </script>
 

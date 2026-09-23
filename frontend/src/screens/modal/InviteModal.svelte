@@ -5,6 +5,7 @@
     import Icon from "@iconify/svelte";
     import { t } from "$lib/i18n";
     import { language } from "$lib/settings";
+    import InviteModalSkeleton from "$skeletons/InviteModalSkeleton.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -84,10 +85,7 @@
 >
     <div class="content">
         {#if loading}
-            <div class="shimmer-wrap">
-                <div class="shimmer-code"></div>
-                <div class="shimmer-line"></div>
-            </div>
+            <InviteModalSkeleton />
         {:else if error}
             <div class="error-wrap">
                 <p class="error-text">{$t.modals.failedToGetCode}</p>
@@ -275,38 +273,4 @@
         cursor: pointer;
     }
 
-    /* ── Shimmer ───────────────────────── */
-    .shimmer-wrap {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        padding: 20px 0;
-    }
-
-    .shimmer-code {
-        width: 200px;
-        height: 56px;
-        border-radius: 14px;
-        background: var(--bg-card, #332a1e);
-        animation: shimmer 1.2s ease-in-out infinite;
-    }
-
-    .shimmer-line {
-        width: 140px;
-        height: 14px;
-        border-radius: 6px;
-        background: var(--bg-card, #332a1e);
-        animation: shimmer 1.2s ease-in-out infinite;
-    }
-
-    @keyframes shimmer {
-        0%,
-        100% {
-            opacity: 0.5;
-        }
-        50% {
-            opacity: 1;
-        }
-    }
 </style>

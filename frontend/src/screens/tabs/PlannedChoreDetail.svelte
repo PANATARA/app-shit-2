@@ -541,7 +541,6 @@
                         <UserAvatar user={plannedChore.assigned_to} size={22} />
                         <span class="detail-value">
                             {plannedChore.assigned_to.name}
-                            {plannedChore.assigned_to.surname}
                         </span>
                     </div>
                 {:else}
@@ -573,7 +572,6 @@
                         />
                         <span class="detail-value">
                             {plannedChore.completed_by.name}
-                            {plannedChore.completed_by.surname}
                         </span>
                     </div>
                 {:else}

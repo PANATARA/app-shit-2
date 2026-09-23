@@ -5,6 +5,7 @@
     import Icon from "@iconify/svelte";
     import SearchBox from "$ui/SearchBox.svelte";
     import ChoreListItem from "$features/chores/ChoreListItem.svelte";
+    import ChoreListSkeleton from "$skeletons/ChoreListSkeleton.svelte";
     import { swr } from "$lib/swr";
     import { t } from "$lib/i18n";
 
@@ -55,9 +56,7 @@
         </button>
 
         {#if loading}
-            <div class="empty-state">
-                <span class="empty-sub">{$t.common.loading}</span>
-            </div>
+            <ChoreListSkeleton count={4} />
         {:else if filteredChores.length === 0}
             <div class="empty-state">
                 <span class="empty-icon">{normalizedQuery ? "🔍" : "📋"}</span>

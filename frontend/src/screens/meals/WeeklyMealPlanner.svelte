@@ -16,6 +16,7 @@
         type Recipe,
         useFamilyRecipes,
     } from "$lib/mealsStore";
+    import MealPlannerSkeleton from "$skeletons/MealPlannerSkeleton.svelte";
 
     const dispatch = createEventDispatcher<{
         addMeal: { date: string; slot: MealSlot };
@@ -192,7 +193,10 @@
 
     <!-- Meal Slots -->
     <div class="slots-list">
-        {#each slotsWithMeals as slotDef (slotDef.id)}
+        {#if loading && plannedMeals.length === 0}
+            <MealPlannerSkeleton slotsCount={3} />
+        {:else}
+            {#each slotsWithMeals as slotDef (slotDef.id)}
             <div class="slot-card">
                 <!-- Slot Header -->
                 <div class="slot-head">
@@ -286,6 +290,7 @@
                 {/if}
             </div>
         {/each}
+        {/if}
     </div>
 </div>
 

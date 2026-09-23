@@ -8,10 +8,9 @@ export interface GoogleCredentialResponse {
   clientId?: string;
 }
 
-// Fallback or environment Google Client ID
+// Environment Google Client ID
 export const DEFAULT_GOOGLE_CLIENT_ID =
-  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-  "210492988239-google-client-id.apps.googleusercontent.com";
+  (import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim();
 
 /**
  * Ensures Google Identity Services script is loaded and ready
@@ -67,6 +66,13 @@ export async function initGoogleIdentity(
   onCredential: (credential: string) => void,
   clientId: string = DEFAULT_GOOGLE_CLIENT_ID
 ): Promise<any> {
+  if (!clientId) {
+    console.error(
+      "Google Client ID is missing. Please set VITE_GOOGLE_CLIENT_ID in frontend/.env and rebuild the app."
+    );
+    return null;
+  }
+
   const googleId = await loadGoogleIdentityScript();
   if (!googleId) return null;
 

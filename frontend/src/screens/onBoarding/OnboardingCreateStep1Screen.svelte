@@ -93,7 +93,7 @@
                     value={familyName}
                     on:input={(e) => handleNameChange(e.currentTarget.value)}
                     placeholder={$t.onboarding.familyPlaceholder || "Например: Супер Семейка"}
-                    maxlength={40}
+                    maxlength={60}
                     autocomplete="off"
                 />
             </div>
@@ -111,7 +111,7 @@
 
             <!-- Suggestions -->
             <div class="suggestions">
-                <span class="sugg-label">Подсказки:</span>
+                <span class="sugg-label">{$t.onboarding.hints || "Подсказки:"}</span>
                 <div class="sugg-chips">
                     {#each SUGGESTIONS as sugg}
                         <button

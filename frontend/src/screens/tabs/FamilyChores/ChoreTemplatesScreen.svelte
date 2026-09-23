@@ -4,6 +4,7 @@
     import type { DefaultChore } from "$types/index";
     import Icon from "@iconify/svelte";
     import DefaultChoreListItem from "$features/chores/DefaultChoreListItem.svelte";
+    import ChoreTemplatesSkeleton from "$skeletons/ChoreTemplatesSkeleton.svelte";
     import { swr, mutate } from "$lib/swr";
     import { t } from "$lib/i18n";
     import { language } from "$lib/settings";
@@ -60,9 +61,7 @@
         </button>
 
         {#if loading}
-            <div class="empty-state">
-                <span class="empty-sub">{$t.common.loading}</span>
-            </div>
+            <ChoreTemplatesSkeleton count={4} />
         {:else if defaultChores.length === 0}
             <div class="empty-state">
                 <span class="empty-icon">📋</span>
@@ -213,11 +212,5 @@
         font-size: 15px;
         font-weight: 700;
         color: var(--text-primary);
-    }
-
-    .empty-sub {
-        font-size: 13px;
-        font-weight: 500;
-        color: var(--text-muted);
     }
 </style>

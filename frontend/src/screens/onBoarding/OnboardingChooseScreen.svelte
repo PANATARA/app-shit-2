@@ -64,7 +64,7 @@
                 </div>
 
                 <div class="card-footer">
-                    <span class="action-text">Начать создание</span>
+                    <span class="action-text">{$t.onboarding.startCreating || "Начать создание"}</span>
                     <Icon
                         icon="material-symbols:arrow-forward-rounded"
                         width="18"
@@ -95,7 +95,7 @@
                 </div>
 
                 <div class="card-footer">
-                    <span class="action-text">Ввести код</span>
+                    <span class="action-text">{$t.onboarding.enterCode || "Ввести код"}</span>
                     <Icon
                         icon="material-symbols:arrow-forward-rounded"
                         width="18"

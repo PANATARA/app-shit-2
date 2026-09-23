@@ -8,6 +8,7 @@
     import { activeTab, navigateBack } from "$lib/navigation";
     import { language } from "$lib/settings";
     import { t } from "$lib/i18n";
+    import EventsListSkeleton from "$skeletons/EventsListSkeleton.svelte";
     import { swr, mutate } from "$lib/swr";
 
     const PAGE_LIMIT = 20;
@@ -203,18 +204,7 @@
 
     <div class="page-content">
         {#if loadingInitial}
-            <div class="list">
-                {#each Array(4) as _}
-                    <div class="event-card skeleton-card">
-                        <div class="skeleton icon-skeleton"></div>
-                        <div class="event-body">
-                            <div class="skeleton name-skeleton"></div>
-                            <div class="skeleton desc-skeleton"></div>
-                        </div>
-                        <div class="skeleton badge-skeleton"></div>
-                    </div>
-                {/each}
-            </div>
+            <EventsListSkeleton count={4} />
         {:else if error && !events.length}
             <div class="state-container">
                 <span class="state-icon">⚠️</span>
@@ -738,55 +728,7 @@
         cursor: pointer;
     }
 
-    /* SKELETONS */
-
-    .skeleton-card {
-        pointer-events: none;
-    }
-
-    .skeleton {
-        background: linear-gradient(
-            90deg,
-            var(--surface-alt) 25%,
-            var(--border) 50%,
-            var(--surface-alt) 75%
-        );
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
-    }
-
     @keyframes spin {
         to { transform: rotate(360deg); }
-    }
-
-    @keyframes shimmer {
-        from { background-position: 200% 0; }
-        to { background-position: -200% 0; }
-    }
-
-    .icon-skeleton {
-        width: 48px;
-        height: 48px;
-        border-radius: 16px;
-        flex-shrink: 0;
-    }
-
-    .name-skeleton {
-        width: 140px;
-        height: 16px;
-        border-radius: 6px;
-    }
-
-    .desc-skeleton {
-        width: 90px;
-        height: 12px;
-        border-radius: 4px;
-        margin-top: 6px;
-    }
-
-    .badge-skeleton {
-        width: 60px;
-        height: 22px;
-        border-radius: 999px;
     }
 </style>

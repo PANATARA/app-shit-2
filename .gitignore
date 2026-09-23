@@ -16,3 +16,6 @@ app/src/main/assets/index-*.js
 app/src/main/assets/index-*.css
 app/src/main/assets/index.html
 frontend/dist/
+.env
+.env.*
+!.env.example

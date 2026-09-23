@@ -17,7 +17,7 @@ export async function getProfile() {
 
 /**
  * Update current user's profile
- * @param {object} profileData - { username, name, surname }
+ * @param {object} profileData - { username, name, icon, icon_color, icon_bg }
  * @returns {Promise<any>}
  */
 export async function updateProfile(profileData) {

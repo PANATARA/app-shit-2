@@ -2,7 +2,6 @@ export interface UserShort {
   id: string;
   username: string;
   name: string;
-  surname: string;
   icon: string;
   icon_color: string;
   icon_bg: string;
@@ -12,7 +11,6 @@ export interface UserProfile {
   id: string;
   username: string;
   name: string;
-  surname: string;
   icon: string;
   icon_color: string;
   icon_bg: string;

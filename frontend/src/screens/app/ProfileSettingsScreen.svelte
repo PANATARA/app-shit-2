@@ -36,7 +36,6 @@
     // ─── EDIT ──────────────────────────────────────
     let isEditing = false;
     let editName = "";
-    let editSurname = "";
     let editAvatar = { icon: "", icon_color: "", icon_bg: "" };
 
     // ─── NOTIFICATION TEST ─────────────────────────
@@ -54,13 +53,12 @@
     $: familyMembers = $members.data?.members ?? [];
     $: profileLoading = $profile.loading;
     $: familyLoading = $family.loading || $members.loading;
-    $: fullName = meUser ? `${meUser.name} ${meUser.surname}`.trim() : "";
+    $: fullName = meUser ? meUser.name.trim() : "";
 
     // ─── EDIT LOGIC ────────────────────────────────
     function openEdit() {
         if (!meUser) return;
         editName = meUser.name;
-        editSurname = meUser.surname;
         editAvatar = {
             icon: meUser.icon,
             icon_color: meUser.icon_color,
@@ -76,8 +74,7 @@
     async function saveEdit() {
         if (!meUser) return;
         const updated = await updateProfile({
-            name: editName,
-            surname: editSurname,
+            name: editName.trim(),
             ...editAvatar,
         });
         meUser = updated;
@@ -179,11 +176,7 @@
             <div class="edit-fields">
                 <div class="field">
                     <label class="field-label" for="edit-profile-name">{$t.settings.firstName}</label>
-                    <input id="edit-profile-name" class="field-input" bind:value={editName} />
-                </div>
-                <div class="field">
-                    <label class="field-label" for="edit-profile-surname">{$t.settings.lastName}</label>
-                    <input id="edit-profile-surname" class="field-input" bind:value={editSurname} />
+                    <input id="edit-profile-name" class="field-input" maxlength="50" bind:value={editName} />
                 </div>
             </div>
             <div class="edit-actions">
