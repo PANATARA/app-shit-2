@@ -6,6 +6,7 @@
     import AddMealModal from "./AddMealModal.svelte";
     import GroceryListModal from "./GroceryListModal.svelte";
     import { type Recipe, type MealSlot, useFamilyGroceries } from "$lib/mealsStore";
+    import { t } from "$lib/i18n";
 
     let activeSegment: "planner" | "recipes" = "planner";
     let plannerRef: any = null;
@@ -37,12 +38,12 @@
     <header class="hub-header">
         <div class="hub-title-row">
             <div class="title-wrap">
-                <h1 class="hub-title">Питание и меню</h1>
-                <span class="hub-subtitle">Семейные трапезы и рецепты</span>
+                <h1 class="hub-title">{$t.meals.hubTitle}</h1>
+                <span class="hub-subtitle">{$t.meals.hubSubtitle}</span>
             </div>
 
             <!-- Grocery List Trigger -->
-            <button class="grocery-pill-btn" on:click={() => (showGrocery = true)} aria-label="Список покупок">
+            <button class="grocery-pill-btn" on:click={() => (showGrocery = true)} aria-label={$t.meals.groceryList}>
                 <Icon icon="material-symbols:shopping-cart-outline-rounded" width={18} height={18} />
                 {#if groceryCount > 0}
                     <span class="grocery-badge">{groceryCount}</span>
@@ -60,7 +61,7 @@
                 aria-selected={activeSegment === "planner"}
             >
                 <Icon icon="material-symbols:calendar-today-rounded" width={16} height={16} />
-                <span>План на неделю</span>
+                <span>{$t.meals.weeklyPlan}</span>
             </button>
             <button
                 class="segment-btn"
@@ -70,7 +71,7 @@
                 aria-selected={activeSegment === "recipes"}
             >
                 <Icon icon="material-symbols:menu-book-rounded" width={16} height={16} />
-                <span>Книга рецептов</span>
+                <span>{$t.meals.recipesTitle}</span>
             </button>
         </div>
     </header>
@@ -123,7 +124,7 @@
             defaultSlot={addMealData.slot}
             on:close={() => (addMealData = null)}
             on:added={async (e) => {
-                triggerToast("Блюдо успешно добавлено в план!");
+                triggerToast($t.meals.mealAddedToast);
                 if (e.detail) {
                     plannerRef?.addOptimisticMeal?.(e.detail);
                 }

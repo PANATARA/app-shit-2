@@ -212,21 +212,23 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 30px;
-        height: 30px;
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        min-height: 36px;
         border-radius: 50%;
-        border: 1px solid var(--border-subtle);
+        border: 0.5px solid var(--border-subtle);
         background: var(--surface-alt);
         color: var(--text-secondary);
         cursor: pointer;
-        transition: transform 0.15s ease, background 0.15s ease;
+        transition: transform 0.14s cubic-bezier(0.25, 1, 0.5, 1), background 0.16s ease;
         -webkit-tap-highlight-color: transparent;
     }
 
     .add-btn:active {
         background: var(--accent-soft);
         color: var(--accent);
-        transform: scale(0.9);
+        transform: scale(0.92) translateZ(0);
     }
 
     /* LIST */
@@ -244,18 +246,18 @@
         gap: 12px;
         width: 100%;
         padding: 12px 14px;
-        border: 1px solid var(--border-subtle);
+        border: 0.5px solid var(--border-subtle);
         border-radius: 16px;
         background: var(--surface-alt);
         box-shadow: none;
         cursor: pointer;
         font-family: inherit;
-        transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s ease;
+        transition: transform 0.14s cubic-bezier(0.25, 1, 0.5, 1), background 0.16s ease;
         -webkit-tap-highlight-color: transparent;
     }
 
     .event-row:active {
-        transform: scale(0.98);
+        transform: scale(0.97) translateZ(0);
         background: color-mix(in srgb, var(--accent) 10%, var(--surface-alt));
     }
 

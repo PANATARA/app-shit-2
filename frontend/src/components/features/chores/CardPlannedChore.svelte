@@ -121,25 +121,25 @@
         display: flex;
         align-items: center;
         gap: 14px;
-        padding: 14px 16px;
-        border-radius: var(--radius-card, 22px);
+        padding: 13px 16px;
+        border-radius: 18px;
         background: var(--surface);
-        border: 1px solid var(--border-subtle);
-        box-shadow: var(--shadow-card);
+        border: 0.5px solid var(--border-subtle);
+        box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04), 0 1px 4px -1px rgba(0, 0, 0, 0.02);
         transition:
-            opacity 0.25s ease,
-            transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
-            box-shadow 0.2s ease;
+            opacity 0.22s ease,
+            transform 0.14s cubic-bezier(0.25, 1, 0.5, 1),
+            box-shadow 0.18s ease;
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
     }
 
     .card:active {
-        transform: scale(0.97);
+        transform: scale(0.97) translateZ(0);
     }
 
     .card.card-done {
-        opacity: 0.58;
+        opacity: 0.55;
         background: var(--surface-alt);
         box-shadow: none;
         border-color: transparent;
@@ -157,10 +157,12 @@
     }
 
     .title {
-        font-size: 15px;
-        font-weight: 700;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
         color: var(--text-primary);
-        line-height: 1.25;
+        letter-spacing: -0.25px;
+        line-height: 1.3;
         transition: color 0.2s ease;
     }
 
@@ -169,48 +171,52 @@
         color: var(--text-muted);
     }
 
-    /* ── BADGES ──────────────────────────────────── */
+    /* ── BADGES (APPLE PILL) ─────────────────────── */
     .assignee-badge,
     .completed-badge {
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        padding: 3px 9px 3px 4px;
-        border-radius: var(--radius-pill, 999px);
+        padding: 2px 8px 2px 4px;
+        border-radius: 999px;
         align-self: flex-start;
-        margin-top: 4px;
+        margin-top: 2px;
     }
 
     .assignee-badge {
         background: var(--surface-alt);
-        border: 1px solid var(--border-subtle);
+        border: 0.5px solid var(--border-subtle);
     }
 
     .completed-badge {
         background: var(--success-soft);
-        border: 1px solid color-mix(in srgb, var(--success) 24%, transparent);
+        border: 0.5px solid color-mix(in srgb, var(--success) 22%, transparent);
     }
 
     .name {
-        font-size: 11px;
-        font-weight: 600;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+        font-size: 11.5px;
+        font-weight: 500;
+        letter-spacing: -0.1px;
         color: var(--text-secondary);
     }
 
-    /* ── CHECK BUTTON ────────────────────────────── */
+    /* ── CHECK BUTTON (HIG 44PT TOUCH TARGET) ─────── */
     .right {
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        min-width: 44px;
+        min-height: 44px;
         position: relative;
         z-index: 1;
     }
 
     .check {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
         border: 2px solid var(--border);
         background: var(--surface);
         cursor: pointer;
@@ -220,22 +226,22 @@
         color: transparent;
         padding: 0;
         transition:
-            transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
-            background-color 0.2s ease,
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
+            transform 0.14s cubic-bezier(0.25, 1, 0.5, 1),
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
         -webkit-tap-highlight-color: transparent;
     }
 
     .check:active {
-        transform: scale(0.86);
+        transform: scale(0.88) translateZ(0);
     }
 
     .check.checked {
         border-color: var(--success);
         background: var(--success);
-        color: #fff;
-        box-shadow: 0 3px 10px var(--success-soft);
+        color: #ffffff;
+        box-shadow: 0 2px 8px var(--success-soft);
     }
 
     .check-icon {

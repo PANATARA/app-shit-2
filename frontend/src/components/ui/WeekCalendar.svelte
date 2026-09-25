@@ -115,7 +115,6 @@
         display: flex;
         align-items: center;
         padding: 0 2px;
-        /*background-color: coral;*/
         justify-content: center;
     }
 
@@ -126,17 +125,17 @@
     }
 
     .dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--border);
-        transition: all 0.2s ease;
+        width: 5px;
+        height: 5px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--border) 80%, transparent);
+        transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .dot.active {
         background: var(--accent);
-        width: 18px;
-        border-radius: 3px;
+        width: 16px;
+        border-radius: 999px;
     }
 
     .scroll-wrapper {
@@ -146,7 +145,7 @@
     .calendar {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
     }
 
     /* ── Скролл-контейнер ───────────────────────── */
@@ -167,46 +166,56 @@
     .week {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 4px;
+        gap: 5px;
         min-width: 100%;
         scroll-snap-align: start;
-        margin-bottom: 3px;
+        margin-bottom: 2px;
         padding: 0 1px;
         box-sizing: border-box;
     }
 
-    /* ── Дни ───────────────────────── */
+    /* ── Дни (Apple Ergonomics & HIG Touch Targets) ── */
     .day {
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         gap: 3px;
-        padding: 14px 4px;
-        border-radius: 20px;
+        padding: 10px 2px;
+        min-height: 54px;
+        border-radius: 18px;
         background: var(--surface);
-        border: 1px solid var(--border-subtle);
+        border: 0.5px solid var(--border-subtle);
         cursor: pointer;
-        transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, border-color 0.2s ease;
+        user-select: none;
         -webkit-tap-highlight-color: transparent;
+        transition:
+            transform 0.14s cubic-bezier(0.25, 1, 0.5, 1),
+            background 0.16s ease,
+            border-color 0.16s ease;
     }
 
     .day:active {
-        transform: scale(0.92);
+        transform: scale(0.94) translateZ(0);
     }
 
     .weekday {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
         font-size: 11px;
-        font-weight: 500;
+        font-weight: 600;
+        letter-spacing: -0.1px;
         color: var(--text-muted);
         text-transform: capitalize;
-        transition: color 0.2s ease;
+        transition: color 0.16s ease;
     }
 
     .date {
-        font-size: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+        font-size: 17px;
         font-weight: 700;
+        letter-spacing: -0.3px;
         color: var(--text-primary);
-        transition: color 0.2s ease;
+        transition: color 0.16s ease;
     }
 
     .day.selected {

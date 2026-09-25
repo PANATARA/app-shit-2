@@ -3,6 +3,7 @@
     import BottomSheet from "$ui/BottomSheet.svelte";
     import Icon from "@iconify/svelte";
     import { t } from "$lib/i18n";
+    import { language } from "$lib/settings";
     import {
         type Recipe,
         type Cook,
@@ -77,7 +78,7 @@
             }));
 
         if (missing.length === 0) {
-            dispatch("toast", "Все ингредиенты уже отмечены как имеющиеся!");
+            dispatch("toast", $t.meals.allIngredientsChecked);
             return;
         }
 
@@ -85,11 +86,11 @@
             const added = await addIngredientsToGrocery(missing, recipe.title);
             dispatch(
                 "toast",
-                `Добавлено в список покупок: ${added} ${added === 1 ? "продукт" : "продуктов"}`
+                $t.meals.addedToGroceryToast.replace("{n}", String(added))
             );
         } catch (e) {
             console.error("Failed to add to grocery", e);
-            dispatch("toast", "Ошибка при добавлении в список покупок");
+            dispatch("toast", $t.meals.addGroceryError);
         }
     }
 
@@ -107,37 +108,38 @@
 
             const normalized = normalizePlannedMeal(res);
             mutate("planned-meals*");
-            dispatch("toast", `«${recipe.title}» добавлено в меню!`);
+            dispatch("toast", $t.meals.scheduledToast.replace("{title}", recipe.title));
             dispatch("scheduled", { date: selectedDate, slot: selectedSlot, meal: normalized });
             dispatch("close");
         } catch (e) {
             console.error("Failed to schedule meal", e);
-            dispatch("toast", "Не удалось добавить блюдо в меню");
+            dispatch("toast", $t.meals.scheduleError);
         }
     }
 
     // Days for schedule picker (Next 7 days)
-    function getUpcomingDays() {
+    function getUpcomingDays(lang: string) {
         const days = [];
         const base = new Date();
+        const locale = lang === "en" ? "en-US" : "ru-RU";
         for (let i = 0; i < 7; i++) {
             const d = new Date(base);
             d.setDate(base.getDate() + i);
             days.push({
                 key: formatDateKey(d),
-                label: i === 0 ? "Сегодня" : i === 1 ? "Завтра" : d.toLocaleDateString("ru-RU", { weekday: "short", day: "numeric" }),
+                label: i === 0 ? $t.common.today : i === 1 ? $t.common.tomorrow : d.toLocaleDateString(locale, { weekday: "short", day: "numeric" }),
             });
         }
         return days;
     }
 
-    const upcomingDays = getUpcomingDays();
+    $: upcomingDays = getUpcomingDays($language);
 
-    const slots: { id: MealSlot; label: string; icon: string }[] = [
-        { id: "breakfast", label: "Завтрак", icon: "material-symbols:sunny" },
-        { id: "lunch", label: "Обед", icon: "material-symbols:wb-twilight" },
-        { id: "dinner", label: "Ужин", icon: "material-symbols:bedtime" },
-        { id: "snack", label: "Перекус", icon: "material-symbols:nutrition" },
+    $: slots = [
+        { id: "breakfast" as MealSlot, label: $t.meals.breakfast, icon: "material-symbols:sunny" },
+        { id: "lunch" as MealSlot, label: $t.meals.lunch, icon: "material-symbols:wb-twilight" },
+        { id: "dinner" as MealSlot, label: $t.meals.dinnerSlot, icon: "material-symbols:bedtime" },
+        { id: "snack" as MealSlot, label: $t.meals.snack, icon: "material-symbols:nutrition" },
     ];
 </script>
 
@@ -146,12 +148,12 @@
         <!-- Hero Header -->
         <div class="recipe-hero" style="background: {recipe.accentGradient}">
             <div class="hero-top">
-                <span class="category-chip">{recipe.tags[0] || "Рецепт"}</span>
+                <span class="category-chip">{recipe.tags[0] || $t.meals.recipe}</span>
                 <button
                     class="fav-btn"
                     class:active={recipe.isFavorite}
                     on:click={() => toggleRecipeFavorite(recipe.id)}
-                    aria-label="В избранное"
+                    aria-label={$t.meals.toFavorites}
                 >
                     <Icon
                         icon={recipe.isFavorite ? "material-symbols:favorite-rounded" : "material-symbols:favorite-outline-rounded"}
@@ -167,11 +169,11 @@
             <div class="meta-pills">
                 <div class="meta-pill">
                     <Icon icon="material-symbols:timer-outline-rounded" width={16} height={16} />
-                    <span>{recipe.prepTimeMinutes + recipe.cookTimeMinutes} мин</span>
+                    <span>{recipe.prepTimeMinutes + recipe.cookTimeMinutes} {$t.meals.min}</span>
                 </div>
                 <div class="meta-pill">
                     <Icon icon="material-symbols:restaurant-menu" width={16} height={16} />
-                    <span>{recipe.ingredients.length} ингред.</span>
+                    <span>{recipe.ingredients.length} {$t.meals.ingredientsCount}</span>
                 </div>
             </div>
         </div>
@@ -180,14 +182,14 @@
         <div class="servings-bar">
             <div class="servings-label">
                 <Icon icon="material-symbols:group-rounded" width={20} height={20} style="color: var(--accent)" />
-                <span>Порции</span>
+                <span>{$t.meals.servingsLabelTitle}</span>
             </div>
             <div class="stepper">
                 <button
                     class="step-btn"
                     disabled={servings <= 1}
                     on:click={() => (servings = Math.max(1, servings - 1))}
-                    aria-label="Меньше"
+                    aria-label={$t.meals.decrease}
                 >
                     <Icon icon="material-symbols:remove-rounded" width={18} height={18} />
                 </button>
@@ -196,7 +198,7 @@
                     class="step-btn"
                     disabled={servings >= 16}
                     on:click={() => (servings = Math.min(16, servings + 1))}
-                    aria-label="Больше"
+                    aria-label={$t.meals.increase}
                 >
                     <Icon icon="material-symbols:add-rounded" width={18} height={18} />
                 </button>
@@ -208,11 +210,11 @@
             <div class="section-head">
                 <div class="section-title">
                     <Icon icon="material-symbols:format-list-bulleted-rounded" width={20} height={20} style="color: var(--accent)" />
-                    <span>Ингредиенты</span>
+                    <span>{$t.meals.ingredientsTitle}</span>
                 </div>
                 <button class="add-grocery-quick" on:click={handleAddMissingToGrocery}>
                     <Icon icon="material-symbols:add-shopping-cart-rounded" width={16} height={16} />
-                    <span>В список</span>
+                    <span>{$t.meals.toGroceryQuick}</span>
                 </button>
             </div>
 
@@ -238,7 +240,7 @@
 
             <button class="grocery-btn-full" on:click={handleAddMissingToGrocery}>
                 <Icon icon="material-symbols:shopping-basket-rounded" width={18} height={18} />
-                <span>Добавить недостающие в список покупок</span>
+                <span>{$t.meals.addMissingToGrocery}</span>
             </button>
         </div>
 
@@ -246,7 +248,7 @@
         <div class="section">
             <div class="section-title">
                 <Icon icon="material-symbols:cooking-rounded" width={20} height={20} style="color: var(--accent)" />
-                <span>Пошаговое приготовление</span>
+                <span>{$t.meals.stepsTitle}</span>
             </div>
 
             <div class="steps-list">
@@ -262,11 +264,11 @@
         <!-- Schedule Mode Panel -->
         {#if isScheduling}
             <div class="schedule-panel">
-                <h3 class="sched-title">Запланировать в меню семьи</h3>
+                <h3 class="sched-title">{$t.meals.schedulePanelTitle}</h3>
 
                 <!-- Day Selector -->
                 <div class="picker-group">
-                    <span class="picker-label">День недели:</span>
+                    <span class="picker-label">{$t.meals.dayOfWeek}</span>
                     <div class="chip-scroll">
                         {#each upcomingDays as day}
                             <button
@@ -282,7 +284,7 @@
 
                 <!-- Slot Selector -->
                 <div class="picker-group">
-                    <span class="picker-label">Приём пищи:</span>
+                    <span class="picker-label">{$t.meals.mealSlotLabel}</span>
                     <div class="slots-grid">
                         {#each slots as s}
                             <button
@@ -300,7 +302,7 @@
                 <!-- Cook Selector -->
                 {#if familyMembers.length > 0}
                     <div class="picker-group">
-                        <span class="picker-label">Кто готовит:</span>
+                        <span class="picker-label">{$t.meals.whoIsCooking}</span>
                         <div class="cook-chips">
                             {#each familyMembers as cook}
                                 <button
@@ -319,10 +321,10 @@
                 <div class="sched-actions">
                     <button class="sched-confirm" on:click={handleSchedule}>
                         <Icon icon="material-symbols:check-rounded" width={20} height={20} />
-                        <span>Подтвердить расписание</span>
+                        <span>{$t.meals.confirmSchedule}</span>
                     </button>
                     <button class="sched-cancel" on:click={() => (isScheduling = false)}>
-                        Отмена
+                        {$t.common.cancel}
                     </button>
                 </div>
             </div>
@@ -331,7 +333,7 @@
             <div class="bottom-cta">
                 <button class="schedule-main-btn" on:click={() => (isScheduling = true)}>
                     <Icon icon="material-symbols:event-available-rounded" width={20} height={20} />
-                    <span>Запланировать в меню</span>
+                    <span>{$t.meals.scheduleInMenu}</span>
                 </button>
             </div>
         {/if}

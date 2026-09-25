@@ -9,6 +9,7 @@
         removeGroceryItem,
         clearCompletedGrocery,
     } from "$lib/mealsStore";
+    import { t } from "$lib/i18n";
 
     const dispatch = createEventDispatcher<{
         close: void;
@@ -39,14 +40,14 @@
     }
 </script>
 
-<BottomSheet title="Список покупок для семьи" on:close={() => dispatch("close")} flyY={999} flyDuration={280}>
+<BottomSheet title={$t.meals.groceryListTitle} on:close={() => dispatch("close")} flyY={999} flyDuration={280}>
     <div class="grocery-sheet">
         <!-- Quick Add Input -->
         <div class="add-row">
             <input
                 type="text"
                 class="grocery-input"
-                placeholder="Добавить продукт (например, молоко, яйца)..."
+                placeholder={$t.meals.groceryInputPlaceholder}
                 bind:value={newItemText}
                 on:keydown={(e) => e.key === "Enter" && handleAddItem()}
             />
@@ -57,11 +58,11 @@
 
         <!-- List Stats & Clear Action -->
         <div class="list-meta">
-            <span class="meta-counter">Осталось купить: <strong>{unboughtCount}</strong></span>
+            <span class="meta-counter">{$t.meals.remainingToBuy} <strong>{unboughtCount}</strong></span>
             {#if completedCount > 0}
                 <button class="clear-btn" on:click={clearCompletedGrocery}>
                     <Icon icon="material-symbols:delete-sweep-outline-rounded" width={16} height={16} />
-                    <span>Убрать купленные ({completedCount})</span>
+                    <span>{$t.meals.clearCompleted.replace("{count}", String(completedCount))}</span>
                 </button>
             {/if}
         </div>
@@ -71,9 +72,9 @@
             {#if items.length === 0}
                 <div class="empty-state">
                     <div class="empty-icon">🛒</div>
-                    <span class="empty-title">Список покупок пуст</span>
+                    <span class="empty-title">{$t.meals.groceryEmptyTitle}</span>
                     <span class="empty-desc">
-                        Добавляйте недостающие ингредиенты из рецептов в один клик!
+                        {$t.meals.groceryEmptyDesc}
                     </span>
                 </div>
             {:else}
@@ -83,7 +84,7 @@
                             class="check-circle"
                             class:checked={item.checked}
                             on:click={() => toggleGroceryItem(item.id)}
-                            aria-label="Отметить"
+                            aria-label={item.checked ? $t.meals.markUncooked : $t.meals.markCooked}
                         >
                             {#if item.checked}
                                 <Icon icon="material-symbols:check-rounded" width={14} height={14} />
@@ -102,14 +103,14 @@
                                 <span class="item-amount">{item.amount} {item.unit || ""}</span>
                             {/if}
                             {#if item.addedFromRecipe}
-                                <span class="recipe-source">из: {item.addedFromRecipe}</span>
+                                <span class="recipe-source">{$t.meals.fromRecipeSource.replace("{recipe}", item.addedFromRecipe)}</span>
                             {/if}
                         </div>
 
                         <button
                             class="del-btn"
                             on:click={() => removeGroceryItem(item.id)}
-                            aria-label="Удалить"
+                            aria-label={$t.common.delete}
                         >
                             <Icon icon="material-symbols:close-rounded" width={16} height={16} />
                         </button>

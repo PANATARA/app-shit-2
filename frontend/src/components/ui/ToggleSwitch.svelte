@@ -47,22 +47,32 @@
     cursor: pointer;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
     flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.14s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .tog:active:not(.disabled) {
+    transform: scale(0.96) translateZ(0);
   }
 
   .tog.disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 
   .tog-track {
-    width: 42px;
-    height: 24px;
-    background: var(--accent-container);
-    border-radius: 12px;
+    width: 46px;
+    height: 28px;
+    background: color-mix(in srgb, var(--border) 80%, var(--surface-alt));
+    border-radius: 999px;
     position: relative;
-    transition: background 0.22s;
+    transition: background 0.24s cubic-bezier(0.16, 1, 0.3, 1);
     display: block;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
   }
 
   .tog-on .tog-track {
@@ -71,17 +81,17 @@
 
   .tog-thumb {
     position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 18px;
-    height: 18px;
-    background: #fff;
+    top: 2px;
+    left: 2px;
+    width: 24px;
+    height: 24px;
+    background: #ffffff;
     border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .tog-on .tog-thumb {
-    transform: translateX(18px);
+    transform: translateX(18px) translateZ(0);
   }
 </style>

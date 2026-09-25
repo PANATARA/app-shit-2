@@ -31,7 +31,7 @@
         <div class="hub-title-row">
             <div class="title-wrap">
                 <h1 class="hub-title">{$t.nav.home}</h1>
-                <span class="hub-subtitle">Семейный очаг, дела и события</span>
+                <span class="hub-subtitle">{$t.stats.subtitle}</span>
             </div>
         </div>
     </header>
@@ -57,16 +57,17 @@
     .screen {
         display: flex;
         flex-direction: column;
-        gap: 14px;
-        padding: 12px 14px 24px;
+        gap: 16px;
+        padding: 12px 16px calc(24px + env(safe-area-inset-bottom));
         box-sizing: border-box;
     }
 
     .hub-header {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 4px;
         margin-bottom: 2px;
+        padding: 0 2px;
     }
 
     .hub-title-row {
@@ -78,21 +79,24 @@
     .title-wrap {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 3px;
     }
 
     .hub-title {
         margin: 0;
-        font-size: 24px;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+        font-size: 28px;
         font-weight: 800;
-        letter-spacing: -0.5px;
+        letter-spacing: -0.4px;
         color: var(--text-primary);
-        line-height: 1.1;
+        line-height: 1.15;
     }
 
     .hub-subtitle {
-        font-size: 13px;
-        color: var(--text-muted);
-        font-weight: 500;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+        font-size: 13.5px;
+        color: var(--text-secondary);
+        font-weight: 400;
+        letter-spacing: -0.1px;
     }
 </style>

@@ -3,6 +3,7 @@
     import Icon from "@iconify/svelte";
     import { addCustomRecipe, type Recipe } from "$lib/mealsStore";
     import { registerModal } from "$lib/navigation";
+    import { t } from "$lib/i18n";
 
     const dispatch = createEventDispatcher<{
         close: void;
@@ -41,72 +42,75 @@
     let selectedEmoji = "🍲";
     let selectedEmojiCategory = "all";
 
-    const emojiCategories = [
+    const staticEmojiList = [
         {
             id: "all",
-            label: "Все",
             emojis: [] as string[],
         },
         {
             id: "hot",
-            label: "Горячее и супы",
             emojis: ["🍲", "🥣", "🍜", "🥘", "🫕", "🥟", "🍛", "🧆", "🫔"],
         },
         {
             id: "meat_fish",
-            label: "Мясо и рыба",
             emojis: ["🥩", "🍗", "🍖", "🥓", "🌭", "🍢", "🐟", "🍣", "🍤", "🦞", "🦀", "🦑", "🦪"],
         },
         {
             id: "pasta_pizza",
-            label: "Паста и гарниры",
             emojis: ["🍝", "🍕", "🍚", "🥔", "🍠", "🌽"],
         },
         {
             id: "breakfast",
-            label: "Завтраки",
             emojis: ["🍳", "🥚", "🥞", "🧇", "🧀", "🥐", "🥯", "🥑"],
         },
         {
             id: "fastfood",
-            label: "Стритфуд",
             emojis: ["🍔", "🥪", "🌮", "🌯", "🥙", "🍟", "🥨", "🥖", "🍞"],
         },
         {
             id: "salads_veg",
-            label: "Салаты и овощи",
             emojis: ["🥗", "🥒", "🍅", "🥦", "🥕", "🫑", "🍆", "🧄", "🧅", "🍄"],
         },
         {
             id: "fruits",
-            label: "Фрукты и ягоды",
             emojis: ["🍎", "🍏", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍒", "🍑", "🥭", "🍍", "🥝"],
         },
         {
             id: "desserts",
-            label: "Десерты",
             emojis: ["🥧", "🍰", "🎂", "🧁", "🍪", "🍩", "🍮", "🍨", "🍦", "🍫", "🍬", "🍭"],
         },
         {
             id: "drinks",
-            label: "Напитки",
             emojis: ["☕", "🍵", "🧃", "🥤", "🥛", "🧋", "🫖", "🍹", "🍺"],
         },
     ];
 
+    $: emojiCategories = [
+        { id: "all", label: $t.meals.emojiCatAll, emojis: staticEmojiList[0].emojis },
+        { id: "hot", label: $t.meals.emojiCatHot, emojis: staticEmojiList[1].emojis },
+        { id: "meat_fish", label: $t.meals.emojiCatMeatFish, emojis: staticEmojiList[2].emojis },
+        { id: "pasta_pizza", label: $t.meals.emojiCatPastaPizza, emojis: staticEmojiList[3].emojis },
+        { id: "breakfast", label: $t.meals.emojiCatBreakfast, emojis: staticEmojiList[4].emojis },
+        { id: "fastfood", label: $t.meals.emojiCatFastfood, emojis: staticEmojiList[5].emojis },
+        { id: "salads_veg", label: $t.meals.emojiCatSaladsVeg, emojis: staticEmojiList[6].emojis },
+        { id: "fruits", label: $t.meals.emojiCatFruits, emojis: staticEmojiList[7].emojis },
+        { id: "desserts", label: $t.meals.emojiCatDesserts, emojis: staticEmojiList[8].emojis },
+        { id: "drinks", label: $t.meals.emojiCatDrinks, emojis: staticEmojiList[9].emojis },
+    ];
+
     const allFoodEmojis = Array.from(
-        new Set(emojiCategories.filter((c) => c.id !== "all").flatMap((c) => c.emojis))
+        new Set(staticEmojiList.filter((c) => c.id !== "all").flatMap((c) => c.emojis))
     );
 
     $: displayedEmojis = selectedEmojiCategory === "all"
         ? allFoodEmojis
-        : (emojiCategories.find((c) => c.id === selectedEmojiCategory)?.emojis || allFoodEmojis);
+        : (staticEmojiList.find((c) => c.id === selectedEmojiCategory)?.emojis || allFoodEmojis);
 
-    const categoryChoices: { id: typeof category; label: string }[] = [
-        { id: "quick", label: "Быстро" },
-        { id: "dinner", label: "Ужин" },
-        { id: "kids", label: "Детям" },
-        { id: "desserts", label: "Десерты" },
+    $: categoryChoices = [
+        { id: "quick" as const, label: $t.meals.catQuick },
+        { id: "dinner" as const, label: $t.meals.catDinner },
+        { id: "kids" as const, label: $t.meals.catKids },
+        { id: "desserts" as const, label: $t.meals.catDesserts },
     ];
 
     interface IngredientInput {
@@ -146,7 +150,7 @@
 
     async function handleSave() {
         if (!title.trim()) {
-            errorMessage = "Пожалуйста, укажите название блюда";
+            errorMessage = $t.meals.enterDishTitleError;
             return;
         }
 
@@ -176,7 +180,7 @@
             cookTimeMinutes: Number(cookTimeMinutes) || 15,
             baseServings: Number(baseServings) || 4,
             category,
-            tags: [categoryChoices.find((c) => c.id === category)?.label || "Своё"],
+            tags: [categoryChoices.find((c) => c.id === category)?.label || $t.meals.customRecipe],
             isFavorite: false,
             emoji: selectedEmoji,
             accentGradient: "linear-gradient(135deg, #F97316 0%, #EA580C 100%)",
@@ -191,7 +195,7 @@
             handleClose();
         } catch (e: any) {
             console.error("Failed to save recipe", e);
-            errorMessage = e?.message || "Не удалось сохранить рецепт на сервере";
+            errorMessage = e?.message || $t.meals.saveRecipeError;
             isSubmitting = false;
         }
     }
@@ -221,8 +225,8 @@
             <!-- Header -->
             <div class="sheet-header">
                 <div>
-                    <h2 class="sheet-title">Новое блюдо</h2>
-                    <span class="sheet-subtitle">Добавление рецепта в семейную книгу</span>
+                    <h2 class="sheet-title">{$t.meals.newDish}</h2>
+                    <span class="sheet-subtitle">{$t.meals.newDishSubtitle}</span>
                 </div>
                 <button class="close-btn" on:click={handleClose}>
                     <Icon icon="material-symbols:close-rounded" width={20} height={20} />
@@ -243,8 +247,8 @@
                             <span class="preview-emoji">{selectedEmoji}</span>
                         </div>
                         <div class="emoji-header-meta">
-                            <span class="field-label">Иконка блюда</span>
-                            <span class="emoji-hint">Нажмите на подходящую иконку</span>
+                            <span class="field-label">{$t.meals.dishIcon}</span>
+                            <span class="emoji-hint">{$t.meals.dishIconHint}</span>
                         </div>
                     </div>
 
@@ -271,7 +275,7 @@
                                     class="emoji-btn"
                                     class:active={selectedEmoji === em}
                                     on:click={() => (selectedEmoji = em)}
-                                    aria-label="Выбрать эмодзи {em}"
+                                    aria-label="{em}"
                                 >
                                     {em}
                                 </button>
@@ -281,22 +285,22 @@
                 </div>
 
                 <div class="field-group">
-                    <label class="field-label" for="dish-title">Название блюда *</label>
+                    <label class="field-label" for="dish-title">{$t.meals.dishTitleLabel}</label>
                     <input
                         id="dish-title"
                         type="text"
                         class="text-input"
-                        placeholder="Например: Мамин борщ с пампушками"
+                        placeholder={$t.meals.dishTitlePlaceholder}
                         bind:value={title}
                     />
                 </div>
 
                 <div class="field-group">
-                    <label class="field-label" for="dish-desc">Описание или семейный секрет</label>
+                    <label class="field-label" for="dish-desc">{$t.meals.dishDescLabel}</label>
                     <textarea
                         id="dish-desc"
                         class="textarea-input"
-                        placeholder="Почему это блюдо особенное для вашей семьи..."
+                        placeholder={$t.meals.dishDescPlaceholder}
                         rows="2"
                         bind:value={description}
                     ></textarea>
@@ -305,7 +309,7 @@
 
             <!-- Category Selection -->
             <div class="field-group">
-                <span class="field-label">Категория</span>
+                <span class="field-label">{$t.meals.categoryLabel}</span>
                 <div class="chips-wrap">
                     {#each categoryChoices as c}
                         <button
@@ -323,13 +327,13 @@
             <!-- Servings & Times -->
             <div class="servings-time-row">
                 <div class="field-group">
-                    <span class="field-label">Порции</span>
+                    <span class="field-label">{$t.meals.servingsLabelTitle}</span>
                     <div class="stepper-wrap">
                         <button
                             type="button"
                             class="step-btn"
                             on:click={() => (baseServings = Math.max(1, baseServings - 1))}
-                            aria-label="Уменьшить количество порций"
+                            aria-label={$t.meals.decrease}
                         >
                             -
                         </button>
@@ -338,7 +342,7 @@
                             type="button"
                             class="step-btn"
                             on:click={() => (baseServings = baseServings + 1)}
-                            aria-label="Увеличить количество порций"
+                            aria-label={$t.meals.increase}
                         >
                             +
                         </button>
@@ -346,7 +350,7 @@
                 </div>
 
                 <div class="field-group">
-                    <label class="field-label" for="prep-time">Подготовка</label>
+                    <label class="field-label" for="prep-time">{$t.meals.prepTime}</label>
                     <div class="time-input-wrap">
                         <input
                             id="prep-time"
@@ -355,12 +359,12 @@
                             class="text-input time-input"
                             bind:value={prepTimeMinutes}
                         />
-                        <span class="time-unit">мин</span>
+                        <span class="time-unit">{$t.meals.min}</span>
                     </div>
                 </div>
 
                 <div class="field-group">
-                    <label class="field-label" for="cook-time">Варка</label>
+                    <label class="field-label" for="cook-time">{$t.meals.cookTimeShort}</label>
                     <div class="time-input-wrap">
                         <input
                             id="cook-time"
@@ -369,7 +373,7 @@
                             class="text-input time-input"
                             bind:value={cookTimeMinutes}
                         />
-                        <span class="time-unit">мин</span>
+                        <span class="time-unit">{$t.meals.min}</span>
                     </div>
                 </div>
             </div>
@@ -377,10 +381,10 @@
             <!-- Ingredients Builder -->
             <div class="builder-section">
                 <div class="section-title-row">
-                    <span class="field-label">Ингредиенты</span>
+                    <span class="field-label">{$t.meals.ingredientsTitle}</span>
                     <button type="button" class="add-row-btn" on:click={addIngredientRow}>
                         <Icon icon="material-symbols:add-rounded" width={16} />
-                        <span>Добавить продукт</span>
+                        <span>{$t.meals.addIngredientBtn}</span>
                     </button>
                 </div>
 
@@ -390,19 +394,19 @@
                             <input
                                 type="text"
                                 class="text-input ing-name"
-                                placeholder="Ингредиент (напр. Сливки)"
+                                placeholder={$t.meals.ingredientNamePlaceholder}
                                 bind:value={ing.name}
                             />
                             <input
                                 type="text"
                                 class="text-input ing-amount"
-                                placeholder="Кол-во"
+                                placeholder={$t.meals.ingredientAmountPlaceholder}
                                 bind:value={ing.amount}
                             />
                             <input
                                 type="text"
                                 class="text-input ing-unit"
-                                placeholder="г / мл / шт"
+                                placeholder={$t.meals.ingredientUnitPlaceholder}
                                 bind:value={ing.unit}
                             />
                             {#if ingredients.length > 1}
@@ -410,6 +414,7 @@
                                     type="button"
                                     class="row-del-btn"
                                     on:click={() => removeIngredientRow(i)}
+                                    aria-label={$t.common.delete}
                                 >
                                     <Icon icon="material-symbols:delete-outline-rounded" width={18} />
                                 </button>
@@ -422,10 +427,10 @@
             <!-- Steps Builder -->
             <div class="builder-section">
                 <div class="section-title-row">
-                    <span class="field-label">Шаги приготовления</span>
+                    <span class="field-label">{$t.meals.stepsTitle}</span>
                     <button type="button" class="add-row-btn" on:click={addStepRow}>
                         <Icon icon="material-symbols:add-rounded" width={16} />
-                        <span>Добавить шаг</span>
+                        <span>{$t.meals.addStepBtn}</span>
                     </button>
                 </div>
 
@@ -436,7 +441,7 @@
                             <textarea
                                 class="textarea-input step-text"
                                 rows="2"
-                                placeholder="Опишите действие (напр. Разогрейте духовку до 180°C)..."
+                                placeholder={$t.meals.stepPlaceholder}
                                 bind:value={steps[i]}
                             ></textarea>
                             {#if steps.length > 1}
@@ -444,6 +449,7 @@
                                     type="button"
                                     class="row-del-btn"
                                     on:click={() => removeStepRow(i)}
+                                    aria-label={$t.common.delete}
                                 >
                                     <Icon icon="material-symbols:delete-outline-rounded" width={18} />
                                 </button>
@@ -462,7 +468,7 @@
                 on:click={handleClose}
                 disabled={isSubmitting}
             >
-                Отменить
+                {$t.common.cancel}
             </button>
             <button
                 type="button"
@@ -471,10 +477,10 @@
                 disabled={isSubmitting}
             >
                 {#if isSubmitting}
-                    <span>Создание...</span>
+                    <span>{$t.common.saving}</span>
                 {:else}
                     <Icon icon="material-symbols:add-rounded" width={20} height={20} />
-                    <span>Создать</span>
+                    <span>{$t.common.create}</span>
                 {/if}
             </button>
         </div>

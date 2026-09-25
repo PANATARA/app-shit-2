@@ -97,15 +97,15 @@
         padding: 18px;
         width: 100%;
         box-sizing: border-box;
-        border-radius: var(--radius-card, 22px);
+        border-radius: var(--radius-card, 20px);
         background: linear-gradient(
             var(--gradient-angle, 180deg),
-            color-mix(in srgb, var(--accent) 8%, var(--surface)) 0%,
+            color-mix(in srgb, var(--accent) 6%, var(--surface)) 0%,
             var(--surface) 100%
         );
-        border: 1px solid var(--border-subtle);
-        box-shadow: var(--shadow-card);
-        transition: transform 0.16s ease, box-shadow 0.2s ease;
+        border: 0.5px solid var(--border-subtle);
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+        transition: transform 0.14s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.16s ease;
     }
 
     .card-head {
@@ -119,9 +119,10 @@
     }
 
     .card-title {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
         font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.6px;
+        font-weight: 600;
+        letter-spacing: -0.1px;
         text-transform: uppercase;
         color: var(--text-secondary);
     }

@@ -244,30 +244,36 @@
         flex-direction: column;
         height: 100%;
         position: relative;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
+
     .screen {
         flex: 1;
         overflow-y: auto;
-        padding: 12px 12px 96px 12px;
+        padding: 16px 16px calc(96px + env(safe-area-inset-bottom)) 16px;
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 20px;
         box-sizing: border-box;
+        -webkit-overflow-scrolling: touch;
     }
 
-    /* ── COMPACT CALENDAR CARD ───────────────────── */
+    /* ── TRANSLUCENT APPLE CALENDAR HEADER CARD ──── */
     .calendar-card {
         position: relative;
         overflow: hidden;
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        padding: 12px 14px 14px;
-        background: var(--surface);
-        border-bottom: 1px solid var(--border-subtle);
-        border-radius: 0 0 var(--radius-modal, 28px) var(--radius-modal, 28px);
-        box-shadow: var(--shadow-ambient);
+        gap: 12px;
+        padding: 14px 16px 16px;
+        background: color-mix(in srgb, var(--surface) 84%, transparent);
+        -webkit-backdrop-filter: blur(28px) saturate(190%);
+        backdrop-filter: blur(28px) saturate(190%);
+        border-bottom: 0.5px solid var(--border-subtle);
+        border-radius: 0 0 26px 26px;
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
         z-index: 10;
     }
 
@@ -275,7 +281,7 @@
         display: flex;
         flex-direction: column;
         gap: 4px;
-        padding: 0 2px;
+        padding: 0 4px;
     }
 
     .hub-title-row {
@@ -290,17 +296,22 @@
         gap: 2px;
     }
 
+    /* Apple Large Title */
     .hub-title {
-        font-size: 24px;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+        font-size: 28px;
         font-weight: 800;
-        letter-spacing: -0.5px;
+        letter-spacing: -0.4px;
+        line-height: 1.15;
         margin: 0;
         color: var(--text-primary);
     }
 
     .hub-subtitle {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
         font-size: 13px;
         font-weight: 500;
+        letter-spacing: -0.1px;
         color: var(--text-muted);
     }
 
@@ -309,37 +320,32 @@
         z-index: 1;
     }
 
-
-    /* ── FLOATING ACTION BUTTON (FAB) ────────────── */
+    /* ── FLOATING ACTION BUTTON (APPLE THUMB ZONE) ─ */
     .fab-plan {
         position: fixed;
         left: 50%;
-        bottom: calc(100px + env(safe-area-inset-bottom));
+        bottom: calc(84px + env(safe-area-inset-bottom));
         transform: translateX(-50%) translateZ(0);
         z-index: 95;
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 54px;
+        height: 52px;
 
-        /* Базовые размеры */
-        min-width: 54px;
+        /* Touch ergonomics >= 44pt */
+        min-width: 52px;
         max-width: 260px;
         overflow: hidden;
 
         box-sizing: border-box;
         gap: 8px;
-        padding: 0 24px;
+        padding: 0 22px;
         border-radius: 999px;
         border: none;
-        background: var(--accent-gradient, linear-gradient(
-            135deg,
-            var(--accent) 0%,
-            color-mix(in srgb, var(--accent) 88%, #000) 100%
-        ));
+        background: var(--accent-gradient, var(--accent));
         color: #ffffff;
 
-        box-shadow: var(--shadow-floating);
+        box-shadow: 0 8px 24px -4px var(--accent-glow), 0 2px 8px rgba(0, 0, 0, 0.08);
 
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
@@ -350,22 +356,15 @@
             max-width 0.44s cubic-bezier(0.16, 1, 0.3, 1),
             padding 0.44s cubic-bezier(0.16, 1, 0.3, 1),
             gap 0.44s cubic-bezier(0.16, 1, 0.3, 1),
-            transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-            box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            transform 0.14s cubic-bezier(0.25, 1, 0.5, 1),
+            box-shadow 0.14s ease;
     }
 
     .fab-plan:active {
-        transform: translateX(-50%) scale(0.94) translateZ(0);
-        box-shadow:
-            0 4px 14px color-mix(in srgb, var(--accent) 26%, transparent),
-            0 1px 3px rgba(0, 0, 0, 0.1);
-
-        transition:
-            transform 0.14s cubic-bezier(0.25, 1, 0.5, 1),
-            box-shadow 0.14s cubic-bezier(0.25, 1, 0.5, 1);
+        transform: translateX(-50%) scale(0.95) translateZ(0);
+        box-shadow: 0 4px 14px -2px var(--accent-glow);
     }
 
-    /* Иконка жестко зафиксирована по центру */
     .fab-icon {
         display: flex;
         align-items: center;
@@ -382,7 +381,6 @@
         letter-spacing: -0.2px;
         white-space: nowrap;
 
-        /* Ограничиваем лейбл, чтобы он плавно схлопывался */
         max-width: 180px;
         opacity: 1;
         transform: translate3d(0, 0, 0);
@@ -395,122 +393,114 @@
             transform 0.44s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* ── Свернутое состояние (круг 54x54 с иконкой по центру) ── */
+    /* Compact Pill State (Scroll) */
     .fab-plan.compact {
-        max-width: 54px;
+        max-width: 52px;
         padding: 0;
         gap: 0;
-
-        transition:
-            max-width 0.38s cubic-bezier(0.32, 0.72, 0, 1),
-            padding 0.38s cubic-bezier(0.32, 0.72, 0, 1),
-            gap 0.38s cubic-bezier(0.32, 0.72, 0, 1),
-            transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-            box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .fab-plan.compact .fab-label {
-        /* Лейбл полностью убирает ширину и освобождает место для плюсика */
         max-width: 0;
         opacity: 0;
         transform: translate3d(-8px, 0, 0);
         pointer-events: none;
-
-        transition:
-            max-width 0.38s cubic-bezier(0.32, 0.72, 0, 1),
-            opacity 0.16s ease-out,
-            transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
     }
 
-    /* ── SECTION HEADERS ─────────────────────────── */
+    /* ── IOS INSET GROUPED SECTION HEADERS ───────── */
     .section {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
     }
 
     .section-header {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding-left: 4px;
+        padding-left: 6px;
     }
 
     h2 {
-        font-size: 11px;
-        font-weight: 700;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+        font-size: 12px;
+        font-weight: 600;
         color: var(--text-muted);
-        letter-spacing: 0.8px;
+        letter-spacing: -0.05px;
         text-transform: uppercase;
         margin: 0;
     }
 
     .section-count {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 600;
+        letter-spacing: -0.1px;
         color: var(--accent);
-        background: color-mix(in srgb, var(--accent) 14%, transparent);
-        border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        border: 0.5px solid color-mix(in srgb, var(--accent) 22%, transparent);
         padding: 1px 8px;
         border-radius: 999px;
     }
 
     .completed-count-badge {
         color: var(--success);
-        background: color-mix(in srgb, var(--success) 14%, transparent);
-        border: 1px solid color-mix(in srgb, var(--success) 24%, transparent);
+        background: color-mix(in srgb, var(--success) 12%, transparent);
+        border: 0.5px solid color-mix(in srgb, var(--success) 22%, transparent);
     }
 
     /* ── LISTS ───────────────────────────────────── */
     .list {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
     }
 
-    /* ── EMPTY STATES ─────────────────────────────── */
+    /* ── APPLE EMPTY STATES ──────────────────────── */
     .empty-state {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 32px 20px;
+        padding: 36px 20px;
         background: var(--surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-card, 22px);
-        box-shadow: var(--shadow-card);
+        border: 0.5px solid var(--border-subtle);
+        border-radius: 20px;
+        box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.03);
         text-align: center;
         box-sizing: border-box;
     }
 
     .empty-icon {
         font-size: 32px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
 
     .empty-icon-large {
         font-size: 42px;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
 
     .empty-state h3 {
-        font-size: 16px;
-        font-weight: 700;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+        font-size: 17px;
+        font-weight: 600;
         letter-spacing: -0.3px;
         color: var(--text-primary);
         margin: 0 0 6px 0;
     }
 
     .empty-state p {
-        font-size: 13px;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+        font-size: 14px;
         color: var(--text-secondary);
         margin: 0;
         max-width: 260px;
-        line-height: 1.45;
+        line-height: 1.4;
     }
 
     .perfect-empty {
         padding: 48px 24px;
-        margin-top: 6px;
+        margin-top: 4px;
     }
 </style>

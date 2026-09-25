@@ -67,10 +67,11 @@
     .backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(15, 12, 18, 0.45);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: rgba(0, 0, 0, 0.42);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         z-index: 100;
+        -webkit-tap-highlight-color: transparent;
     }
 
     .sheet {
@@ -80,51 +81,53 @@
         right: 0;
         z-index: 101;
         background: var(--surface);
-        border-top: 1px solid var(--border-subtle);
-        border-radius: var(--radius-modal, 28px) var(--radius-modal, 28px) 0 0;
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.18);
+        border-top: 0.5px solid var(--border-subtle);
+        border-radius: 28px 28px 0 0;
+        box-shadow: 0 -8px 36px -4px rgba(0, 0, 0, 0.16);
         display: flex;
         flex-direction: column;
         max-height: 90vh;
     }
 
     .sheet-handle-only {
-        padding: 14px 0 8px;
+        padding: 12px 0 8px;
         display: flex;
         justify-content: center;
         flex-shrink: 0;
     }
 
     .sheet-header {
-        padding: 14px 0 10px;
+        padding: 12px 0 10px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         flex-shrink: 0;
     }
 
     .sheet-handle {
-        width: 38px;
-        height: 4.5px;
+        width: 36px;
+        height: 5px;
         background: var(--text-muted);
         border-radius: 999px;
-        opacity: 0.28;
+        opacity: 0.32;
     }
 
     .sheet-title {
-        font-size: 16px;
-        font-weight: 700;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.3px;
         color: var(--text-primary);
         text-align: center;
-        padding: 0 16px 4px;
-        letter-spacing: -0.2px;
+        padding: 0 16px 2px;
     }
 
     .sheet-content {
         flex: 1;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         min-height: 0;
-        padding-bottom: max(24px, env(safe-area-inset-bottom));
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
     }
 </style>

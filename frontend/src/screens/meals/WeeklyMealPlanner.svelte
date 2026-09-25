@@ -17,6 +17,8 @@
         useFamilyRecipes,
     } from "$lib/mealsStore";
     import MealPlannerSkeleton from "$skeletons/MealPlannerSkeleton.svelte";
+    import { t } from "$lib/i18n";
+    import { language } from "$lib/settings";
 
     const dispatch = createEventDispatcher<{
         addMeal: { date: string; slot: MealSlot };
@@ -112,37 +114,31 @@
         }
     }
 
-    const slotDefinitions: {
-        id: MealSlot;
-        name: string;
-        icon: string;
-        color: string;
-        bg: string;
-    }[] = [
+    $: slotDefinitions = [
         {
-            id: "breakfast",
-            name: "Завтрак",
+            id: "breakfast" as MealSlot,
+            name: $t.meals.breakfast,
             icon: "material-symbols:sunny",
             color: "#D97706",
             bg: "rgba(245, 158, 11, 0.12)",
         },
         {
-            id: "lunch",
-            name: "Обед",
+            id: "lunch" as MealSlot,
+            name: $t.meals.lunch,
             icon: "material-symbols:wb-twilight",
             color: "#2563EB",
             bg: "rgba(37, 99, 235, 0.12)",
         },
         {
-            id: "dinner",
-            name: "Ужин",
+            id: "dinner" as MealSlot,
+            name: $t.meals.dinnerSlot,
             icon: "material-symbols:bedtime",
             color: "#E06A47",
             bg: "rgba(224, 106, 71, 0.12)",
         },
         {
-            id: "snack",
-            name: "Перекусы и десерты",
+            id: "snack" as MealSlot,
+            name: $t.meals.snack,
             icon: "material-symbols:nutrition",
             color: "#059669",
             bg: "rgba(16, 185, 129, 0.12)",
@@ -174,20 +170,20 @@
     <div class="day-header-banner">
         <div class="date-titles">
             <h3 class="current-day-name">
-                {selectedDate.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" })}
+                {selectedDate.toLocaleDateString($language === "en" ? "en-US" : "ru-RU", { weekday: "long", day: "numeric", month: "long" })}
             </h3>
             <span class="meal-count-badge">
-                {plannedMeals.length === 0 ? "Меню не составлено" : `Запланировано блюд: ${plannedMeals.length}`}
+                {plannedMeals.length === 0 ? $t.meals.menuNotPlanned : $t.meals.plannedCount.replace("{count}", String(plannedMeals.length))}
             </span>
         </div>
 
         <button
             class="quick-add-btn"
             on:click={() => dispatch("addMeal", { date: dateKey, slot: "dinner" })}
-            aria-label="Добавить блюдо"
+            aria-label={$t.meals.addMealTitle}
         >
             <Icon icon="material-symbols:add-rounded" width={20} height={20} />
-            <span>Добавить</span>
+            <span>{$t.meals.addDish}</span>
         </button>
     </div>
 
@@ -208,7 +204,7 @@
                     <button
                         class="slot-add-trigger"
                         on:click={() => dispatch("addMeal", { date: dateKey, slot: slotDef.id })}
-                        aria-label="Добавить в {slotDef.name}"
+                        aria-label="{$t.meals.addDish}: {slotDef.name}"
                     >
                         <Icon icon="material-symbols:add-rounded" width={18} height={18} />
                     </button>
@@ -231,7 +227,7 @@
                                     class="check-meal-btn"
                                     class:checked={meal.isCompleted}
                                     on:click|stopPropagation={() => toggleMeal(meal)}
-                                    aria-label={meal.isCompleted ? "Отметить неприготовленным" : "Отметить приготовленным"}
+                                    aria-label={meal.isCompleted ? $t.meals.markUncooked : $t.meals.markCooked}
                                 >
                                     <Icon
                                         icon={meal.isCompleted ? "material-symbols:check-circle-rounded" : "material-symbols:radio-button-unchecked"}
@@ -244,9 +240,9 @@
                                     <div class="meal-title-row">
                                         <span class="meal-title" class:completed-text={meal.isCompleted}>{meal.title}</span>
                                         {#if meal.recipeId}
-                                            <span class="recipe-tag" title="Смотреть рецепт">
+                                            <span class="recipe-tag" title={$t.meals.viewRecipe}>
                                                 <Icon icon="material-symbols:menu-book-rounded" width={14} height={14} />
-                                                <span>Рецепт</span>
+                                                <span>{$t.meals.recipe}</span>
                                             </span>
                                         {/if}
                                     </div>
@@ -255,7 +251,7 @@
                                         {#if meal.prepTimeMinutes}
                                             <span class="time-tag">
                                                 <Icon icon="material-symbols:timer-outline-rounded" width={14} height={14} />
-                                                <span>{meal.prepTimeMinutes} мин</span>
+                                                <span>{meal.prepTimeMinutes} {$t.meals.min}</span>
                                             </span>
                                         {/if}
 
@@ -271,7 +267,7 @@
                                 <button
                                     class="delete-meal-btn"
                                     on:click|stopPropagation={() => deleteMeal(meal)}
-                                    aria-label="Удалить из меню"
+                                    aria-label={$t.meals.deleteFromMenu}
                                 >
                                     <Icon icon="material-symbols:delete-outline-rounded" width={18} height={18} />
                                 </button>
@@ -285,7 +281,7 @@
                         on:click={() => dispatch("addMeal", { date: dateKey, slot: slotDef.id })}
                     >
                         <Icon icon="material-symbols:add-circle-outline-rounded" width={18} height={18} />
-                        <span>Нажмите, чтобы запланировать {slotDef.name.toLowerCase()}</span>
+                        <span>{$t.meals.clickToPlan.replace("{slot}", slotDef.name.toLowerCase())}</span>
                     </button>
                 {/if}
             </div>

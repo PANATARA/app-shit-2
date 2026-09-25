@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import { cubicOut, quadIn } from "svelte/easing";
     import BoardScreen from "$screens/app/BoardScreen.svelte";
     import StatsScreen from "$screens/app/StatsScreen.svelte";
     import ProfileSettingsScreen from "$screens/app/ProfileSettingsScreen.svelte";
@@ -140,6 +141,37 @@
     $: if ($activeTab && contentEl) {
         contentEl.scrollTop = 0;
     }
+
+    function screenIn(node: Element, { duration = 180 }: { duration?: number } = {}) {
+        return {
+            duration,
+            easing: cubicOut,
+            css: (t: number) => {
+                const scale = 0.96 + 0.04 * t;
+                return `
+                    opacity: ${t};
+                    transform: scale(${scale}) translateZ(0);
+                    z-index: 2;
+                `;
+            }
+        };
+    }
+
+    function screenOut(node: Element, { duration = 180 }: { duration?: number } = {}) {
+        return {
+            duration,
+            easing: quadIn,
+            css: (t: number) => {
+                const scale = 0.96 + 0.04 * t;
+                return `
+                    opacity: ${t};
+                    transform: scale(${scale}) translateZ(0);
+                    pointer-events: none;
+                    z-index: 1;
+                `;
+            }
+        };
+    }
 </script>
 
 <main>
@@ -169,45 +201,54 @@
             <OnboardingProfileScreen />
         {/if}
     {:else}
-        <div class="content" bind:this={contentEl}>
-            {#if $activeTab === "statsScreen"}
-                <StatsScreen />
-            {:else if $activeTab === "boardScreen"}
-                <BoardScreen />
-            {:else if $activeTab === "settingsScreen"}
-                <ProfileSettingsScreen
-                    on:logout={() => {
-                        isAuthed = false;
-                        isInFamily = false;
-                    }}
-                    on:family-left={() => {
-                        isInFamily = false;
-                        activeTab.set("onboardingWelcome");
-                    }}
-                />
-            {:else if $activeTab === "debugScreen"}
-                <MealsHubScreen />
-            {:else if $activeTab === "createPlannedChoreStepOne"}
-                <StepOne />
-            {:else if $activeTab === "createPlannedChoreStepTwo"}
-                <StepTwo />
-            {:else if $activeTab === "DetailPlannedChore"}
-                <PlannedChoreDetail />
-            {:else if $activeTab === "choreListScreen"}
-                <ChoreListScreen />
-            {:else if $activeTab === "choreEditScreen"}
-                <ChoreEditScreen />
-            {:else if $activeTab === "choreCreateScreen"}
-                <ChoreCreateScreen />
-            {:else if $activeTab === "choreTemplatesScreen"}
-                <ChoreTemplatesScreen />
-            {:else if $activeTab === "eventCreate"}
-                <EventCreateScreen />
-            {:else if $activeTab === "eventsListScreen"}
-                <EventsListScreen />
-            {:else}
-                <StatsScreen />
-            {/if}
+        <div class="screens-viewport">
+            {#key $activeTab}
+                <div
+                    class="content"
+                    bind:this={contentEl}
+                    in:screenIn={{ duration: 180 }}
+                    out:screenOut={{ duration: 180 }}
+                >
+                    {#if $activeTab === "statsScreen"}
+                        <StatsScreen />
+                    {:else if $activeTab === "boardScreen"}
+                        <BoardScreen />
+                    {:else if $activeTab === "settingsScreen"}
+                        <ProfileSettingsScreen
+                            on:logout={() => {
+                                isAuthed = false;
+                                isInFamily = false;
+                            }}
+                            on:family-left={() => {
+                                isInFamily = false;
+                                activeTab.set("onboardingWelcome");
+                            }}
+                        />
+                    {:else if $activeTab === "debugScreen"}
+                        <MealsHubScreen />
+                    {:else if $activeTab === "createPlannedChoreStepOne"}
+                        <StepOne />
+                    {:else if $activeTab === "createPlannedChoreStepTwo"}
+                        <StepTwo />
+                    {:else if $activeTab === "DetailPlannedChore"}
+                        <PlannedChoreDetail />
+                    {:else if $activeTab === "choreListScreen"}
+                        <ChoreListScreen />
+                    {:else if $activeTab === "choreEditScreen"}
+                        <ChoreEditScreen />
+                    {:else if $activeTab === "choreCreateScreen"}
+                        <ChoreCreateScreen />
+                    {:else if $activeTab === "choreTemplatesScreen"}
+                        <ChoreTemplatesScreen />
+                    {:else if $activeTab === "eventCreate"}
+                        <EventCreateScreen />
+                    {:else if $activeTab === "eventsListScreen"}
+                        <EventsListScreen />
+                    {:else}
+                        <StatsScreen />
+                    {/if}
+                </div>
+            {/key}
         </div>
 
         <div class="nav-wrapper">
@@ -549,14 +590,42 @@
         height: 100dvh;
         width: 100vw;
         overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    .screens-viewport {
+        flex: 1;
+        min-height: 0;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: 100%;
+        grid-template-rows: 100%;
     }
 
     .content {
-        flex: 1;
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+        width: 100%;
+        height: 100%;
         overflow-y: auto;
         position: relative;
         padding-top: calc(env(safe-area-inset-top));
-        padding-bottom: calc(88px + env(safe-area-inset-bottom));
+        padding-bottom: calc(84px + env(safe-area-inset-bottom));
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box;
+        background-color: var(--bg);
+        transform-origin: center center;
+        will-change: transform, opacity;
+        scrollbar-width: none;
+    }
+
+    .content::-webkit-scrollbar {
+        display: none;
     }
 
     .nav-wrapper {
@@ -575,11 +644,13 @@
         display: flex;
         align-items: center;
         justify-content: space-around;
-        padding: 10px 12px calc(14px + env(safe-area-inset-bottom));
-        background: var(--bg-nav);
-        border-top: 1px solid var(--border-subtle);
-        border-radius: 26px 26px 0 0;
-        box-shadow: var(--shadow-nav);
+        padding: 8px 16px calc(10px + env(safe-area-inset-bottom));
+        background: color-mix(in srgb, var(--bg-nav) 80%, transparent);
+        -webkit-backdrop-filter: blur(28px) saturate(190%);
+        backdrop-filter: blur(28px) saturate(190%);
+        border-top: 0.5px solid var(--border-subtle);
+        border-radius: 24px 24px 0 0;
+        box-shadow: 0 -4px 24px -2px rgba(0, 0, 0, 0.04);
     }
 
     /* ── ITEM ────────────────────────────────────── */
@@ -589,50 +660,52 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px;
-        padding: 6px 4px;
+        justify-content: center;
+        gap: 3px;
+        min-height: 44px;
+        padding: 4px 2px;
         border: none;
-        border-radius: 18px;
+        border-radius: 999px;
         background: transparent;
         color: var(--text-nav);
         font-family: inherit;
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
-        transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
+        transition: transform 0.14s cubic-bezier(0.25, 1, 0.5, 1), color 0.16s ease;
     }
 
     .nav-item:active {
-        transform: scale(0.92);
+        transform: scale(0.92) translateZ(0);
     }
 
     /* ── ICON WRAP ───────────────────────────────── */
     .nav-icon {
         width: 44px;
-        height: 32px;
+        height: 30px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 14px;
+        border-radius: 999px;
         background: transparent;
         transition:
-            background 0.2s ease,
-            transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
     .nav-item :global(svg) {
-        transition: transform 0.2s ease;
+        transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
     /* ── LABEL ───────────────────────────────────── */
     .nav-label {
-        font-size: 11px;
-        font-weight: 600;
+        font-size: 10.5px;
+        font-weight: 500;
         color: var(--text-nav);
-        letter-spacing: 0.15px;
+        letter-spacing: -0.15px;
         transition:
-            color 0.2s ease,
-            transform 0.2s ease,
-            font-weight 0.2s ease;
+            color 0.16s ease,
+            transform 0.16s ease,
+            font-weight 0.16s ease;
         line-height: 1.1;
     }
 
@@ -643,17 +716,17 @@
 
     .nav-item.active .nav-icon {
         background: var(--nav-active-bg);
-        transform: translateY(-2px);
+        transform: translateY(-1.5px);
     }
 
     .nav-item.active .nav-icon :global(svg) {
-        transform: scale(1.08);
+        transform: scale(1.06);
     }
 
     .nav-item.active .nav-label {
         color: var(--nav-active-fg);
-        font-weight: 700;
-        transform: scale(1.04);
+        font-weight: 600;
+        letter-spacing: -0.2px;
     }
 
     @media (hover: hover) {

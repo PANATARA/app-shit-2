@@ -13,6 +13,7 @@
     import { createPlannedMeal } from "$api/meals";
     import { mutate } from "$lib/swr";
     import { getFamilyMembers } from "$api/family";
+    import { t } from "$lib/i18n";
 
     export let targetDate: string; // YYYY-MM-DD
     export let defaultSlot: MealSlot = "dinner";
@@ -56,11 +57,11 @@
         }
     });
 
-    const slots: { id: MealSlot; label: string; icon: string }[] = [
-        { id: "breakfast", label: "Завтрак", icon: "material-symbols:sunny" },
-        { id: "lunch", label: "Обед", icon: "material-symbols:wb-twilight" },
-        { id: "dinner", label: "Ужин", icon: "material-symbols:bedtime" },
-        { id: "snack", label: "Перекус", icon: "material-symbols:nutrition" },
+    $: slots = [
+        { id: "breakfast" as MealSlot, label: $t.meals.breakfast, icon: "material-symbols:sunny" },
+        { id: "lunch" as MealSlot, label: $t.meals.lunch, icon: "material-symbols:wb-twilight" },
+        { id: "dinner" as MealSlot, label: $t.meals.dinnerSlot, icon: "material-symbols:bedtime" },
+        { id: "snack" as MealSlot, label: $t.meals.snack, icon: "material-symbols:nutrition" },
     ];
 
     async function handleSave() {
@@ -86,14 +87,14 @@
             dispatch("close");
         } catch (e: any) {
             console.error("Failed to add planned meal", e);
-            errorMessage = e?.message || "Не удалось запланировать блюдо";
+            errorMessage = e?.message || $t.meals.scheduleError;
         } finally {
             isSaving = false;
         }
     }
 </script>
 
-<BottomSheet title="Добавить блюдо" on:close={() => dispatch("close")} flyY={999} flyDuration={280}>
+<BottomSheet title={$t.meals.addMealTitle} on:close={() => dispatch("close")} flyY={999} flyDuration={280}>
     <div class="add-meal-sheet">
         <!-- Mode Switcher -->
         <div class="mode-tabs">
@@ -103,7 +104,7 @@
                 on:click={() => (mode = "recipe")}
             >
                 <Icon icon="material-symbols:menu-book-rounded" width={16} height={16} />
-                <span>Из рецептов ({recipes.length})</span>
+                <span>{$t.meals.fromRecipes.replace("{count}", String(recipes.length))}</span>
             </button>
             <button
                 class="mode-tab"
@@ -111,13 +112,13 @@
                 on:click={() => (mode = "manual")}
             >
                 <Icon icon="material-symbols:edit-note-rounded" width={16} height={16} />
-                <span>Быстрый ввод</span>
+                <span>{$t.meals.quickEntry}</span>
             </button>
         </div>
 
         <!-- Meal Slot Selector -->
         <div class="form-group">
-            <span class="group-label">Приём пищи:</span>
+            <span class="group-label">{$t.meals.mealSlotLabel}</span>
             <div class="slots-grid">
                 {#each slots as s}
                     <button
@@ -135,7 +136,7 @@
         <!-- Mode A: Pick Recipe -->
         {#if mode === "recipe"}
             <div class="form-group">
-                <span class="group-label">Выберите рецепт семьи:</span>
+                <span class="group-label">{$t.meals.chooseFamilyRecipe}</span>
                 <div class="recipes-picker-list">
                     {#each recipes as r (r.id)}
                         <button
@@ -150,7 +151,7 @@
                             <span class="pick-emoji">{r.emoji}</span>
                             <div class="pick-info">
                                 <span class="pick-title">{r.title}</span>
-                                <span class="pick-sub">⏱ {r.prepTimeMinutes + r.cookTimeMinutes} мин • 👥 {r.baseServings} порц.</span>
+                                <span class="pick-sub">⏱ {r.prepTimeMinutes + r.cookTimeMinutes} {$t.meals.min} • 👥 {r.baseServings} {$t.meals.servings}</span>
                             </div>
                             <div class="pick-radio" class:checked={selectedRecipe?.id === r.id}>
                                 {#if selectedRecipe?.id === r.id}
@@ -164,11 +165,11 @@
         {:else}
             <!-- Mode B: Manual Title -->
             <div class="form-group">
-                <span class="group-label">Название блюда:</span>
+                <span class="group-label">{$t.meals.dishName}</span>
                 <input
                     type="text"
                     class="dish-input"
-                    placeholder="Например: Тыквенный крем-суп с сухариками"
+                    placeholder={$t.meals.dishNamePlaceholder}
                     bind:value={manualTitle}
                 />
             </div>
@@ -177,7 +178,7 @@
         <!-- Cook Assignment -->
         {#if familyMembers.length > 0}
             <div class="form-group">
-                <span class="group-label">Кто готовит:</span>
+                <span class="group-label">{$t.meals.whoIsCooking}</span>
                 <div class="cook-chips">
                     {#each familyMembers as cook}
                         <button
@@ -196,11 +197,11 @@
         <!-- Time and Servings -->
         <div class="two-col-group">
             <div class="col-item">
-                <span class="group-label">Время (мин):</span>
+                <span class="group-label">{$t.meals.timeMinutes}</span>
                 <input type="number" class="dish-input small" min="5" max="180" bind:value={prepTime} />
             </div>
             <div class="col-item">
-                <span class="group-label">Порций:</span>
+                <span class="group-label">{$t.meals.servingsLabel}</span>
                 <input type="number" class="dish-input small" min="1" max="16" bind:value={servings} />
             </div>
         </div>
@@ -213,7 +214,7 @@
                 on:click={handleSave}
             >
                 <Icon icon="material-symbols:add-task-rounded" width={20} height={20} />
-                <span>Добавить в меню</span>
+                <span>{$t.meals.addToMenu}</span>
             </button>
         </div>
     </div>

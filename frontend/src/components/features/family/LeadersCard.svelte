@@ -99,20 +99,20 @@
         gap: 12px;
         width: 100%;
         padding: 10px 12px;
-        border: 1px solid var(--border-subtle);
+        border: 0.5px solid var(--border-subtle);
         border-radius: var(--radius-card, 18px);
         background: var(--surface-alt);
         cursor: pointer;
         transition:
-            transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
-            background 0.2s ease,
-            box-shadow 0.2s ease,
-            border-color 0.2s ease;
+            transform 0.14s cubic-bezier(0.25, 1, 0.5, 1),
+            background 0.16s ease,
+            box-shadow 0.16s ease,
+            border-color 0.16s ease;
         -webkit-tap-highlight-color: transparent;
     }
 
     .leader-row:active {
-        transform: scale(0.97);
+        transform: scale(0.97) translateZ(0);
     }
 
     /* CURRENT USER */

@@ -97,13 +97,14 @@
     .user-info {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 4px;
         min-width: 0;
     }
 
     .name {
-        font-size: 19px;
-        font-weight: 800;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+        font-size: 20px;
+        font-weight: 700;
         color: var(--text-primary);
         letter-spacing: -0.3px;
         overflow: hidden;
@@ -112,31 +113,31 @@
         line-height: 1.2;
     }
 
-    /* Notification */
+    /* Notification - 44x44pt Touch Target */
     .notification-btn {
-        width: 42px;
-        height: 42px;
+        min-width: 44px;
+        min-height: 44px;
         border-radius: 14px;
         background: var(--surface-alt);
-        border: 1px solid var(--border-subtle);
+        border: 0.5px solid var(--border-subtle);
         color: var(--text-secondary);
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
         cursor: pointer;
-        transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease;
+        transition: transform 0.14s cubic-bezier(0.25, 1, 0.5, 1), background 0.16s ease;
         -webkit-tap-highlight-color: transparent;
     }
 
     .notification-btn:active {
-        transform: scale(0.92);
+        transform: scale(0.94) translateZ(0);
     }
 
     .unread-dot {
         position: absolute;
-        top: 10px;
-        right: 10px;
+        top: 11px;
+        right: 11px;
         width: 7px;
         height: 7px;
         border-radius: 50%;
@@ -162,17 +163,17 @@
         justify-content: center;
         gap: 6px;
         padding: 12px 14px;
-        border-radius: var(--radius-card, 18px);
+        border-radius: 16px;
         background: var(--surface-alt);
-        border: 1px solid var(--border-subtle);
+        border: 0.5px solid var(--border-subtle);
         min-width: 0;
         box-sizing: border-box;
-        transition: transform 0.16s ease, border-color 0.2s ease;
+        transition: transform 0.14s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.16s ease;
         -webkit-tap-highlight-color: transparent;
     }
 
     .stat-box:active {
-        transform: scale(0.98);
+        transform: scale(0.97) translateZ(0);
     }
 
     .stat-top {

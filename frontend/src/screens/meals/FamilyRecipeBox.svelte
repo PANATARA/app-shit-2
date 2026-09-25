@@ -11,6 +11,7 @@
     import { formatDateKey } from "$lib/utils";
     import AddCustomRecipeModal from "./AddCustomRecipeModal.svelte";
     import RecipeGridSkeleton from "$skeletons/RecipeGridSkeleton.svelte";
+    import { t } from "$lib/i18n";
 
     const dispatch = createEventDispatcher<{
         selectRecipe: Recipe;
@@ -20,13 +21,13 @@
     let searchQuery = "";
     let activeFilter: "all" | "quick" | "favorites" | "kids" | "dinner" | "desserts" = "all";
 
-    const filters: { id: typeof activeFilter; label: string; icon: string }[] = [
-        { id: "all", label: "Все рецепты", icon: "material-symbols:local-dining-rounded" },
-        { id: "quick", label: "Быстрые (<20м)", icon: "material-symbols:bolt-rounded" },
-        { id: "favorites", label: "Любимые", icon: "material-symbols:favorite-rounded" },
-        { id: "kids", label: "Детям", icon: "material-symbols:child-care" },
-        { id: "dinner", label: "Ужины", icon: "material-symbols:dinner-dining-rounded" },
-        { id: "desserts", label: "Десерты", icon: "material-symbols:cake-rounded" },
+    $: filters = [
+        { id: "all" as const, label: $t.meals.allRecipes, icon: "material-symbols:local-dining-rounded" },
+        { id: "quick" as const, label: $t.meals.quick, icon: "material-symbols:bolt-rounded" },
+        { id: "favorites" as const, label: $t.meals.favorites, icon: "material-symbols:favorite-rounded" },
+        { id: "kids" as const, label: $t.meals.kids, icon: "material-symbols:child-care" },
+        { id: "dinner" as const, label: $t.meals.dinner, icon: "material-symbols:dinner-dining-rounded" },
+        { id: "desserts" as const, label: $t.meals.desserts, icon: "material-symbols:cake-rounded" },
     ];
 
     // Compute dates of current week
@@ -85,7 +86,7 @@
             <input
                 type="text"
                 class="search-input"
-                placeholder="Поиск по названию или ингредиентам..."
+                placeholder={$t.meals.searchPlaceholder}
                 bind:value={searchQuery}
             />
             {#if searchQuery}
@@ -98,10 +99,10 @@
             type="button"
             class="add-recipe-btn"
             on:click={() => (addCustomRecipeModalOpen = true)}
-            aria-label="Добавить блюдо в книгу рецептов"
+            aria-label={$t.meals.customRecipe}
         >
             <Icon icon="material-symbols:add-rounded" width={18} height={18} />
-            <span>Своё блюдо</span>
+            <span>{$t.meals.customRecipe}</span>
         </button>
     </div>
 
@@ -125,22 +126,22 @@
     {:else if allRecipes.length === 0}
         <div class="empty-state">
             <div class="empty-icon">📖</div>
-            <span class="empty-title">В книге рецептов пока пусто</span>
-            <span class="empty-desc">Добавляйте фирменные семейные блюда — они будут доступны всем членам вашей семьи!</span>
+            <span class="empty-title">{$t.meals.emptyBookTitle}</span>
+            <span class="empty-desc">{$t.meals.emptyBookDesc}</span>
             <button
                 type="button"
                 class="add-first-btn"
                 on:click={() => (addCustomRecipeModalOpen = true)}
             >
                 <Icon icon="material-symbols:add-rounded" width={20} height={20} />
-                <span>Добавить первое блюдо</span>
+                <span>{$t.meals.addFirstRecipe}</span>
             </button>
         </div>
     {:else if filteredRecipes.length === 0}
         <div class="empty-state">
             <div class="empty-icon">🍳</div>
-            <span class="empty-title">Рецепты не найдены</span>
-            <span class="empty-desc">Попробуйте изменить поисковый запрос или категорию</span>
+            <span class="empty-title">{$t.meals.notFoundTitle}</span>
+            <span class="empty-desc">{$t.meals.notFoundDesc}</span>
         </div>
     {:else}
         <div class="recipes-grid">
@@ -161,7 +162,7 @@
                             class="fav-badge"
                             class:active={recipe.isFavorite}
                             on:click|stopPropagation={() => toggleRecipeFavorite(recipe.id)}
-                            aria-label="В избранное"
+                            aria-label={$t.meals.toFavorites}
                         >
                             <Icon
                                 icon={recipe.isFavorite ? "material-symbols:favorite-rounded" : "material-symbols:favorite-outline-rounded"}
@@ -173,7 +174,7 @@
                         {#if isPlanned}
                             <div class="planned-ribbon">
                                 <Icon icon="material-symbols:calendar-month-rounded" width={12} height={12} />
-                                <span>В меню недели</span>
+                                <span>{$t.meals.inWeeklyMenu}</span>
                             </div>
                         {/if}
                     </div>
@@ -185,11 +186,11 @@
                         <div class="meta-row">
                             <span class="meta-item">
                                 <Icon icon="material-symbols:timer-outline-rounded" width={14} height={14} />
-                                <span>{recipe.prepTimeMinutes + recipe.cookTimeMinutes} мин</span>
+                                <span>{recipe.prepTimeMinutes + recipe.cookTimeMinutes} {$t.meals.min}</span>
                             </span>
                             <span class="meta-item">
                                 <Icon icon="material-symbols:group-rounded" width={14} height={14} />
-                                <span>{recipe.baseServings} порц.</span>
+                                <span>{recipe.baseServings} {$t.meals.servings}</span>
                             </span>
                         </div>
                     </div>
