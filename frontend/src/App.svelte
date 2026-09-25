@@ -432,6 +432,102 @@
         --blur-effect: none;
     }
 
+    /* ─── 5. Sage («Лесной оазис») ────────────────────────── */
+    :global(body.sage),
+    :global([data-theme="sage"]) {
+        --bg: #F3F6F3;
+        --surface: #FFFFFF;
+        --surface-alt: #E7EFE8;
+        --bg-bar: rgba(255, 255, 255, 0.92);
+        --text: #18241B;
+        --text-primary: #18241B;
+        --text-secondary: #495E4D;
+        --text-muted: #7E9482;
+        --text-nav: #556D59;
+        --accent: #2E7D52;
+        --accent-soft: rgba(46, 125, 82, 0.12);
+        --accent-gradient: linear-gradient(135deg, #2E7D52 0%, #439969 100%);
+        --accent-glow: rgba(46, 125, 82, 0.32);
+        --accent-fg: #FFFFFF;
+        --success: #287A49;
+        --success-soft: rgba(40, 122, 73, 0.14);
+        --border: rgba(126, 148, 130, 0.22);
+        --border-subtle: rgba(126, 148, 130, 0.14);
+        --divider: rgba(126, 148, 130, 0.1);
+        --bg-nav: #FFFFFF;
+        --nav-active-bg: rgba(46, 125, 82, 0.12);
+        --nav-active-fg: #2E7D52;
+        --shadow-card: 0 6px 20px -3px rgba(30, 55, 35, 0.06), 0 2px 6px -1px rgba(30, 55, 35, 0.04);
+        --shadow-ambient: 0 4px 18px rgba(30, 55, 35, 0.05);
+        --shadow-floating: 0 10px 28px -4px rgba(46, 125, 82, 0.34), 0 4px 12px rgba(30, 55, 35, 0.08);
+        --shadow-nav: 0 -4px 20px rgba(30, 55, 35, 0.06);
+        --blur-effect: none;
+    }
+
+    /* ─── 6. Midnight («Северное сияние») ─────────────────── */
+    :global(body.midnight),
+    :global([data-theme="midnight"]) {
+        --bg: #0E121A;
+        --surface: #161C26;
+        --surface-alt: #1F2735;
+        --bg-bar: rgba(22, 28, 38, 0.94);
+        --text: #F0F4FC;
+        --text-primary: #F0F4FC;
+        --text-secondary: #A0B0C6;
+        --text-muted: #697A92;
+        --text-nav: #A0B0C6;
+        --accent: #6366F1;
+        --accent-soft: rgba(99, 102, 241, 0.16);
+        --accent-gradient: linear-gradient(135deg, #6366F1 0%, #818CF8 100%);
+        --accent-glow: rgba(99, 102, 241, 0.35);
+        --accent-fg: #FFFFFF;
+        --success: #10B981;
+        --success-soft: rgba(16, 185, 129, 0.16);
+        --border: rgba(255, 255, 255, 0.11);
+        --border-subtle: rgba(255, 255, 255, 0.07);
+        --divider: rgba(255, 255, 255, 0.06);
+        --bg-nav: #161C26;
+        --nav-active-bg: rgba(99, 102, 241, 0.18);
+        --nav-active-fg: #818CF8;
+        --shadow-card: 0 8px 24px -4px rgba(0, 0, 0, 0.55), 0 2px 8px -1px rgba(0, 0, 0, 0.4);
+        --shadow-ambient: 0 4px 18px rgba(0, 0, 0, 0.4);
+        --shadow-floating: 0 10px 28px -4px rgba(99, 102, 241, 0.38), 0 4px 12px rgba(0, 0, 0, 0.45);
+        --shadow-nav: 0 -4px 22px rgba(0, 0, 0, 0.5);
+        --blur-effect: none;
+    }
+
+    /* ─── 7. Amber («Медовый полдень») ────────────────────── */
+    :global(body.amber),
+    :global([data-theme="amber"]) {
+        --bg: #FAF7EE;
+        --surface: #FFFFFF;
+        --surface-alt: #F4EEDC;
+        --bg-bar: rgba(255, 255, 255, 0.92);
+        --text: #282015;
+        --text-primary: #282015;
+        --text-secondary: #66553B;
+        --text-muted: #9E8867;
+        --text-nav: #736145;
+        --accent: #D97706;
+        --accent-soft: rgba(217, 119, 6, 0.12);
+        --accent-gradient: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+        --accent-glow: rgba(217, 119, 6, 0.32);
+        --accent-fg: #FFFFFF;
+        --success: #16A34A;
+        --success-soft: rgba(22, 163, 74, 0.14);
+        --border: rgba(158, 136, 103, 0.22);
+        --border-subtle: rgba(158, 136, 103, 0.14);
+        --divider: rgba(158, 136, 103, 0.1);
+        --bg-nav: #FFFFFF;
+        --nav-active-bg: rgba(217, 119, 6, 0.12);
+        --nav-active-fg: #D97706;
+        --shadow-card: 0 6px 20px -3px rgba(60, 45, 20, 0.06), 0 2px 6px -1px rgba(60, 45, 20, 0.04);
+        --shadow-ambient: 0 4px 18px rgba(60, 45, 20, 0.05);
+        --shadow-floating: 0 10px 28px -4px rgba(217, 119, 6, 0.35), 0 4px 12px rgba(60, 45, 20, 0.08);
+        --shadow-nav: 0 -4px 20px rgba(60, 45, 20, 0.06);
+        --blur-effect: none;
+    }
+
     :global(body) {
         background-color: var(--bg);
         margin: 0;

@@ -66,7 +66,7 @@ export function closeProfile() {
 if (typeof document !== "undefined") {
   theme.subscribe((value) => {
     const active = (value === "sunset" ? "warm" : value === "rose" ? "soft" : value) || "warm";
-    const allThemes = ["warm", "soft", "night", "royal", "sunset", "rose"];
+    const allThemes = ["warm", "soft", "night", "royal", "sunset", "rose", "sage", "midnight", "amber"];
     document.body.classList.remove(...allThemes);
     document.body.classList.add(active);
     document.documentElement.setAttribute("data-theme", active);

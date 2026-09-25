@@ -185,9 +185,8 @@
         border-radius: 20px;
         background: var(--surface);
         border: 1px solid var(--border-subtle);
-        box-shadow: var(--shadow-ambient);
         cursor: pointer;
-        transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, border-color 0.2s ease;
         -webkit-tap-highlight-color: transparent;
     }
 
@@ -213,7 +212,6 @@
     .day.selected {
         background: var(--accent-gradient, var(--accent));
         border-color: transparent;
-        box-shadow: 0 4px 14px var(--accent-glow);
     }
 
     .day.selected .weekday {

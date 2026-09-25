@@ -43,6 +43,24 @@
             description: $t.modals.themeRoyalDesc || "Чистая прохладная лазурная гамма",
             colors: ["#F2F8FC", "#2D72D9", "#0891B2"],
         },
+        {
+            id: "sage",
+            name: $t.modals.themeSage || "Лесной оазис",
+            description: $t.modals.themeSageDesc || "Успокаивающие шалфейные и травяные тона",
+            colors: ["#F3F6F3", "#2E7D52", "#4E9F6A"],
+        },
+        {
+            id: "midnight",
+            name: $t.modals.themeMidnight || "Северное сияние",
+            description: $t.modals.themeMidnightDesc || "Глубокая ночная гамма с акцентом индиго",
+            colors: ["#0E121A", "#161C26", "#6366F1"],
+        },
+        {
+            id: "amber",
+            name: $t.modals.themeAmber || "Медовый полдень",
+            description: $t.modals.themeAmberDesc || "Солнечная золотисто-янтарная гамма и тепло",
+            colors: ["#FAF7EE", "#D97706", "#F59E0B"],
+        },
     ];
 
     function applyTheme() {
