@@ -336,8 +336,8 @@
 
 <style>
     .screen {
-        background: var(--bg);
-        min-height: 100vh;
+        background: transparent;
+        min-height: 100%;
         padding: 12px 14px 24px;
         display: flex;
         flex-direction: column;

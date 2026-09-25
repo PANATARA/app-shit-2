@@ -86,7 +86,7 @@
         min-height: 100dvh;
         display: flex;
         flex-direction: column;
-        background: var(--bg);
+        background: transparent;
         padding-top: env(safe-area-inset-top);
     }
 

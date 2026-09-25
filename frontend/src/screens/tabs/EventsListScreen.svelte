@@ -343,7 +343,7 @@
         display: flex;
         flex-direction: column;
         min-height: 100%;
-        background-color: var(--bg);
+        background-color: transparent;
     }
 
     .page-header {

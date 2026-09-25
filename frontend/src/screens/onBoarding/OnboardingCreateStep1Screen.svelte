@@ -158,7 +158,7 @@
         display: flex;
         flex-direction: column;
 
-        background: var(--bg);
+        background: transparent;
         color: var(--text-primary);
     }
 

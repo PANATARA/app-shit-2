@@ -34,7 +34,7 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        background: var(--bg);
+        background: transparent;
         padding: max(20px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
     }
     .first-info {

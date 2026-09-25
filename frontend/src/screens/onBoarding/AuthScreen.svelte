@@ -363,7 +363,7 @@
         justify-content: center;
         padding: max(24px, env(safe-area-inset-top)) 16px
             max(24px, env(safe-area-inset-bottom));
-        background: var(--bg);
+        background: transparent;
         font-family: inherit;
     }
 

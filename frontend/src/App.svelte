@@ -347,6 +347,7 @@
     :global([data-theme="warm"]),
     :global([data-theme="sunset"]) {
         --bg: #FAF7F2;
+        --bg-gradient: radial-gradient(120% 80% at 50% -10%, #FFF5ED 0%, #FAF7F2 48%, #F4ECE3 100%);
         --surface: #FFFFFF;
         --surface-alt: #F4EFEA;
         --bg-bar: rgba(255, 255, 255, 0.92);
@@ -381,6 +382,7 @@
     :global([data-theme="soft"]),
     :global([data-theme="rose"]) {
         --bg: #FDF7F8;
+        --bg-gradient: radial-gradient(120% 80% at 50% -10%, #FFF0F4 0%, #FDF7F8 48%, #F7E8EF 100%);
         --surface: #FFFFFF;
         --surface-alt: #F9ECF0;
         --bg-bar: rgba(255, 255, 255, 0.92);
@@ -413,6 +415,7 @@
     :global(body.night),
     :global([data-theme="night"]) {
         --bg: #17151B;
+        --bg-gradient: radial-gradient(100% 70% at 55% -10%, rgba(255, 154, 108, 0.09) 0%, transparent 68%), linear-gradient(180deg, #1D1823 0%, #17151B 45%, #110F14 100%);
         --surface: #221E27;
         --surface-alt: #2D2734;
         --bg-bar: rgba(34, 30, 39, 0.94);
@@ -445,6 +448,7 @@
     :global(body.royal),
     :global([data-theme="royal"]) {
         --bg: #F2F8FC;
+        --bg-gradient: radial-gradient(120% 80% at 50% -10%, #EAF4FD 0%, #F2F8FC 48%, #E2EEF8 100%);
         --surface: #FFFFFF;
         --surface-alt: #E6F1FA;
         --bg-bar: rgba(255, 255, 255, 0.92);
@@ -477,6 +481,7 @@
     :global(body.sage),
     :global([data-theme="sage"]) {
         --bg: #F3F6F3;
+        --bg-gradient: radial-gradient(120% 80% at 50% -10%, #EFF6F0 0%, #F3F6F3 48%, #E4EFE6 100%);
         --surface: #FFFFFF;
         --surface-alt: #E7EFE8;
         --bg-bar: rgba(255, 255, 255, 0.92);
@@ -509,6 +514,7 @@
     :global(body.midnight),
     :global([data-theme="midnight"]) {
         --bg: #0E121A;
+        --bg-gradient: radial-gradient(100% 70% at 50% -10%, rgba(99, 102, 241, 0.11) 0%, transparent 68%), linear-gradient(180deg, #131925 0%, #0E121A 45%, #090C12 100%);
         --surface: #161C26;
         --surface-alt: #1F2735;
         --bg-bar: rgba(22, 28, 38, 0.94);
@@ -541,6 +547,7 @@
     :global(body.amber),
     :global([data-theme="amber"]) {
         --bg: #FAF7EE;
+        --bg-gradient: radial-gradient(120% 80% at 50% -10%, #FFF8E6 0%, #FAF7EE 48%, #F4EAD4 100%);
         --surface: #FFFFFF;
         --surface-alt: #F4EEDC;
         --bg-bar: rgba(255, 255, 255, 0.92);
@@ -571,6 +578,10 @@
 
     :global(body) {
         background-color: var(--bg);
+        background-image: var(--bg-gradient);
+        background-attachment: fixed;
+        background-size: cover;
+        background-repeat: no-repeat;
         margin: 0;
         padding: 0;
         color: var(--text-primary);
@@ -590,6 +601,11 @@
         height: 100dvh;
         width: 100vw;
         overflow: hidden;
+        background-color: var(--bg);
+        background-image: var(--bg-gradient);
+        background-attachment: fixed;
+        background-size: cover;
+        background-repeat: no-repeat;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
@@ -605,6 +621,11 @@
         display: grid;
         grid-template-columns: 100%;
         grid-template-rows: 100%;
+        background-color: var(--bg);
+        background-image: var(--bg-gradient);
+        background-attachment: fixed;
+        background-size: cover;
+        background-repeat: no-repeat;
     }
 
     .content {
@@ -619,6 +640,10 @@
         -webkit-overflow-scrolling: touch;
         box-sizing: border-box;
         background-color: var(--bg);
+        background-image: var(--bg-gradient);
+        background-attachment: fixed;
+        background-size: cover;
+        background-repeat: no-repeat;
         transform-origin: center center;
         will-change: transform, opacity;
         scrollbar-width: none;
@@ -742,6 +767,7 @@
         justify-content: center;
         height: 100vh;
         background-color: var(--bg);
+        background-image: var(--bg-gradient);
         color: var(--text-primary);
         gap: 16px;
         font-family: system-ui, sans-serif;
