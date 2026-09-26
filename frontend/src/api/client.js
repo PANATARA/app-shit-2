@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { clearAllSwr } from '../lib/swr';
 
 // Support VITE_API_URL or get/set it dynamically
 let savedUrl = '';
@@ -93,6 +94,11 @@ export function clearTokens() {
         userId: null,
         isFamilyAdmin: false,
     });
+    try {
+        clearAllSwr();
+    } catch (e) {
+        console.warn('Could not clear SWR cache on clearTokens:', e);
+    }
 }
 
 // Handle multi-request refresh queueing

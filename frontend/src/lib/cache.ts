@@ -51,3 +51,11 @@ export function clearCachePrefix(prefix: string): void {
     console.warn("swr clearCachePrefix failed:", e);
   }
 }
+
+/**
+ * Очистить весь кэш SWR (все ключи с префиксом swr:)
+ */
+export function clearSwrCache(): void {
+  clearCachePrefix("");
+}
+

@@ -19,30 +19,65 @@ export function mutate<T>(key: string, data?: T) {
     const prefix = key.slice(0, -1);
     clearCachePrefix(prefix);
     for (const [k, set] of listeners.entries()) {
-      if (k.startsWith(prefix)) {
-        set.forEach((fn) => fn(data));
+      if (k.startsWith(prefix) && set.size > 0) {
+        // Оповещаем только активных слушателей
+        const activeListeners = Array.from(set);
+        activeListeners.forEach((fn) => fn(data));
       }
     }
     return;
   }
+
   if (data !== undefined) {
     setCached(key, data);
   }
+
   const set = listeners.get(key);
-  if (set) {
-    set.forEach((fn) => fn(data));
+  if (set && set.size > 0) {
+    const activeListeners = Array.from(set);
+    activeListeners.forEach((fn) => fn(data));
   }
+}
+
+/**
+ * Очистить весь кэш SWR и сбросить активных слушателей (при выходе из аккаунта)
+ */
+export function clearAllSwr(): void {
+  clearCachePrefix("");
+  listeners.clear();
 }
 
 export function swr<T>(key: string, fetcher: () => Promise<T>) {
   const cached = getCached<T>(key);
 
-  const store = writable<SWRState<T>>({
-    data: cached,
-    loading: !cached, // показываем скелетон только если нет кэша
-    revalidating: !!cached, // есть кэш — сразу идём обновлять фоном
-    error: null,
-  });
+  let onMutate: MutateListener<T>;
+
+  const store = writable<SWRState<T>>(
+    {
+      data: cached,
+      loading: !cached, // показываем скелетон только если нет кэша
+      revalidating: !!cached, // есть кэш — сразу идём обновлять фоном
+      error: null,
+    },
+    () => {
+      // Старт подписки (первый компонент подписался) -> регистрируем слушателя
+      if (!listeners.has(key)) {
+        listeners.set(key, new Set());
+      }
+      listeners.get(key)!.add(onMutate);
+
+      return () => {
+        // Остановка подписки (все компоненты размонтировались) -> авто-отписка
+        const set = listeners.get(key);
+        if (set) {
+          set.delete(onMutate);
+          if (set.size === 0) {
+            listeners.delete(key);
+          }
+        }
+      };
+    }
+  );
 
   async function revalidate() {
     try {
@@ -56,19 +91,13 @@ export function swr<T>(key: string, fetcher: () => Promise<T>) {
     }
   }
 
-  const onMutate: MutateListener<T> = (freshData) => {
+  onMutate = (freshData) => {
     if (freshData !== undefined) {
       store.update((s) => ({ ...s, data: freshData, loading: false }));
     } else {
       revalidate();
     }
   };
-
-  if (!listeners.has(key)) {
-    listeners.set(key, new Set());
-  }
-  const set = listeners.get(key)!;
-  set.add(onMutate);
 
   revalidate();
 
