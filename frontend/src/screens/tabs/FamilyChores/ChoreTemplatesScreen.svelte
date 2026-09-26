@@ -1,15 +1,14 @@
 <script lang="ts">
-    import { activeTab, choreEditParams } from "$lib/navigation";
-    import { getDefaultChores, createChoresFromDefault } from "$api/chores";
+    import { activeTab } from "$lib/navigation";
+    import { useDefaultChores, addChoresFromDefault } from "$lib/choresStore";
     import type { DefaultChore } from "$types/index";
     import Icon from "@iconify/svelte";
     import DefaultChoreListItem from "$features/chores/DefaultChoreListItem.svelte";
     import ChoreTemplatesSkeleton from "$skeletons/ChoreTemplatesSkeleton.svelte";
-    import { swr, mutate } from "$lib/swr";
     import { t } from "$lib/i18n";
     import { language } from "$lib/settings";
 
-    const defaultChoresStore = swr("default-chores", getDefaultChores);
+    const defaultChoresStore = useDefaultChores();
 
     $: defaultChores = $defaultChoresStore.data ?? [];
     $: loading = $defaultChoresStore.loading;
@@ -23,11 +22,10 @@
     async function handleCreateFromDefault(def: DefaultChore) {
         saving = true;
         try {
-            await createChoresFromDefault({
+            await addChoresFromDefault({
                 default_chore_ids: [def.id],
                 language: $language,
             });
-            mutate("chores");
             activeTab.set("choreListScreen");
         } catch (e) {
             console.error(e);

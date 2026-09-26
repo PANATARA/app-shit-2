@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getChores } from "$api/chores";
+    import { useFamilyChores } from "$lib/choresStore";
     import { getFamilyMembers } from "$api/family";
     import type { ChoreItem } from "$types/index";
     import SearchBox from "$ui/SearchBox.svelte";
@@ -16,7 +16,7 @@
 
     // ─── Data fetching ───────────────────────────────────────────────────────
 
-    const choresData = swr("chores", getChores);
+    const choresData = useFamilyChores();
     const members = swr("family-members", getFamilyMembers);
 
     $: chores = $choresData.data?.chores ?? [];

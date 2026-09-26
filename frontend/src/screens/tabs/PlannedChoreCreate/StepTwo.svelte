@@ -14,10 +14,10 @@
 
     // API Services & State
     import {
-        createPlannedChore,
-        createQuickPlannedChore,
-        createChoreSchedule,
-    } from "$api/chores";
+        addPlannedChore,
+        addQuickPlannedChore,
+        addChoreSchedule,
+    } from "$lib/choresStore";
     import { getFamilyMembers } from "$api/family";
     import { userSession } from "$api/client";
     import { swr } from "$lib/swr";
@@ -99,22 +99,6 @@
         return mask;
     }
 
-    /** Clears cached planned chore responses from localStorage */
-    function clearPlannedChoresSwrCache() {
-        try {
-            if (typeof localStorage !== "undefined") {
-                for (let i = localStorage.length - 1; i >= 0; i--) {
-                    const k = localStorage.key(i);
-                    if (k && k.startsWith("swr:planned-chores:")) {
-                        localStorage.removeItem(k);
-                    }
-                }
-            }
-        } catch (e) {
-            console.warn("Could not clear SWR cache:", e);
-        }
-    }
-
     // ─── Actions & Handlers ──────────────────────────────────────────────────
     /** Navigates back to chore selection step */
     function handleBack() {
@@ -137,7 +121,7 @@
 
         try {
             if (isQuickTask) {
-                await createQuickPlannedChore({
+                await addQuickPlannedChore({
                     name: quickTaskName,
                     valuation: quickTaskValuation,
                     icon: quickTaskAvatar.icon,
@@ -180,12 +164,11 @@
                         repeat.day_of_month || new Date(startsAt).getDate();
                 }
 
-                await createChoreSchedule(selectedChore!.id, schedulePayload);
+                await addChoreSchedule(selectedChore!.id, schedulePayload);
             } else {
-                await createPlannedChore(selectedChore!.id, payload);
+                await addPlannedChore(selectedChore!.id, payload);
             }
 
-            clearPlannedChoresSwrCache();
             dispatch("add");
             activeTab.set("boardScreen");
         } catch (e: any) {

@@ -2,14 +2,11 @@
     import { onMount } from "svelte";
     import { fade } from "svelte/transition";
     import {
-        completePlannedChore,
-        getPlannedChore,
-        unCompletePlannedChore,
-        getQuickPlannedChores,
-        completeQuickPlannedChore,
-        uncompleteQuickPlannedChore,
-    } from "$api/chores";
-    import { swr } from "$lib/swr";
+        usePlannedChores,
+        useQuickPlannedChores,
+        mergeBoardChores,
+        togglePlannedChore,
+    } from "$lib/choresStore";
     import { formatDateKey } from "$lib/utils";
     import CardPlannedChore from "$features/chores/CardPlannedChore.svelte";
     import CardPlannedChoreSkeleton from "$skeletons/CardPlannedChoreSkeleton.svelte";
@@ -18,7 +15,7 @@
     import { detailPlannedChoreParams, activeTab } from "$lib/navigation";
     import { t } from "$lib/i18n";
     import { language } from "$lib/settings";
-    import type { AnyPlannedChore, PlannedChore, QuickPlannedChore } from "$types/index";
+    import type { AnyPlannedChore } from "$types/index";
 
     // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -58,25 +55,14 @@
 
     // ─── Data fetching ────────────────────────────────────────────────────────────
 
-    $: chores = swr<PlannedChore[]>(
-        `planned-chores:${dateKey}`,
-        () => getPlannedChore({ due_date: dateKey }),
-    );
-
-    $: quickChores = swr<QuickPlannedChore[]>(
-        `quick-planned-chores:${dateKey}`,
-        () => getQuickPlannedChores(dateKey, dateKey),
-    );
+    $: chores = usePlannedChores(dateKey);
+    $: quickChores = useQuickPlannedChores(dateKey);
 
     $: loading = $chores.loading || $quickChores.loading;
 
     // ─── Merged & sorted chores ───────────────────────────────────────────────────
 
-    $: allChores = [
-        ...($chores.data ?? []).map(c => ({ ...c, is_quick: false as const })),
-        ...($quickChores.data ?? []).map(c => ({ ...c, is_quick: true as const })),
-    ].sort((a, b) => Number(a.is_quick) - Number(b.is_quick));
-
+    $: allChores = mergeBoardChores($chores.data, $quickChores.data);
     $: plannedChores = optimisticChores ?? allChores;
 
     // ─── Derived state ────────────────────────────────────────────────────────────
@@ -112,28 +98,12 @@
         );
 
         try {
-            let updated: AnyPlannedChore;
-
-            if (choreItem.is_quick) {
-                const raw = isCompleted
-                    ? await uncompleteQuickPlannedChore(choreItem.id)
-                    : await completeQuickPlannedChore(choreItem.id);
-                updated = { ...raw, is_quick: true as const };
-                await quickChores.revalidate(); // Добавлен await
-            } else {
-                const raw = isCompleted
-                    ? await unCompletePlannedChore(choreItem.id)
-                    : await completePlannedChore(choreItem.id);
-                updated = { ...raw, is_quick: false as const };
-                await chores.revalidate(); // Добавлен await
-            }
-
-            // Как только сервер вернул актуальные данные и SWR обновил кэш,
-            // сбрасываем ручной стейт, чтобы UI переключился на allChores
+            await togglePlannedChore(choreItem, dateKey);
+            await Promise.all([chores.revalidate(), quickChores.revalidate()]);
             optimisticChores = null;
         } catch (e) {
             optimisticChores = previous;
-            console.error(e);
+            console.error("Failed to toggle chore completion:", e);
         }
     }
 </script>

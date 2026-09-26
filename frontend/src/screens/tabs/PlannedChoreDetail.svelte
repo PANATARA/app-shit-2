@@ -9,24 +9,18 @@
     import PlannedChoreSubtasks from "$features/chores/PlannedChoreSubtasks.svelte";
     import SubtaskEditor from "$features/chores/SubtaskEditor.svelte";
 
-    // API Services
+    // Store & Actions
     import {
-        deletePlannedChore,
-        reschedulePlannedChore,
-        completePlannedChore,
-        unCompletePlannedChore,
-        getChoreSchedule,
-        createChoreSchedule,
-        updateChoreSchedule,
-        deleteChoreSchedule,
-        updatePlannedChoreMessage,
-        deleteQuickPlannedChore,
-        completeQuickPlannedChore,
-        uncompleteQuickPlannedChore,
-        updateQuickPlannedChore,
-    } from "$api/chores";
+        removePlannedChore,
+        togglePlannedChore,
+        rescheduleChore,
+        updateChoreSubtasks,
+        useChoreSchedule,
+        addChoreSchedule,
+        editChoreSchedule,
+        removeChoreSchedule,
+    } from "$lib/choresStore";
     import { userSession } from "$api/client";
-    import { swr, mutate } from "$lib/swr";
     import type { AnyPlannedChore, PlannedChore, QuickPlannedChore } from "$types/index";
 
     // Navigation & Localization
@@ -81,7 +75,7 @@
     // ─── Reactive Declarations ───────────────────────────────────────────────
     $: choreId = !isQuick ? (plannedChore as PlannedChore)?.chore?.id : null;
     $: scheduleStore = choreId
-        ? swr(`chore-schedule:${choreId}`, () => getChoreSchedule(choreId))
+        ? useChoreSchedule(choreId)
         : null;
 
     $: if ($scheduleStore) {
@@ -202,22 +196,6 @@
         return lang === "en" ? "Scheduled" : "По расписанию";
     }
 
-    /** Clears cached planned chore responses from localStorage */
-    function clearPlannedChoresSwrCache() {
-        try {
-            if (typeof localStorage !== "undefined") {
-                for (let i = localStorage.length - 1; i >= 0; i--) {
-                    const k = localStorage.key(i);
-                    if (k && (k.startsWith("swr:planned-chores:") || k.startsWith("swr:quick-planned-chores:"))) {
-                        localStorage.removeItem(k);
-                    }
-                }
-            }
-        } catch (e) {
-            console.warn("Could not clear SWR cache:", e);
-        }
-    }
-
     // ─── Actions & Handlers ──────────────────────────────────────────────────
     /** Navigates back to the board screen */
     function handleBack() {
@@ -229,12 +207,7 @@
         if (!plannedChore) return;
         loading = true;
         try {
-            if (isQuick) {
-                await deleteQuickPlannedChore(plannedChore.id);
-            } else {
-                await deletePlannedChore(plannedChore.id);
-            }
-            clearPlannedChoresSwrCache();
+            await removePlannedChore(plannedChore.id, isQuick, plannedChore.due_date);
             handleBack();
         } catch (e) {
             console.error("Failed to delete planned chore:", e);
@@ -248,20 +221,7 @@
         if (!plannedChore) return;
         loading = true;
         try {
-            if (isQuick) {
-                if (plannedChore.completed_by) {
-                    await uncompleteQuickPlannedChore(plannedChore.id);
-                } else {
-                    await completeQuickPlannedChore(plannedChore.id);
-                }
-            } else {
-                if (plannedChore.completed_by) {
-                    await unCompletePlannedChore(plannedChore.id);
-                } else {
-                    await completePlannedChore(plannedChore.id);
-                }
-            }
-            clearPlannedChoresSwrCache();
+            await togglePlannedChore(plannedChore, plannedChore.due_date);
             handleBack();
         } catch (e) {
             console.error("Failed to toggle chore completion:", e);
@@ -275,16 +235,7 @@
         if (!plannedChore || !newDate || newDate === plannedChore.due_date) return;
         loading = true;
         try {
-            if (isQuick) {
-                await updateQuickPlannedChore(plannedChore.id, {
-                    due_date: newDate,
-                });
-            } else {
-                await reschedulePlannedChore(plannedChore.id, {
-                    reschedule_due_date: newDate,
-                });
-            }
-            clearPlannedChoresSwrCache();
+            await rescheduleChore(plannedChore.id, isQuick, newDate, plannedChore.due_date);
             handleBack();
         } catch (e) {
             console.error("Failed to reschedule chore:", e);
@@ -298,12 +249,13 @@
         scheduleSaving = true;
         scheduleErrorMessage = "";
         try {
+            const currentChoreId = choreId || (plannedChore as PlannedChore)?.chore?.id;
             if (repeatConfig.frequency_type === "none") {
-                if (activeSchedule) {
-                    await deleteChoreSchedule(activeSchedule.id, false);
+                if (activeSchedule && currentChoreId) {
+                    await removeChoreSchedule(activeSchedule.id, currentChoreId);
                     activeSchedule = null;
                 }
-            } else {
+            } else if (currentChoreId) {
                 const startsAt = repeatConfig.starts_at || plannedChore.due_date || getTodayIso();
                 const payload: any = {
                     frequency_type: repeatConfig.frequency_type,
@@ -330,19 +282,14 @@
                 }
 
                 if (activeSchedule) {
-                    activeSchedule = await updateChoreSchedule(activeSchedule.id, payload);
+                    activeSchedule = await editChoreSchedule(activeSchedule.id, currentChoreId, payload);
                 } else {
                     const finalAssignedTo =
                         plannedChore.assigned_to?.id ||
                         $userSession.userId;
                     payload.assigned_to_id = finalAssignedTo;
-                    activeSchedule = await createChoreSchedule(plannedChore.chore.id, payload);
+                    activeSchedule = await addChoreSchedule(currentChoreId, payload);
                 }
-            }
-
-            clearPlannedChoresSwrCache();
-            if (choreId) {
-                mutate(`chore-schedule:${choreId}`, activeSchedule);
             }
             isScheduleEditing = false;
         } catch (e: any) {
@@ -361,11 +308,11 @@
         scheduleSaving = true;
         scheduleErrorMessage = "";
         try {
-            await deleteChoreSchedule(activeSchedule.id, false);
-            activeSchedule = null;
-            if (choreId) {
-                mutate(`chore-schedule:${choreId}`, null);
+            const currentChoreId = choreId || (plannedChore as PlannedChore)?.chore?.id;
+            if (currentChoreId) {
+                await removeChoreSchedule(activeSchedule.id, currentChoreId);
             }
+            activeSchedule = null;
             repeatConfig = {
                 frequency_type: "none",
                 interval: 1,
@@ -374,7 +321,6 @@
                 starts_at: plannedChore?.due_date || getTodayIso(),
                 ends_at: null,
             };
-            clearPlannedChoresSwrCache();
             isScheduleEditing = false;
         } catch (e: any) {
             console.error("Failed to delete schedule:", e);
@@ -392,14 +338,9 @@
     async function handleSubtasksSave(newMsg: string) {
         if (!plannedChore) return;
         try {
-            if (isQuick) {
-                await updateQuickPlannedChore(plannedChore.id, { message: newMsg });
-            } else {
-                await updatePlannedChoreMessage(plannedChore.id, newMsg);
-            }
+            await updateChoreSubtasks(plannedChore.id, isQuick, newMsg, plannedChore.due_date);
             plannedChore.message = newMsg;
             subtaskErrorMessage = "";
-            clearPlannedChoresSwrCache();
         } catch (e: any) {
             console.error("Failed to update subtasks:", e);
             subtaskErrorMessage =

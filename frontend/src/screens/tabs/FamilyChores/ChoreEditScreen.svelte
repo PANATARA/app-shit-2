@@ -4,7 +4,7 @@
         choreEditParams,
         choreDetailParams,
     } from "$lib/navigation";
-    import { updateChore, deleteChore } from "$api/chores";
+    import { editFamilyChore, removeFamilyChore } from "$lib/choresStore";
     import Icon from "@iconify/svelte";
     import AvatarBuilder from "$features/settings/AvatarBuilder.svelte";
     import ChoreIcon from "$ui/ChoreIcon.svelte";
@@ -12,7 +12,6 @@
     import CustomTextarea from "$ui/CustomTextarea.svelte";
     import type { ChoreForm } from "$types/index";
     import { t } from "$lib/i18n";
-    import { mutate } from "$lib/swr";
 
     const chore = $choreEditParams.chore;
 
@@ -57,8 +56,7 @@
         saving = true;
 
         try {
-            const updated = await updateChore(chore.id, form);
-            mutate("chores");
+            const updated = await editFamilyChore(chore.id, form);
             choreDetailParams.set({ chore: updated });
         } catch (e) {
             console.error(e);
@@ -73,8 +71,7 @@
         deleting = true;
 
         try {
-            await deleteChore(chore.id);
-            mutate("chores");
+            await removeFamilyChore(chore.id);
             activeTab.set("choreListScreen");
         } catch (e) {
             console.error(e);

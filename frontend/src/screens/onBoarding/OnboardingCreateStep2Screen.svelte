@@ -11,7 +11,7 @@
 
     import type { FamilyProfile } from "$types/index";
 
-    import { getDefaultChores, createChoresFromDefault } from "$api/chores";
+    import { getDefaultChores, addChoresFromDefault as createChoresFromDefault } from "$lib/choresStore";
     import ChoreSelectionSkeleton from "$skeletons/ChoreSelectionSkeleton.svelte";
     import { language } from "$lib/settings";
 

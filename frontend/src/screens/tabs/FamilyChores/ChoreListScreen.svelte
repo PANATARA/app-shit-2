@@ -1,15 +1,14 @@
 <script lang="ts">
     import { activeTab, choreEditParams } from "$lib/navigation";
-    import { getChores } from "$api/chores";
+    import { useFamilyChores } from "$lib/choresStore";
     import type { ChoreItem } from "$types/index";
     import Icon from "@iconify/svelte";
     import SearchBox from "$ui/SearchBox.svelte";
     import ChoreListItem from "$features/chores/ChoreListItem.svelte";
     import ChoreListSkeleton from "$skeletons/ChoreListSkeleton.svelte";
-    import { swr } from "$lib/swr";
     import { t } from "$lib/i18n";
 
-    const choreStore = swr("chores", getChores);
+    const choreStore = useFamilyChores();
 
     $: chores = $choreStore.data?.chores ?? [];
     $: loading = $choreStore.loading;

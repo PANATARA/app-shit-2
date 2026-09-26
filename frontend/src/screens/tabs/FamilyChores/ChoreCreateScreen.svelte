@@ -1,13 +1,12 @@
 <script lang="ts">
     import { activeTab } from "$lib/navigation";
-    import { createChore } from "$api/chores";
+    import { addFamilyChore } from "$lib/choresStore";
     import Icon from "@iconify/svelte";
     import AvatarBuilder from "$features/settings/AvatarBuilder.svelte";
     import CustomInput from "$ui/CustomInput.svelte";
     import CustomTextarea from "$ui/CustomTextarea.svelte";
     import type { ChoreForm } from "$types/index";
     import { t } from "$lib/i18n";
-    import { mutate } from "$lib/swr";
 
     let saving = false;
 
@@ -42,8 +41,7 @@
         if (!form.name.trim()) return;
         saving = true;
         try {
-            await createChore(form);
-            mutate("chores");
+            await addFamilyChore(form);
             activeTab.set("choreListScreen");
         } catch (e) {
             console.error(e);
