@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { cubicOut, quadIn } from "svelte/easing";
+    import { slide } from "svelte/transition";
     import BoardScreen from "$screens/app/BoardScreen.svelte";
     import StatsScreen from "$screens/app/StatsScreen.svelte";
     import ProfileSettingsScreen from "$screens/app/ProfileSettingsScreen.svelte";
@@ -11,7 +12,8 @@
     import Icon from "@iconify/svelte";
     import { isLoggedInStore, clearTokens } from "$api/client.js";
     import { getProfile } from "$api/me.js";
-    import { getCached, setCached } from "$lib/cache";
+    import { getCached, setCached, removeCached } from "$lib/cache";
+    import { isOfflineStore, setOffline } from "$lib/network";
     import { mutate } from "$lib/swr";
     import { initPushNotifications, registerPushToken } from "$lib/pushNotifications";
 
@@ -45,6 +47,20 @@
             notifyNativeNavigation();
         });
 
+        const handleOnline = () => {
+            setOffline(false);
+            if ($isLoggedInStore) {
+                checkProfile();
+            }
+        };
+
+        const handleOffline = () => {
+            setOffline(true);
+        };
+
+        window.addEventListener("online", handleOnline);
+        window.addEventListener("offline", handleOffline);
+
         (window as any).onNativeBack = (action: string = "") => {
             if (action === "closeModal") {
                 closeTopModal();
@@ -74,6 +90,8 @@
 
         return () => {
             unsubActiveTab();
+            window.removeEventListener("online", handleOnline);
+            window.removeEventListener("offline", handleOffline);
             delete (window as any).onNativeBack;
         };
     });
@@ -84,6 +102,7 @@
             setCached("profile", profile);
             isAuthed = true;
             isInFamily = !!profile.is_family_member;
+            setOffline(false);
 
             // Sync push token for authenticated user
             registerPushToken().catch((e) => {
@@ -97,10 +116,30 @@
                     activeTab.set("onboardingChoose");
                 }
             }
-        } catch (err) {
-            clearTokens();
-            isAuthed = false;
-            isInFamily = false;
+        } catch (err: any) {
+            console.warn("checkProfile error:", err);
+            const status = err?.status ?? err?.response?.status;
+
+            if (status === 401) {
+                // Confirmed 401 Unauthorized with invalid or expired token
+                clearTokens();
+                removeCached("profile");
+                isAuthed = false;
+                isInFamily = false;
+                setOffline(false);
+            } else {
+                // Network error, server offline, 5xx, or timeout:
+                // Switch UI to offline mode while preserving authorization!
+                setOffline(true);
+                const cachedProfile = getCached<any>("profile");
+                if (cachedProfile) {
+                    isAuthed = true;
+                    isInFamily = !!cachedProfile.is_family_member;
+                } else if ($isLoggedInStore) {
+                    // Token exists in store, retain authentication in offline state
+                    isAuthed = true;
+                }
+            }
         }
     }
 
@@ -175,6 +214,22 @@
 </script>
 
 <main>
+    {#if isAuthed && $isOfflineStore}
+        <div class="offline-banner" transition:slide={{ duration: 180 }}>
+            <div class="offline-info">
+                <Icon icon="material-symbols:cloud-off-rounded" width="16" height="16" />
+                <span>{$t.common.offlineBanner || "Офлайн-режим • Сохранённые данные"}</span>
+            </div>
+            <button
+                type="button"
+                class="offline-retry-btn"
+                on:click={() => checkProfile()}
+            >
+                {$t.common.retry || "Повторить"}
+            </button>
+        </div>
+    {/if}
+
     {#if checkingAuth}
         <div class="app-loading">
             <div class="app-spinner"></div>
@@ -609,6 +664,52 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
+    }
+
+    .offline-banner {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: max(8px, env(safe-area-inset-top)) 16px 8px;
+        background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+        border-bottom: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+        color: var(--text-primary);
+        font-size: 13px;
+        font-weight: 600;
+        z-index: 50;
+    }
+
+    .offline-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .offline-info span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .offline-retry-btn {
+        background: var(--accent);
+        color: var(--accent-fg, #fff);
+        border: none;
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: transform 0.1s ease, opacity 0.15s ease;
+    }
+
+    .offline-retry-btn:active {
+        transform: scale(0.96);
+        opacity: 0.85;
     }
 
     .screens-viewport {
