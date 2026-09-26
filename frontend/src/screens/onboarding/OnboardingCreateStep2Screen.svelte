@@ -1,7 +1,7 @@
 <script lang="ts">
     import { scale, fade, slide } from "svelte/transition";
     import { activeTab, onboardingParams } from "$lib/navigation";
-    import { createFamily } from "$api/family";
+    import { createNewFamily } from "$lib/familyStore";
     import { t } from "$lib/i18n";
 
     import AvatarConstructor from "$features/settings/AvatarBuilder.svelte";
@@ -105,7 +105,7 @@
 
         try {
             const [profile] = await Promise.all([
-                createFamily($onboardingParams.familyForm),
+                createNewFamily($onboardingParams.familyForm),
                 new Promise((resolve) => setTimeout(resolve, 800)),
             ]);
 

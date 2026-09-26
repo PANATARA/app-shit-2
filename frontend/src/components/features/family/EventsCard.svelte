@@ -1,13 +1,12 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
     import type { FamilyEvent } from "$types/index";
-    import EventDetailSheet from "$screens/modal/EventDetailSheet.svelte";
+    import EventDetailSheet from "$screens/events/EventDetailSheet.svelte";
     import { activeTab } from "$lib/navigation";
     import { language } from "$lib/settings";
     import { t } from "$lib/i18n";
     import Card from "$ui/Card.svelte";
-    import { deleteEvent, updateEvent } from "$api/family";
-    import { mutate } from "$lib/swr";
+    import { removeFamilyEvent, editFamilyEvent } from "$lib/eventsStore";
 
     export let loading = true;
     export let events: FamilyEvent[] = [];
@@ -42,10 +41,8 @@
     async function handleDelete(e: CustomEvent<{ id: string | number }>) {
         const id = String(e.detail.id);
         try {
-            await deleteEvent(id);
+            await removeFamilyEvent(id);
             events = events.filter((ev) => String(ev.id) !== id);
-            mutate("family-events", events);
-            mutate("family-all-events");
         } catch (err) {
             console.error("Failed to delete event:", err);
         }
@@ -55,12 +52,10 @@
         const id = String(e.detail.id);
         const newDate = e.detail.date;
         try {
-            await updateEvent(id, { date: `${newDate}T00:00:00` });
+            await editFamilyEvent(id, { date: `${newDate}T00:00:00` });
             events = events.map((ev) =>
                 String(ev.id) === id ? { ...ev, date: `${newDate}T00:00:00` } : ev
             );
-            mutate("family-events", events);
-            mutate("family-all-events");
         } catch (err) {
             console.error("Failed to reschedule event:", err);
         }

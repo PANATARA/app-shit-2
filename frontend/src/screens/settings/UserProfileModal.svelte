@@ -1,11 +1,9 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import BottomSheet from "$ui/BottomSheet.svelte";
-    import { getUserProfile } from "$api/me";
-    import { kickFamilyMember, changeFamilyAdmin } from "$api/family";
+    import { useUserProfile, kickMember, transferAdmin } from "$lib/familyStore";
     import { userSession } from "$api/client";
     import CustButton from "$ui/button.svelte";
-    import { swr } from "$lib/swr";
     import { t } from "$lib/i18n";
     import CompactUserProfile from "$features/users/UserInfoCard.svelte";
 
@@ -13,21 +11,18 @@
 
     export let userId: string;
 
-    $: profile = swr(`user-profile-${userId}`, () => getUserProfile(userId));
+    $: profile = useUserProfile(userId);
     $: user = $profile.data;
     $: loading = $profile.loading;
 
     function close() {
         dispatch("close");
     }
+
     async function handleKickMember() {
         try {
-            await kickFamilyMember(userId);
-
-            // закрываем профиль после успешного удаления
+            await kickMember(userId);
             dispatch("close");
-
-            // можно отправить событие родителю для обновления списка
             dispatch("updated");
         } catch (e) {
             console.error("Ошибка при исключении пользователя:", e);
@@ -36,11 +31,8 @@
 
     async function handleChangeAdmin() {
         try {
-            await changeFamilyAdmin(userId);
-
+            await transferAdmin(userId);
             dispatch("updated");
-
-            // закрываем профиль
             dispatch("close");
         } catch (e) {
             console.error("Ошибка при смене администратора:", e);

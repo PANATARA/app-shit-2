@@ -1,21 +1,17 @@
 <script lang="ts">
-    import {
-        getFamilyStats,
-        getFamilyLeader,
-        getUpcomingEvents,
-    } from "$api/family";
-    import { getProfile } from "$api/me";
+    import { useMyProfile } from "$lib/familyStore";
+    import { useFamilyStats, useFamilyLeaders } from "$lib/statsStore";
+    import { useUpcomingEvents } from "$lib/eventsStore";
     import LeadersCard from "$features/family/LeadersCard.svelte";
     import EventsCard from "$features/family/EventsCard.svelte";
     import CompactUserProfile from "$features/users/UserInfoCard.svelte";
-    import { swr } from "$lib/swr";
     import { t } from "$lib/i18n";
 
     // ─── Data fetching ───────────────────────────────────────────────────────────
-    const profile = swr("profile", getProfile);
-    const leaders = swr("family-leaders", getFamilyLeader);
-    const stats = swr("family-stats", getFamilyStats);
-    const familyEvents = swr("family-events", getUpcomingEvents);
+    const profile = useMyProfile();
+    const leaders = useFamilyLeaders();
+    const stats = useFamilyStats();
+    const familyEvents = useUpcomingEvents();
 
     // реактивные алиасы
     $: meUser = $profile.data;

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte";
     import BottomSheet from "$ui/BottomSheet.svelte";
-    import { generateInviteToken } from "$api/family";
+    import { generateFamilyInvite } from "$lib/familyStore";
     import Icon from "@iconify/svelte";
     import { t } from "$lib/i18n";
     import { language } from "$lib/settings";
@@ -25,7 +25,7 @@
         loading = true;
         error = false;
         try {
-            const res = await generateInviteToken();
+            const res = await generateFamilyInvite();
             code = res.invite_token;
             expiresIn = res.ttl; // секунды
         } catch (e) {

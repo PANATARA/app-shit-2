@@ -2,12 +2,38 @@
     import { onMount } from "svelte";
     import { cubicOut, quadIn } from "svelte/easing";
     import { slide } from "svelte/transition";
-    import BoardScreen from "$screens/app/BoardScreen.svelte";
-    import StatsScreen from "$screens/app/StatsScreen.svelte";
-    import ProfileSettingsScreen from "$screens/app/ProfileSettingsScreen.svelte";
+    // Chores screens
+    import BoardScreen from "$screens/chores/BoardScreen.svelte";
+    import StepOne from "$screens/chores/StepOne.svelte";
+    import StepTwo from "$screens/chores/StepTwo.svelte";
+    import PlannedChoreDetail from "$screens/chores/PlannedChoreDetail.svelte";
+    import ChoreListScreen from "$screens/chores/ChoreListScreen.svelte";
+    import ChoreCreateScreen from "$screens/chores/ChoreCreateScreen.svelte";
+    import ChoreEditScreen from "$screens/chores/ChoreEditScreen.svelte";
+    import ChoreTemplatesScreen from "$screens/chores/ChoreTemplatesScreen.svelte";
+
+    // Events screens
+    import EventsListScreen from "$screens/events/EventsListScreen.svelte";
+    import EventCreateScreen from "$screens/events/EventCreateScreen.svelte";
+
+    // Meals screens
     import MealsHubScreen from "$screens/meals/MealsHubScreen.svelte";
 
-    import AuthScreen from "$screens/onBoarding/AuthScreen.svelte";
+    // Stats screen
+    import StatsScreen from "$screens/stats/StatsScreen.svelte";
+
+    // Settings screens
+    import ProfileSettingsScreen from "$screens/settings/ProfileSettingsScreen.svelte";
+    import UserProfileModal from "$screens/settings/UserProfileModal.svelte";
+
+    // Onboarding screens
+    import AuthScreen from "$screens/onboarding/AuthScreen.svelte";
+    import OnboardingWelcomeScreen from "$screens/onboarding/OnboardingWelcomeScreen.svelte";
+    import OnboardingProfileScreen from "$screens/onboarding/OnboardingProfileScreen.svelte";
+    import OnboardingChooseScreen from "$screens/onboarding/OnboardingChooseScreen.svelte";
+    import OnboardingCreateStep1Screen from "$screens/onboarding/OnboardingCreateStep1Screen.svelte";
+    import OnboardingCreateStep2Screen from "$screens/onboarding/OnboardingCreateStep2Screen.svelte";
+    import OnboardingJoinScreen from "$screens/onboarding/OnboardingJoinScreen.svelte";
 
     import Icon from "@iconify/svelte";
     import { isLoggedInStore, clearTokens } from "$api/client.js";
@@ -16,27 +42,9 @@
     import { isOfflineStore, setOffline } from "$lib/network";
     import { mutate } from "$lib/swr";
     import { initPushNotifications, registerPushToken } from "$lib/pushNotifications";
-
-    import UserProfileModal from "$screens/modal/UserProfileModal.svelte";
     import { profileModal, closeProfile } from "$lib/settings";
     import { activeTab, closeTopModal, navigateBack, notifyNativeNavigation } from "$lib/navigation";
     import { t } from "$lib/i18n";
-    import StepOne from "$screens/tabs/PlannedChoreCreate/StepOne.svelte";
-    import StepTwo from "$screens/tabs/PlannedChoreCreate/StepTwo.svelte";
-    import PlannedChoreDetail from "$screens/tabs/PlannedChoreDetail.svelte";
-    import ChoreListScreen from "$screens/tabs/FamilyChores/ChoreListScreen.svelte";
-    import ChoreEditScreen from "$screens/tabs/FamilyChores/ChoreEditScreen.svelte";
-    import ChoreTemplatesScreen from "$screens/tabs/FamilyChores/ChoreTemplatesScreen.svelte";
-
-    import OnboardingWelcomeScreen from "$screens/onBoarding/OnboardingWelcomeScreen.svelte";
-    import OnboardingProfileScreen from "$screens/onBoarding/OnboardingProfileScreen.svelte";
-    import OnboardingChooseScreen from "$screens/onBoarding/OnboardingChooseScreen.svelte";
-    import OnboardingCreateStep1Screen from "$screens/onBoarding/OnboardingCreateStep1Screen.svelte";
-    import OnboardingCreateStep2Screen from "$screens/onBoarding/OnboardingCreateStep2Screen.svelte";
-    import OnboardingJoinScreen from "$screens/onBoarding/OnboardingJoinScreen.svelte";
-    import EventCreateScreen from "$screens/tabs/EventCreate.svelte";
-    import EventsListScreen from "$screens/tabs/EventsListScreen.svelte";
-    import ChoreCreateScreen from "$screens/tabs/FamilyChores/ChoreCreateScreen.svelte";
 
     let isAuthed = false;
     let isInFamily = false;

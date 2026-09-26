@@ -2,22 +2,23 @@
     import { onMount } from "svelte";
     import Icon from "@iconify/svelte";
     import Backbtn from "$ui/backbtn.svelte";
-    import EventDetailSheet from "$screens/modal/EventDetailSheet.svelte";
-    import type { FamilyEvent } from "$types/index";
-    import { getAllEvents, deleteEvent, updateEvent } from "$api/family";
+    import EventDetailSheet from "./EventDetailSheet.svelte";
+    import {
+        useAllEvents,
+        removeFamilyEvent,
+        editFamilyEvent,
+        type FamilyEvent,
+    } from "$lib/eventsStore";
+    import { getAllEvents } from "$api/family";
     import { activeTab, navigateBack } from "$lib/navigation";
     import { language } from "$lib/settings";
     import { t } from "$lib/i18n";
     import EventsListSkeleton from "$skeletons/EventsListSkeleton.svelte";
-    import { swr, mutate } from "$lib/swr";
+    import { mutate } from "$lib/swr";
 
     const PAGE_LIMIT = 20;
 
-    const initialEventsStore = swr<FamilyEvent[]>("family-all-events", () =>
-        getAllEvents({ limit: PAGE_LIMIT, offset: 0 }).then((res) =>
-            Array.isArray(res) ? res : (res?.items || [])
-        )
-    );
+    const initialEventsStore = useAllEvents(PAGE_LIMIT, 0);
 
     let olderEvents: FamilyEvent[] = [];
     let events: FamilyEvent[] = [];
@@ -133,11 +134,10 @@
     async function handleDelete(e: CustomEvent<{ id: string | number }>) {
         const id = String(e.detail.id);
         try {
-            await deleteEvent(id);
+            await removeFamilyEvent(id);
             const updatedInitial = initialEvents.filter((ev) => String(ev.id) !== id);
             olderEvents = olderEvents.filter((ev) => String(ev.id) !== id);
             mutate("family-all-events", updatedInitial);
-            mutate("family-events");
         } catch (err) {
             console.error("Failed to delete event:", err);
         }
@@ -147,7 +147,7 @@
         const id = String(e.detail.id);
         const newDate = e.detail.date;
         try {
-            await updateEvent(id, { date: `${newDate}T00:00:00` });
+            await editFamilyEvent(id, { date: `${newDate}T00:00:00` });
             const updatedInitial = initialEvents.map((ev) =>
                 String(ev.id) === id ? { ...ev, date: `${newDate}T00:00:00` } : ev
             );
@@ -155,7 +155,6 @@
                 String(ev.id) === id ? { ...ev, date: `${newDate}T00:00:00` } : ev
             );
             mutate("family-all-events", updatedInitial);
-            mutate("family-events");
         } catch (err) {
             console.error("Failed to reschedule event:", err);
         }

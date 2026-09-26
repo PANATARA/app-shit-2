@@ -5,9 +5,8 @@
     import CustomTextarea from "$ui/CustomTextarea.svelte";
     import AvatarBuilder from "$features/settings/AvatarBuilder.svelte";
     import { activeTab, navigateBack } from "$lib/navigation";
-    import { createEvent } from "$api/family";
+    import { addFamilyEvent } from "$lib/eventsStore";
     import { t } from "$lib/i18n";
-    import { mutate } from "$lib/swr";
 
     const dispatch = createEventDispatcher();
 
@@ -48,9 +47,7 @@
         };
 
         try {
-            await createEvent(payload);
-            mutate("family-events");
-            mutate("family-all-events");
+            await addFamilyEvent(payload);
             dispatch("add");
             navigateBack();
         } catch (error) {

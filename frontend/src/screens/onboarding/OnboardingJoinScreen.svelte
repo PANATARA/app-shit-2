@@ -1,7 +1,7 @@
 <script lang="ts">
     import { scale, fade, slide } from "svelte/transition";
     import { activeTab } from "$lib/navigation";
-    import { joinFamily } from "$api/family";
+    import { joinFamilyByCode } from "$lib/familyStore";
     import { t } from "$lib/i18n";
 
     import BackButton from "$ui/backbtn.svelte";
@@ -63,9 +63,7 @@
 
         try {
             const [profile] = await Promise.all([
-                joinFamily({
-                    invite_code: clean,
-                }),
+                joinFamilyByCode(clean),
                 new Promise((resolve) => setTimeout(resolve, 1000)),
             ]);
 

@@ -1,22 +1,25 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import { getFamily, getFamilyMembers } from "$api/family";
-    import { getProfile, updateProfile } from "$api/me";
     import UserAvatar from "$ui/UserAvatar.svelte";
     import Block from "$ui/block.svelte";
     import Card from "$ui/Card.svelte";
     import CustButton from "$ui/button.svelte";
     import Icon from "@iconify/svelte";
     import AvatarBuilder from "$features/settings/AvatarBuilder.svelte";
-    import InviteModal from "$screens/modal/InviteModal.svelte";
-    import LangModal from "$screens/modal/LangModal.svelte";
-    import ThemeModal from "$screens/modal/ThemeModal.svelte";
+    import InviteModal from "./InviteModal.svelte";
+    import LangModal from "./LangModal.svelte";
+    import ThemeModal from "./ThemeModal.svelte";
+    import {
+        useMyProfile,
+        useFamily,
+        useFamilyMembers,
+        updateMyProfile,
+        leaveFamily,
+    } from "$lib/familyStore";
     import { theme, language, openProfile } from "$lib/settings.js";
     import { userSession, clearTokens } from "$api/client";
-    import { logoutFromFamily } from "$api/family";
     import FamilyMembersSkeleton from "$skeletons/FamilyMembersSkeleton.svelte";
     import ProfileSkeleton from "$skeletons/ProfileSkeleton.svelte";
-    import { swr, mutate } from "$lib/swr";
     import { activeTab } from "$lib/navigation";
     import { t } from "$lib/i18n";
     import {
@@ -45,9 +48,9 @@
     const appVersion = "1.0.0";
 
     // ─── DATA ──────────────────────────────────────
-    const profile = swr("profile", getProfile);
-    const family = swr("family", getFamily);
-    const members = swr("family-members", getFamilyMembers);
+    const profile = useMyProfile();
+    const family = useFamily();
+    const members = useFamilyMembers();
 
     $: meUser = $profile.data;
     $: familyMembers = $members.data?.members ?? [];
@@ -73,19 +76,18 @@
 
     async function saveEdit() {
         if (!meUser) return;
-        const updated = await updateProfile({
+        const updated = await updateMyProfile({
             name: editName.trim(),
             ...editAvatar,
         });
         meUser = updated;
-        mutate("profile", updated);
         isEditing = false;
     }
 
     async function handleLeaveFamily() {
         if (!confirm($t.settings.leaveConfirm)) return;
         try {
-            await logoutFromFamily();
+            await leaveFamily();
             dispatch("family-left");
         } catch (e) {
             console.error(e);
